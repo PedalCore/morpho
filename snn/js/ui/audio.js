@@ -49,6 +49,8 @@ export class AudioEngine {
     this.scaleName = 'minor pentatonic';
     this.tuningName = '12-TET';
     this.keyOffset = 0; // semitone shift set by the sim's circle-of-fifths state
+    this.octaveShift = 0; // global transpose, in octaves
+    this.octaveWidth = 5; // register span: structural octaves 1–5 compressed into this many
     this.walkerSpread = false; // give each walker its own register band
     this.structuralSounds = true; // birth chimes / prune thuds / division arpeggios
     this.minRetriggerMs = 90; // per-neuron note gate (density control)
@@ -155,13 +157,20 @@ export class AudioEngine {
     if (this.ctx) this.ctx.suspend();
   }
 
-  // octave + scale degree index → Hz, through the active scale, tuning and key
-  freqFor(octave, structDegree) {
+  // octave + scale degree index → Hz, through the active scale, tuning and key.
+  // Structural octaves (1–5, from region depth) are first compressed into the
+  // chosen register width, then shifted by the global octave transpose;
+  // extraOctave (walker spread) is applied after compression so voice
+  // separation survives a narrow width.
+  freqFor(octave, structDegree, extraOctave = 0) {
     const scale = SCALES[this.scaleName];
     const degree = ((structDegree % scale.length) + scale.length) % scale.length;
     const semis = scale[degree];
     const tuning = TUNINGS[this.tuningName];
-    const oct = Math.max(0, Math.min(6, octave));
+    const structural = Math.max(1, Math.min(5, octave));
+    const compressed = 1 + Math.round(((structural - 1) / 4) * (this.octaveWidth - 1));
+    const centering = Math.floor((5 - this.octaveWidth) / 2); // narrow widths sit mid-register
+    const oct = Math.max(0, Math.min(6, compressed + centering + extraOctave + this.octaveShift));
     if (tuning.ratios) {
       return ROOT_HZ * Math.pow(2, oct) * tuning.ratios[semis % 12] * tuning.ratios[this.keyOffset % 12];
     }
@@ -257,7 +266,7 @@ export class AudioEngine {
     if (at < 0) return false;
     const shift = this.walkerSpread ? [0, 1, -1, 2][walkerIndex % 4] : 0;
     this._voice({
-      freq: this.freqFor(neuron.octave + shift, neuron.structDegree),
+      freq: this.freqFor(neuron.octave, neuron.structDegree, shift),
       at,
       pan,
       amp: 0.06,

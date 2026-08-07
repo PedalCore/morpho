@@ -188,6 +188,18 @@ window.addEventListener('DOMContentLoaded', () => {
     audio.tuningName = e.target.value;
   });
 
+  const setOctave = (d) => {
+    audio.octaveShift = Math.max(-2, Math.min(3, audio.octaveShift + d));
+    $('octVal').textContent = audio.octaveShift > 0 ? `+${audio.octaveShift}` : `${audio.octaveShift}`;
+  };
+  $('octDown').addEventListener('click', () => setOctave(-1));
+  $('octUp').addEventListener('click', () => setOctave(1));
+
+  $('octWidth').addEventListener('input', (e) => {
+    audio.octaveWidth = parseInt(e.target.value, 10);
+    $('octWidthVal').textContent = e.target.value;
+  });
+
   $('keyDrift').addEventListener('input', (e) => {
     lab.simParams.modProb = parseFloat(e.target.value);
     $('keyDriftVal').textContent = e.target.value;

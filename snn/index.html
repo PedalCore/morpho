@@ -111,6 +111,8 @@
   <div class="ctl"><label>seed</label><input type="number" id="seed" value="42" /><button id="rebuild">grow</button><button id="reseed">random</button><button id="branch" title="recursive fan-out: sprout new sibling populations off existing regions">⑂ branch</button></div>
   <div class="ctl"><label>scale</label><select id="scale"></select></div>
   <div class="ctl"><label>tuning</label><select id="tuning"></select></div>
+  <div class="ctl"><label>octave</label><button id="octDown">−</button><span id="octVal">0</span><button id="octUp">+</button></div>
+  <div class="ctl" title="compress the register span: 1 = everything in one octave, 5 = full anatomical spread"><label>width</label><input type="range" id="octWidth" min="1" max="5" step="1" value="5" /><span id="octWidthVal">5</span></div>
   <div class="ctl" title="chance a modulator spike actually changes key"><label>key drift</label><input type="range" id="keyDrift" min="0" max="0.4" step="0.01" value="0.06" /><span id="keyDriftVal">0.06</span></div>
   <div class="ctl"><label>pulse</label><input type="range" id="tempo" min="150" max="800" step="10" value="340" /><span id="tempoVal">340 ms</span></div>
   <div class="ctl"><label>density</label><input type="range" id="density" min="40" max="240" step="10" value="90" /></div>
