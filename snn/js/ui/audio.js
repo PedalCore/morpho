@@ -53,6 +53,7 @@ export class AudioEngine {
     this.octaveWidth = 5; // register span: structural octaves 1–5 compressed into this many
     this.walkerSpread = false; // give each walker its own register band
     this.structuralSounds = true; // birth chimes / prune thuds / division arpeggios
+    this.spikeNotes = true; // output-neuron spike voices (off → walkers only)
     this.minRetriggerMs = 90; // per-neuron note gate (density control)
     this.strumMs = 24; // fan-out spacing for near-simultaneous notes
     this.quantize = 0; // 0 = raw spike timing, 1 = hard-snapped to the grid
@@ -233,7 +234,7 @@ export class AudioEngine {
   // Spike-driven note from an output neuron. fanout biases velocity and
   // duration (plugin brief: high fanout → accented + shorter).
   noteOn(neuron, pan = 0, fanout = 3) {
-    if (!this.enabled || !this.ctx) return false;
+    if (!this.enabled || !this.ctx || !this.spikeNotes) return false;
     const now = this.ctx.currentTime;
     const last = this.lastNoteTime.get(neuron.id) ?? -1;
     if (now - last < this.minRetriggerMs / 1000) return false;

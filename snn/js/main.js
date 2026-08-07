@@ -239,6 +239,10 @@ window.addEventListener('DOMContentLoaded', () => {
     audio.structuralSounds = e.target.checked;
   });
 
+  $('spikeNotes').addEventListener('change', (e) => {
+    audio.spikeNotes = e.target.checked;
+  });
+
   $('rebuild').addEventListener('click', () => {
     build(parseInt($('seed').value, 10) || 42);
   });
