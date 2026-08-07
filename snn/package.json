@@ -1,0 +1,10 @@
+{
+  "name": "morpho-snn-lab",
+  "version": "0.1.0",
+  "description": "Experimental lab: Morpho-style recursive development driving a spiking neural network, sonified as scale notes",
+  "type": "module",
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs'",
+    "serve": "python3 -m http.server 8765"
+  }
+}

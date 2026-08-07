@@ -1,0 +1,174 @@
+# Experiment: Is "Morpho × SNN" a good idea?
+
+**Date started:** 2026-08-07
+**Status:** Experiments 1–5 of the SNN brief implemented in miniature, plus
+LIVE-mode concepts imported from the C++/JUCE plugin briefs (v2). Findings below.
+
+## v2 — plugin-brief concepts folded in (same day)
+
+Feedback from first listening session: little structural/register variation,
+chords landing as blocks. Fixes, all borrowed from the plugin briefs so the
+browser doubles as their prototyping lab:
+
+- **Structural pitch (plugin §12):** region depth → octave, sector + birth
+  order → scale degree, fixed at birth. The grammar now recurses to *stochastic*
+  depths (2–3 branching, early termination), so registers spread 4–5 octaves.
+- **Region subdivision + ⑂ branch button:** leaves divide during lifetime
+  (automatic when large + healthy, or manually via the branch button, which
+  sprouts brand-new sibling populations one register deeper). Development
+  literally climbs in pitch as structure elaborates.
+- **Strum:** near-simultaneous notes share a scheduling cursor and fan out
+  into fast arpeggios (adjustable spacing).
+- **Walkers (plugin LIVE mode, §16–19):** weighted stochastic graph traversal
+  with variation/momentum/repetition-penalty on a musical grid — a melodic
+  voice distinct from the spike texture.
+- **Music affects survival (plugin §36–37):** neuron energy decays each epoch,
+  restored by firing AND by walker visits; pruning is energy-based and
+  walker-occupied neurons are protected. The music the organism plays now
+  helps decide which structures live.
+- **Afferent repair:** silent regions may grow a long-range afferent from an
+  active region instead of another doomed local neuron (fixes the v1 churn
+  finding).
+
+Headless check (50 epochs): octave spread grows 2–3 → 4–5; leaf regions 6 → 14–25;
+5–11 region divisions per run; structural churn roughly tripled while staying
+within budgets.
+
+Later same session:
+- **⑂ branch button** — manual recursive fan-out: sprouts fresh sibling
+  populations (new neurons, one register deeper) off existing leaves.
+- **Modulator nodes** — rare gold-diamond neurons (~5% of non-output
+  excitatory, grown neurons roll the same dice). When one spikes it may move
+  the key around the circle of fifths — adjacent step (up a fifth / down a
+  fourth) or skip-over (two positions), either direction — gated by low
+  probability + 12 s cooldown. Part of the deterministic sim, so each seed has
+  a reproducible harmonic journey; some organisms never leave C, others
+  wander (e.g. seed 42: C→D→A→E→A→B→…). Logged as KeyChanged events.
+- **FX sends** — generated-impulse reverb, feedback delay tracking the pulse
+  at a dotted interval, LFO chorus. Audio-side only.
+- Scales added: phrygian dominant, harmonic minor. Structural sounds
+  (birth/prune/division) got their own toggle.
+
+All 25 tests pass.
+
+## Hypothesis (from the brief, §42)
+
+> Can a compact recursive developmental grammar generate a spiking neural
+> structure whose ongoing neural activity influences which parts of that
+> structure grow, survive, collapse and regrow — and does that produce
+> musically interesting dynamics that a fixed SNN or a conventional generative
+> graph would not?
+
+## What was built
+
+A self-contained browser lab (no build step, no dependencies) implementing the
+brief's three-layer architecture on three timescales:
+
+| Layer | Module | Timescale |
+|---|---|---|
+| Developmental grammar ("morpho-lite") | `js/morpho/grammar.js` | slow — epochs |
+| Development feedback (grow/prune/homeostasis) | `js/morpho/development.js` | slow — epochs |
+| Neural graph (neurons, synapses, regions) | `js/neural/graph.js` | — |
+| Spiking engine (LIF, delays, recurrence) | `js/neural/engine.js` | fast — 1 ms steps |
+| Activity statistics (EMA rates) | `js/neural/activity.js` | medium — per epoch |
+| Sonification (spikes → scale notes) | `js/ui/audio.js` | — |
+
+The grammar is not a parser for real Morpho syntax; it is the developmental
+*semantics* (recursive region → population → neuron expansion with seeded
+stochastic choices). A real Morpho front-end would compile to the same
+`growNetwork` / `wireNeuronIntoRegion` calls — that is the documented
+integration point for the existing Morpho web repo.
+
+**The musical mapping is structural, which is the actual experiment:** each
+output neuron receives a stable scale-degree slot *at birth*. Growth adds
+pitches to the texture; pruning removes them. You are not hearing a
+visualization of the music — the network's anatomy *is* the note pool, its
+spike timing *is* the rhythm (input pulses + synaptic delays + refractory
+periods), and its development *is* the arrangement changing.
+
+## Protocol
+
+1. `npm test` — 16 headless tests covering LIF dynamics, delays, recurrence,
+   determinism, grammar expansion, budgets, pruning safety, long-run
+   boundedness.
+2. `npm run serve` → http://localhost:8765 — enable **sound**, press **run**.
+3. Compare conditions:
+   - **development off** (frozen organism) vs **on** — does development add
+     musical interest, or just noise?
+   - multiple **seeds** — do different genotypes produce recognizably
+     different organisms/music?
+   - **pulse period** and **scale** — musical exploration.
+
+## Judgment criteria
+
+The idea is *promising* if, over ~5 simulated minutes:
+
+- [x] the network neither dies (silence) nor saturates (seizure) — homeostatic
+      band mostly holds
+- [x] growth AND pruning both occur repeatedly (structural churn, not one-way
+      growth)
+- [x] different seeds → different structural trajectories (genotype matters)
+- [x] deterministic replay (same seed = same spikes = same music)
+- [ ] development-ON sounds *noticeably* different from development-OFF after a
+      few minutes (listen and judge — subjective)
+- [ ] at least one emergent behaviour not explicitly programmed
+
+## Initial findings (headless, 40 epochs, seeds 42 / 7 / 99)
+
+```
+seed 42: 65 neurons, 467 synapses, 22 grown /  3 pruned, mean 5.8 Hz
+seed  7: 56 neurons, 357 synapses, 44 grown / 34 pruned, mean 2.2 Hz
+seed 99: 54 neurons, 335 synapses, 21 grown / 13 pruned, mean 3.3 Hz
+```
+
+Observations:
+
+1. **Alternating quiet/burst regimes emerged without being programmed.** Rate
+   trajectories oscillate (e.g. seed 7: 54 Hz → 2 Hz → 0.9 Hz → 16 Hz → 3 Hz).
+   The growth/prune loop plus recurrent delays produces slow structural
+   "breathing" — the expansion → scarcity → pruning → recovery cycle §21 of
+   the brief hoped for, even without an explicit energy model. Musically this
+   reads as sections: sparse passages then dense flurries.
+2. **Churn cycles in silent regions.** A region that goes silent grows
+   excitatory neurons (homeostatic pressure), which stay silent (no input
+   path), get pruned at min-age, and regrow. This is "development, forgetting,
+   redevelopment" in miniature — but it also shows the survival metric is too
+   naive (brief §16 predicted this): activity alone doesn't measure
+   *usefulness*. A silent region may need a new *long-range afferent*, not
+   more local neurons. → Experiment idea below.
+3. **Genotype legibility:** different seeds are audibly different organisms
+   (different voice counts, register spreads, echo patterns from long-range
+   delays). The compact-grammar → distinct-phenotype claim holds at this scale.
+4. **Budgets hold.** 60+ epochs, bounded memory, no invalid graph states.
+
+## Verdict so far
+
+The core loop (grammar → structure → spikes → statistics → structural change →
+new dynamics) closes, stays stable, and is *audible*. The mechanism is worth
+pursuing. The weak point is exactly where the brief predicted: the survival /
+growth heuristics are too local. Structure responds to activity, but not yet
+to *usefulness*.
+
+## Next experiments (in order of expected information gain)
+
+1. ~~**Long-range growth rule**~~ — done in v2 (afferent repair).
+2. **Weight-to-structure (brief §14)** — add simple STDP, then let
+   persistently strong synapses trigger pathway duplication with a delayed
+   echo path. Musically: motifs that reinforce themselves get elaborated.
+3. **Collapse/regrowth (brief §18–19)** — fold low-value leaf regions into
+   proxy nodes retaining their developmental rule + pitch identity; regrow
+   later, optionally mutated. Musically: motif recurrence with variation.
+4. **Walker ecology** — collisions, spawning on branch, probability attractor
+   (plugin §23: an XY attractor pulling melodic activity around the graph —
+   easy to prototype with the mouse in the browser).
+5. **A real Morpho front-end** — replace `DEFAULT_GRAMMAR` params with parsed
+   Morpho source from the existing repo, compiling to the same grow calls.
+6. **MIDI out** (Web MIDI) so the organism can play hardware/DAW instruments.
+
+## Reproducibility
+
+Everything is seeded (`js/core/rng.js`, three independent streams: build /
+sim / development). Same seed + same parameters = identical topology and
+spike-for-spike identical history (covered by test). Changing tempo/scale/
+density sliders mid-run affects audio only, not simulation determinism —
+except the pulse slider, which changes the input drive and thus the sim.
