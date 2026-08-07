@@ -5,6 +5,7 @@ on:
     branches: [snn-lab]
     paths:
       - 'snn/**'
+      - 'site/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -37,8 +38,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # site root = landing page (site/), lab lives under /snn/
+      - name: Stage site
+        run: |
+          mkdir -p _site/snn
+          cp -r site/. _site/
+          cp -r snn/. _site/snn/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: snn
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
