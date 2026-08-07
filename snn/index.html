@@ -115,12 +115,39 @@
   <div class="ctl"><label>pulse</label><input type="range" id="tempo" min="150" max="800" step="10" value="340" /><span id="tempoVal">340 ms</span></div>
   <div class="ctl"><label>density</label><input type="range" id="density" min="40" max="240" step="10" value="90" /></div>
   <div class="ctl"><label>strum</label><input type="range" id="strum" min="0" max="80" step="2" value="24" /></div>
+  <div class="ctl" title="snap note timing toward a musical grid"><label>quantize</label><input type="range" id="quantize" min="0" max="1" step="0.05" value="0" /></div>
+  <div class="ctl"><label>grid</label>
+    <select id="grid">
+      <option value="1">pulse</option>
+      <option value="2" selected>1/2</option>
+      <option value="3">1/3</option>
+      <option value="4">1/4</option>
+    </select>
+  </div>
+  <div class="ctl"><label>drive</label>
+    <select id="drive">
+      <option value="steady" selected>steady</option>
+      <option value="euclidean">euclidean</option>
+      <option value="bursts">bursts</option>
+      <option value="sparse">sparse</option>
+    </select>
+  </div>
+  <div class="ctl"><input type="checkbox" id="stdp" /><label for="stdp" title="spike-timing-dependent plasticity: correlated pathways self-reinforce">stdp</label></div>
   <div class="ctl"><label>reverb</label><input type="range" id="fxReverb" min="0" max="1" step="0.05" value="0.35" /></div>
   <div class="ctl"><label>delay</label><input type="range" id="fxDelay" min="0" max="1" step="0.05" value="0.25" /></div>
   <div class="ctl"><label>chorus</label><input type="range" id="fxChorus" min="0" max="1" step="0.05" value="0" /></div>
   <div class="ctl"><label>walkers</label><input type="range" id="walkers" min="0" max="4" step="1" value="2" /><span id="walkersVal">2</span></div>
   <div class="ctl"><input type="checkbox" id="walkerSpread" /><label for="walkerSpread" title="transpose each walker into its own register band">spread</label></div>
   <div class="ctl"><label>variation</label><input type="range" id="variation" min="0.05" max="1" step="0.05" value="0.45" /></div>
+  <div class="ctl"><label>momentum</label><input type="range" id="momentum" min="0" max="1" step="0.05" value="0.65" /></div>
+  <div class="ctl"><label>walk rate</label>
+    <select id="walkRate">
+      <option value="1">pulse</option>
+      <option value="2" selected>1/2</option>
+      <option value="4">1/4</option>
+    </select>
+  </div>
+  <div class="ctl"><input type="checkbox" id="steer" /><label for="steer" title="hover the network to pull walkers toward the cursor">steer</label></div>
   <div class="ctl"><label>speed</label>
     <select id="speedSel">
       <option value="0.5">0.5×</option>

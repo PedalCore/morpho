@@ -12,6 +12,7 @@ import { ActivityTracker } from '../neural/activity.js';
 import { growNetwork, sproutRegion, DEFAULT_GRAMMAR } from '../morpho/grammar.js';
 import { DevelopmentController } from '../morpho/development.js';
 import { WalkerSystem } from '../music/walker.js';
+import { STDP } from '../neural/plasticity.js';
 
 export const DEFAULT_SIM = {
   epochSteps: 2000, // 2 s of simulated time per development epoch
@@ -21,6 +22,17 @@ export const DEFAULT_SIM = {
   developmentEnabled: true,
   modProb: 0.06, // chance a modulator spike actually changes key — biased low
   modCooldownMs: 12000, // minimum time between key changes
+  drivePattern: 'steady', // rhythm of the input drive (see DRIVE_PATTERNS)
+  stdpEnabled: false, // spike-timing-dependent plasticity on excitatory synapses
+};
+
+// Input-drive rhythms on an 8-slot grid; one slot = half the pulse period,
+// so a full cycle spans four pulses. Deterministic, part of the sim.
+export const DRIVE_PATTERNS = {
+  steady: [1, 0, 1, 0, 1, 0, 1, 0],
+  euclidean: [1, 0, 1, 1, 0, 1, 1, 0],
+  bursts: [1, 1, 1, 0, 0, 0, 0, 0],
+  sparse: [1, 0, 0, 0, 0, 0, 1, 0],
 };
 
 // circle of fifths, by position; offset semitones = (7 × position) mod 12
@@ -43,6 +55,7 @@ export class Lab {
     this.activity = new ActivityTracker();
     this.dev = new DevelopmentController(dev);
     this.walkers = new WalkerSystem(this.graph, this.streams.walk, walk);
+    this.stdp = new STDP();
 
     this.epoch = 0;
     this.inputIds = [...this.graph.neurons.values()]
@@ -62,13 +75,17 @@ export class Lab {
 
   // One 1 ms step: external drive, walkers, then neural dynamics.
   step() {
-    const { pulsePeriodMs, pulseFireProb, backgroundHz } = this.simParams;
+    const { pulsePeriodMs, pulseFireProb, backgroundHz, drivePattern } = this.simParams;
     const t = this.engine.stepCount;
 
-    if (t % pulsePeriodMs === 0) {
-      this.pulseCount++;
-      for (const id of this.inputIds) {
-        if (this.streams.sim() < pulseFireProb) this.engine.forceFire(id);
+    const sub = Math.max(1, Math.round(pulsePeriodMs / 2));
+    if (t % sub === 0) {
+      const pattern = DRIVE_PATTERNS[drivePattern] ?? DRIVE_PATTERNS.steady;
+      if (pattern[Math.floor(t / sub) % pattern.length]) {
+        this.pulseCount++;
+        for (const id of this.inputIds) {
+          if (this.streams.sim() < pulseFireProb) this.engine.forceFire(id);
+        }
       }
     }
     const pBg = backgroundHz / 1000;
@@ -79,6 +96,13 @@ export class Lab {
     this.walkers.tick(t, pulsePeriodMs);
 
     const spikes = this.engine.step();
+    if (spikes.length && this.simParams.stdpEnabled) {
+      const now = this.engine.stepCount;
+      for (const id of spikes) {
+        const n = this.graph.neurons.get(id);
+        if (n) this.stdp.onSpike(this.graph, n, now);
+      }
+    }
     if (spikes.length) this.maybeModulate(spikes);
 
     if (this.engine.stepCount % this.simParams.epochSteps === 0) {

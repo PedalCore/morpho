@@ -20,12 +20,21 @@ function build(seed) {
       pulsePeriodMs: parseInt($('tempo').value, 10),
       developmentEnabled: $('devToggle').checked,
       modProb: parseFloat($('keyDrift').value),
+      drivePattern: $('drive').value,
+      stdpEnabled: $('stdp').checked,
     },
     walk: {
       count: parseInt($('walkers').value, 10),
       variation: parseFloat($('variation').value),
+      momentum: parseFloat($('momentum').value),
+      stepDivisor: parseInt($('walkRate').value, 10),
     },
   });
+  audio.pulseMs = lab.simParams.pulsePeriodMs;
+  lab.walkers.posOf = (id) => {
+    const n = lab.graph.neurons.get(id);
+    return n ? renderer.positionOf(lab.graph, n) : null;
+  };
   renderer = new Renderer($('net'));
   epochMarks = [];
 
@@ -247,6 +256,53 @@ window.addEventListener('DOMContentLoaded', () => {
     lab.simParams.pulsePeriodMs = parseInt(e.target.value, 10);
     $('tempoVal').textContent = `${e.target.value} ms`;
     audio.setDelayFromPulse(parseInt(e.target.value, 10));
+    audio.pulseMs = parseInt(e.target.value, 10);
+  });
+
+  $('quantize').addEventListener('input', (e) => {
+    audio.quantize = parseFloat(e.target.value);
+  });
+
+  $('grid').addEventListener('change', (e) => {
+    audio.gridDiv = parseInt(e.target.value, 10);
+  });
+
+  $('drive').addEventListener('change', (e) => {
+    lab.simParams.drivePattern = e.target.value;
+  });
+
+  $('stdp').addEventListener('change', (e) => {
+    lab.simParams.stdpEnabled = e.target.checked;
+  });
+
+  $('momentum').addEventListener('input', (e) => {
+    lab.walkers.params.momentum = parseFloat(e.target.value);
+  });
+
+  $('walkRate').addEventListener('change', (e) => {
+    lab.walkers.params.stepDivisor = parseInt(e.target.value, 10);
+  });
+
+  // steer: hovering the network pulls walkers toward the cursor
+  const net = $('net');
+  net.addEventListener('pointermove', (e) => {
+    if (!$('steer').checked || !renderer.view) {
+      lab.walkers.attractor = null;
+      return;
+    }
+    const rect = net.getBoundingClientRect();
+    const { S, ox, oy } = renderer.view;
+    lab.walkers.attractor = {
+      x: (e.clientX - rect.left - ox) / S,
+      y: (e.clientY - rect.top - oy) / S,
+      strength: 6,
+    };
+  });
+  net.addEventListener('pointerleave', () => {
+    lab.walkers.attractor = null;
+  });
+  $('steer').addEventListener('change', (e) => {
+    if (!e.target.checked) lab.walkers.attractor = null;
   });
 
   for (const [id, name] of [

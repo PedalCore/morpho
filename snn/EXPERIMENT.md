@@ -51,6 +51,26 @@ Later same session:
 
 All 25 tests pass.
 
+## v3 — performance steering + STDP
+
+Feedback: wanted tighter timing and ways to steer/vary the behaviour.
+
+- **Quantize** — note onsets pulled toward a musical grid (strength 0–1, grid
+  = pulse ÷ 1/2/3/4), composing with strum. Audio-side only.
+- **Drive patterns** — input rhythm selectable: steady / euclidean / bursts /
+  sparse, on an 8-slot half-pulse grid. Deterministic, sim-side.
+- **Attractor steering** (plugin §23) — with "steer" on, hovering the network
+  pulls walker traversal toward the cursor (exp-distance weight multiplier).
+  Hand-steered runs are intentionally not seed-reproducible.
+- **Walker momentum + step rate** exposed on the UI alongside variation.
+- **STDP** (brief §13, toggle) — trace-based pair STDP on excitatory
+  synapses: pre-before-post potentiates, post-before-pre depresses, slight
+  depression bias, weights clamped [0.05, 1.1]. Deterministic; with it on,
+  correlated (played) pathways strengthen over minutes — the prerequisite for
+  Experiment 6's weight-to-structure rule.
+
+All 29 tests pass.
+
 ## Hypothesis (from the brief, §42)
 
 > Can a compact recursive developmental grammar generate a spiking neural

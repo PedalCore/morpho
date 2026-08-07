@@ -101,6 +101,7 @@ export class Renderer {
     const ox = (w - S) / 2;
     const oy = (h - S) / 2;
     const px = (p) => ({ x: ox + p.x * S, y: oy + p.y * S });
+    this.view = { S, ox, oy }; // for canvas→unit inverse mapping (attractor)
     this.now = engine.stepCount;
 
     ctx.fillStyle = COLORS.surface;
@@ -208,6 +209,22 @@ export class Renderer {
         ctx.lineWidth = 2.5;
         ctx.stroke();
       }
+    }
+
+    // steering attractor: crosshair where the performer is pulling walkers
+    if (walkers && walkers.attractor) {
+      const p = px(walkers.attractor);
+      ctx.strokeStyle = 'rgba(190,140,255,0.6)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x - 20, p.y);
+      ctx.lineTo(p.x + 20, p.y);
+      ctx.moveTo(p.x, p.y - 20);
+      ctx.lineTo(p.x, p.y + 20);
+      ctx.stroke();
     }
 
     // walkers: bright roaming melodic agents

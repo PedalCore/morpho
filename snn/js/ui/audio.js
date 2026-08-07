@@ -53,6 +53,9 @@ export class AudioEngine {
     this.structuralSounds = true; // birth chimes / prune thuds / division arpeggios
     this.minRetriggerMs = 90; // per-neuron note gate (density control)
     this.strumMs = 24; // fan-out spacing for near-simultaneous notes
+    this.quantize = 0; // 0 = raw spike timing, 1 = hard-snapped to the grid
+    this.gridDiv = 2; // grid step = pulse / gridDiv (2 = eighth notes)
+    this.pulseMs = 340; // kept in sync with the sim's pulse period
     this.lastNoteTime = new Map(); // neuronId -> ctx time
     this.strumCursor = 0; // shared "next available onset" time
     this.voiceCount = 0;
@@ -171,11 +174,19 @@ export class AudioEngine {
     return this.freqFor(n.octave, n.structDegree);
   }
 
-  // Reserve the next strum slot at or after `now`. Chords become arpeggios.
+  // Reserve an onset at or after `now`: first pull it toward the musical
+  // grid (quantize strength), then respect the strum spacing so chords fan
+  // out into arpeggios.
   strumSlot(now) {
+    let at = now;
+    if (this.quantize > 0) {
+      const g = this.pulseMs / this.gridDiv / 1000;
+      const snapped = Math.ceil(now / g) * g; // next grid line
+      at = now + (snapped - now) * this.quantize;
+    }
     const spacing = this.strumMs / 1000;
-    const at = Math.max(now, this.strumCursor);
-    if (at - now > 0.35) return -1; // strum queue saturated — drop
+    at = Math.max(at, this.strumCursor);
+    if (at - now > 0.6) return -1; // queue saturated — drop
     this.strumCursor = at + spacing;
     return at;
   }

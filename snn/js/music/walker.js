@@ -31,6 +31,12 @@ export class WalkerSystem {
     this.params = { ...DEFAULT_WALK, ...params };
     this.walkers = [];
     this.onNote = null; // (neuron, walkerIndex) => void
+    // performance steering (plugin brief §23): an attractor in layout space
+    // pulls traversal toward it. UI-driven, so runs steered by hand are not
+    // seed-reproducible — it is a live instrument control, not an experiment
+    // parameter.
+    this.attractor = null; // {x, y, strength} in unit layout space
+    this.posOf = null; // (neuronId) => {x, y} | null — provided by the UI
     this.setCount(this.params.count);
   }
 
@@ -83,6 +89,13 @@ export class WalkerSystem {
         score *= target.region === current.region ? p.momentum : 1 - p.momentum + 0.05;
         if (w.history.includes(s.target)) score *= p.repetitionPenalty;
         if (target.role === 'input') score *= 0.05;
+        if (this.attractor && this.posOf) {
+          const pos = this.posOf(s.target);
+          if (pos) {
+            const d = Math.hypot(pos.x - this.attractor.x, pos.y - this.attractor.y);
+            score *= Math.exp(-d * this.attractor.strength);
+          }
+        }
         return Math.pow(score, 1 / temperature);
       });
       let total = 0;

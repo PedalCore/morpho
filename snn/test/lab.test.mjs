@@ -270,6 +270,78 @@ test('key changes are rare and deterministic under default bias', () => {
   assert.ok(a.keyChangesTotal <= 5, `too many key changes for "biased quite low": ${a.keyChangesTotal}`);
 });
 
+test('STDP potentiates correlated pathways and stays within bounds', () => {
+  const lab = new Lab({ seed: 42, sim: { stdpEnabled: true, developmentEnabled: false } });
+  const before = new Map(
+    [...lab.graph.synapses.values()].filter((s) => s.weight > 0).map((s) => [s.id, s.weight])
+  );
+  lab.runEpochs(6);
+  let changed = 0;
+  for (const s of lab.graph.synapses.values()) {
+    if (s.weight <= 0) continue;
+    assert.ok(s.weight >= 0.05 - 1e-9 && s.weight <= 1.1 + 1e-9, `weight out of bounds: ${s.weight}`);
+    const b = before.get(s.id);
+    if (b !== undefined && Math.abs(s.weight - b) > 1e-6) changed++;
+  }
+  assert.ok(changed > 10, `expected many weights to move under STDP, got ${changed}`);
+  // inhibitory weights untouched
+  for (const s of lab.graph.synapses.values()) {
+    if (s.weight < 0) assert.ok(s.weight >= -2, 'inhibitory weights remain negative and sane');
+  }
+});
+
+test('STDP off leaves weights frozen; on/off both deterministic', () => {
+  const weightsAfter = (stdpEnabled) => {
+    const lab = new Lab({ seed: 8, sim: { stdpEnabled, developmentEnabled: false } });
+    lab.runEpochs(3);
+    return [...lab.graph.synapses.values()].map((s) => s.weight.toFixed(9)).join(',');
+  };
+  assert.equal(weightsAfter(false), weightsAfter(false));
+  assert.equal(weightsAfter(true), weightsAfter(true));
+  assert.notEqual(weightsAfter(false), weightsAfter(true));
+});
+
+test('drive patterns change the rhythm deterministically', () => {
+  const pulses = (drivePattern) => {
+    const lab = new Lab({ seed: 6, sim: { drivePattern, developmentEnabled: false } });
+    lab.runEpochs(3);
+    return lab.pulseCount;
+  };
+  const steady = pulses('steady');
+  const sparse = pulses('sparse');
+  const bursts = pulses('bursts');
+  assert.ok(sparse < steady, `sparse (${sparse}) should pulse less than steady (${steady})`);
+  assert.ok(bursts > sparse, 'bursts should pulse more than sparse');
+  assert.equal(pulses('euclidean'), pulses('euclidean'), 'deterministic');
+});
+
+test('attractor biases walker traversal toward a location', () => {
+  // stub positions: put region R.0's neurons at (0,0), everything else at (1,1),
+  // park the attractor at (0,0) and check visits concentrate there
+  const visitShare = (useAttractor) => {
+    const lab = new Lab({ seed: 3, walk: { count: 2, variation: 0.9 }, sim: { developmentEnabled: false } });
+    const nearIds = new Set(
+      [...lab.graph.neurons.values()].filter((n) => n.region.startsWith('R.0')).map((n) => n.id)
+    );
+    lab.walkers.posOf = (id) => (nearIds.has(id) ? { x: 0, y: 0 } : { x: 1, y: 1 });
+    if (useAttractor) lab.walkers.attractor = { x: 0, y: 0, strength: 8 };
+    let near = 0;
+    let total = 0;
+    lab.walkers.onNote = (n) => {
+      total++;
+      if (nearIds.has(n.id)) near++;
+    };
+    lab.runEpochs(4);
+    return total ? near / total : 0;
+  };
+  const withAttractor = visitShare(true);
+  const without = visitShare(false);
+  assert.ok(
+    withAttractor > without + 0.1,
+    `attractor should concentrate visits: with=${withAttractor.toFixed(2)} without=${without.toFixed(2)}`
+  );
+});
+
 test('long-running developmental simulation stays bounded and alive', () => {
   const lab = new Lab({ seed: 42 });
   lab.runEpochs(60); // 2 simulated minutes
