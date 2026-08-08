@@ -225,11 +225,24 @@ function reinforceRecent() {
     if (n.role === 'input') continue;
     if (n.lastSpikeStep >= 0 && now - n.lastSpikeStep < 2500) {
       n.energy = Math.min(1.5, n.energy + 0.35);
+      renderer.markBirth(lab.graph, n.id); // green reward ripple on each one
       count++;
     }
   }
   lab.dev.log({ epoch: lab.epoch, type: 'Reinforced', count });
   updateLog();
+
+  // visible button feedback: how many neurons got the reward
+  const btn = $('reinforce');
+  if (btn) {
+    btn.textContent = count ? `✚ reinforced ${count}` : '✚ nothing fired recently';
+    btn.classList.add('flash');
+    clearTimeout(btn._revert);
+    btn._revert = setTimeout(() => {
+      btn.textContent = '✚ reinforce';
+      btn.classList.remove('flash');
+    }, 1100);
+  }
 }
 
 function setupDuet() {

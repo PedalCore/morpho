@@ -92,7 +92,9 @@
   .pad.model { background: #be8cff; color: #14171d; border-color: #be8cff; }
   .pad.model small { color: #14171d; }
   .padctl { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-  #reinforce { border-color: var(--born); color: var(--born); }
+  #reinforce { border-color: var(--born); color: var(--born); transition: background 0.15s, color 0.15s; }
+  #reinforce:active { transform: translateY(1px); }
+  #reinforce.flash { background: var(--born); color: #14171d; }
   .pagelink { color: var(--ink-3); font-size: 12px; text-decoration: none; font-weight: 400; }
   .pagelink:hover { color: var(--accent); }
   #viewwrap { flex: 1; min-width: 0; position: relative; }
