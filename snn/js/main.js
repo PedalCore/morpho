@@ -2,13 +2,20 @@ import { Lab, KEY_NAMES } from './sim/lab.js';
 import { Renderer, drawRateSparkline } from './ui/renderer.js';
 import { AudioEngine, SCALES, TUNINGS } from './ui/audio.js';
 import { FifthsWheel } from './ui/fifths.js';
+import { wireSensoryInputs, SpikeEncoder, NOTE_NAMES } from './duet/sensory.js';
+import { MidiIO } from './io/midi.js';
 
 const $ = (id) => document.getElementById(id);
+// duet mode: no metronome drive — the human plays the organism via MIDI/pads
+const DUET = document.body.dataset.mode === 'duet';
 
 const audio = new AudioEngine();
+const midiIO = new MidiIO();
 let lab = null;
 let renderer = null;
 let fifthsWheel = null;
+let encoder = null;
+let sensoryInputs = [];
 let running = false;
 let speed = 1;
 let epochMarks = []; // {i, born, pruned} aligned to rateHistory indices
@@ -24,7 +31,11 @@ function build(seed) {
       modProb: parseFloat($('keyDrift').value),
       drivePattern: $('drive').value,
       stdpEnabled: $('stdp').checked,
+      // duet: the human is the drive — no metronome pulses, just a whisper
+      // of background so the organism "dreams" its vocabulary when idle
+      ...(DUET ? { pulseFireProb: 0, backgroundHz: 0.25 } : {}),
     },
+    grammar: DUET ? { inputNeurons: 0, outputFraction: 0.5 } : {},
     walk: {
       count: parseInt($('walkers').value, 10),
       variation: parseFloat($('variation').value),
@@ -32,6 +43,12 @@ function build(seed) {
       stepDivisor: parseInt($('walkRate').value, 10),
     },
   });
+  if (DUET) {
+    sensoryInputs = wireSensoryInputs(lab.graph, audio.scaleName, lab.streams.build);
+    lab.inputIds = sensoryInputs.map((n) => n.id);
+    encoder = new SpikeEncoder(lab, sensoryInputs, audio.scaleName);
+    rebuildPads();
+  }
   audio.pulseMs = lab.simParams.pulsePeriodMs;
   lab.walkers.posOf = (id) => {
     const n = lab.graph.neurons.get(id);
@@ -41,9 +58,18 @@ function build(seed) {
   epochMarks = [];
 
   lab.engine.onSpike = (n) => {
-    if (n.isOutput && audio.enabled) {
+    if (!n.isOutput) return;
+    if (audio.enabled) {
       const fanout = lab.graph.outgoing.get(n.id)?.length ?? 0;
       audio.noteOn(n, renderer.panOf(lab.graph, n), fanout);
+    }
+    if (DUET) {
+      if (midiIO.output) {
+        const scale = SCALES[audio.scaleName];
+        const midi = 36 + lab.key.offset + n.octave * 12 + scale[n.structDegree % scale.length];
+        midiIO.send(midi, 0.7);
+      }
+      flashPad(n.structDegree, 'model');
     }
   };
 
@@ -57,6 +83,7 @@ function build(seed) {
     audio.keyOffset = offset;
     renderer.markKeyChange(lab.graph, neuronId);
     if (fifthsWheel) fifthsWheel.setKey(fifths, rule);
+    if (DUET) rebuildPads(); // pad note names follow the key
     updateStats();
     updateLog();
   };
@@ -139,9 +166,135 @@ function updateLog() {
         const src = e.id === 'manual' ? '' : `, node ${e.id}`;
         return `<li class="keychange">e${e.epoch} ♮ key → ${e.key} <em>(${e.rule}${src})</em></li>`;
       }
+      if (e.type === 'Reinforced') {
+        return `<li class="born">e${e.epoch} ✚ reinforced ${e.count} active neurons</li>`;
+      }
       return `<li class="pruned">e${e.epoch} ✕ neuron ${e.id} pruned from ${e.region} <em>(energy ${e.energy?.toFixed(2) ?? '?'})</em></li>`;
     })
     .join('');
+}
+
+// ---- duet mode: pads, MIDI, reinforcement ----
+
+const PAD_KEYS = 'asdfghjklqwertyuiop';
+
+function rebuildPads() {
+  const padbar = $('pads');
+  if (!padbar) return;
+  const scale = SCALES[audio.scaleName];
+  padbar.innerHTML = '';
+  [2, 3].forEach((oct, row) => {
+    for (let d = 0; d < scale.length; d++) {
+      const idx = row * scale.length + d;
+      const b = document.createElement('button');
+      b.className = 'pad';
+      b.dataset.degree = d;
+      const pc = (scale[d] + lab.key.offset) % 12;
+      b.innerHTML = `${NOTE_NAMES[pc]}<small>${PAD_KEYS[idx] ?? ''}</small>`;
+      b.addEventListener('pointerdown', () => playHuman(oct, d));
+      padbar.appendChild(b);
+    }
+  });
+}
+
+function playHuman(octave, degree) {
+  if (!lab || !encoder) return;
+  const scale = SCALES[audio.scaleName];
+  const midi = 36 + lab.key.offset + octave * 12 + scale[degree];
+  encoder.noteOn(midi, 0.8);
+  audio.humanNote(octave, degree);
+  flashPad(degree, 'human');
+}
+
+function flashPad(structDegree, kind) {
+  const pads = $('pads');
+  if (!pads) return;
+  const scale = SCALES[audio.scaleName];
+  const d = structDegree % scale.length;
+  for (const b of pads.querySelectorAll(`.pad[data-degree="${d}"]`)) {
+    b.classList.add(kind);
+    setTimeout(() => b.classList.remove(kind), 180);
+  }
+}
+
+function reinforceRecent() {
+  if (!lab) return;
+  let count = 0;
+  const now = lab.engine.stepCount;
+  for (const n of lab.graph.neurons.values()) {
+    if (n.role === 'input') continue;
+    if (n.lastSpikeStep >= 0 && now - n.lastSpikeStep < 2500) {
+      n.energy = Math.min(1.5, n.energy + 0.35);
+      count++;
+    }
+  }
+  lab.dev.log({ epoch: lab.epoch, type: 'Reinforced', count });
+  updateLog();
+}
+
+function setupDuet() {
+  $('reinforce')?.addEventListener('click', reinforceRecent);
+
+  // computer keyboard: two pad rows
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat || e.metaKey || e.ctrlKey) return;
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+    const idx = PAD_KEYS.indexOf(e.key.toLowerCase());
+    if (idx < 0 || !lab) return;
+    const len = SCALES[audio.scaleName].length;
+    if (idx >= len * 2) return;
+    playHuman(idx < len ? 2 : 3, idx % len);
+  });
+
+  // human MIDI in → spikes; model out → MIDI hardware
+  midiIO.onNote = (note, vel) => {
+    if (!encoder) return;
+    encoder.noteOn(note, vel);
+    const scale = SCALES[audio.scaleName];
+    flashPad(0, 'human'); // generic flash; precise degree below
+    const rel = (((note % 12) - lab.key.offset) % 12 + 12) % 12;
+    let best = 0;
+    let bd = 99;
+    scale.forEach((s, i) => {
+      const d = Math.min((rel - s + 12) % 12, (s - rel + 12) % 12);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    });
+    flashPad(best, 'human');
+  };
+
+  $('midiBtn')?.addEventListener('click', async () => {
+    if (!midiIO.supported) {
+      $('midiBtn').textContent = 'no midi support';
+      return;
+    }
+    try {
+      await midiIO.init();
+      const fill = (sel, list) => {
+        sel.innerHTML = '<option value="">—</option>';
+        for (const d of list) {
+          const o = document.createElement('option');
+          o.value = d.id;
+          o.textContent = d.name;
+          sel.appendChild(o);
+        }
+        sel.style.display = '';
+      };
+      fill($('midiIn'), midiIO.inputs());
+      fill($('midiOut'), midiIO.outputs());
+      $('midiBtn').textContent = `midi ✓ (${midiIO.inputs().length} in / ${midiIO.outputs().length} out)`;
+      $('midiIn').addEventListener('change', (e) => midiIO.bindInput(e.target.value));
+      $('midiOut').addEventListener('change', (e) => midiIO.bindOutput(e.target.value));
+      if (midiIO.inputs().length) {
+        $('midiIn').value = midiIO.inputs()[0].id;
+        midiIO.bindInput(midiIO.inputs()[0].id);
+      }
+    } catch {
+      $('midiBtn').textContent = 'midi blocked';
+    }
+  });
 }
 
 function frame(t) {
@@ -216,6 +369,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   fitCanvas();
   build(parseInt($('seed').value, 10));
+  if (DUET) setupDuet();
 
   // interactive circle of fifths: shows the key, click to set it manually
   fifthsWheel = new FifthsWheel($('viewwrap'), (i) => {
@@ -225,6 +379,7 @@ window.addEventListener('DOMContentLoaded', () => {
     audio.keyOffset = lab.key.offset;
     fifthsWheel.setKey(i);
     lab.dev.log({ epoch: lab.epoch, type: 'KeyChanged', id: 'manual', rule: 'selected', key: KEY_NAMES[i] });
+    if (DUET) rebuildPads();
     updateStats();
     updateLog();
   });
@@ -285,6 +440,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   scaleSel.addEventListener('change', (e) => {
     audio.scaleName = e.target.value;
+    if (DUET) rebuildPads(); // note: sensory wiring stays from build time — press grow to re-wire
   });
 
   $('tempo').addEventListener('input', (e) => {

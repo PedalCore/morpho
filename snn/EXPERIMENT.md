@@ -71,6 +71,30 @@ Feedback: wanted tighter timing and ways to steer/vary the behaviour.
 
 All 29 tests pass.
 
+## v4 — duet mode: human-in-the-loop training (duet.html)
+
+The collaboration experiment: the human replaces the metronome as the
+organism's environment.
+
+- **MIDI/pads/keyboard → spike encoding** — one sensory input neuron per
+  scale degree, wired *tonotopically* to excitatory neurons whose birth-fixed
+  pitch sounds the same degree class. Incoming notes snap to the current
+  scale+key; velocity sets burst length (1–3 spikes). Pads + computer keys
+  (a–l / q–p rows) are scale-locked by construction.
+- **No pulse drive** — only a whisper of background (0.25 Hz) so the organism
+  "dreams" when idle. What it plays back is provoked by what you play.
+- **STDP on by default** — the pathways you exercise strengthen; development
+  (afferent growth, region division) reorganizes around your playing.
+- **✚ reinforce** — deposits survival energy on everything that fired in the
+  last ~2.5 s: a reward button for responses you like.
+- **MIDI out** — the organism can play external hardware/DAW.
+- Engine fix found by tests: force-fired input spikes were invisible to the
+  step's returned spike list (cleared at step start); now they are included.
+
+All 34 tests pass. Open question to explore by playing: does reinforcement +
+STDP + development make its responses converge toward the player's material,
+and over what timescale?
+
 ## Hypothesis (from the brief, §42)
 
 > Can a compact recursive developmental grammar generate a spiking neural

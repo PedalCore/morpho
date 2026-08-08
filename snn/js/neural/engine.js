@@ -41,7 +41,8 @@ export class SpikeEngine {
   }
 
   step() {
-    this.lastStepSpikes = [];
+    // note: lastStepSpikes may already hold spikes force-fired since the
+    // previous step (input drive, MIDI encoding) — they belong to this step
     const { neurons } = this.graph;
 
     // 1. deliver spikes arriving now
@@ -66,6 +67,8 @@ export class SpikeEngine {
     }
 
     this.stepCount++;
-    return this.lastStepSpikes;
+    const spikes = this.lastStepSpikes;
+    this.lastStepSpikes = [];
+    return spikes;
   }
 }

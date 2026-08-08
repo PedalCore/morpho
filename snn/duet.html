@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>morpho-snn lab — developmental spiking network, sonified</title>
+<title>morpho-snn duet — play with a developing brain</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
 <style>
   :root {
@@ -69,6 +69,32 @@
   input[type="range"] { width: 90px; accent-color: var(--accent); }
   input[type="checkbox"] { accent-color: var(--accent); }
   main { flex: 1; display: flex; min-height: 0; }
+  #padbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  #pads { display: flex; gap: 4px; flex-wrap: wrap; }
+  .pad {
+    min-width: 44px;
+    padding: 8px 6px 5px;
+    font-size: 13px;
+    line-height: 1.1;
+    text-align: center;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .pad small { display: block; color: var(--ink-3); font-size: 9px; margin-top: 2px; }
+  .pad.human { background: var(--accent); color: #14171d; border-color: var(--accent); }
+  .pad.human small { color: #14171d; }
+  .pad.model { background: #be8cff; color: #14171d; border-color: #be8cff; }
+  .pad.model small { color: #14171d; }
+  .padctl { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+  #reinforce { border-color: var(--born); color: var(--born); }
+  .pagelink { color: var(--ink-3); font-size: 12px; text-decoration: none; font-weight: 400; }
+  .pagelink:hover { color: var(--accent); }
   #viewwrap { flex: 1; min-width: 0; position: relative; }
   #net { display: block; width: 100%; height: 100%; }
   .fifths { position: absolute; top: 12px; left: 12px; z-index: 5; opacity: 0.94; }
@@ -114,9 +140,9 @@
   .hint { font-size: 11.5px; color: var(--ink-3); border-top: 1px solid var(--border); padding-top: 10px; }
 </style>
 </head>
-<body>
+<body data-mode="duet">
 <header>
-  <h1>morpho<span>·</span>snn <span style="color:var(--ink-3);font-weight:400">developmental spiking lab</span> <a href="duet.html" style="color:var(--ink-3);font-size:12px;text-decoration:none;font-weight:400">duet →</a></h1>
+  <h1>morpho<span>·</span>snn <span style="color:var(--ink-3);font-weight:400">duet — play with a developing brain</span> <a class="pagelink" href="index.html">lab →</a></h1>
   <button id="runBtn">▶ run</button>
   <div class="ctl"><input type="checkbox" id="audioToggle" /><label for="audioToggle">sound</label></div>
   <div class="ctl"><input type="checkbox" id="spikeNotes" checked /><label for="spikeNotes" title="output-neuron spike voices — untick to hear walkers only">spikes</label></div>
@@ -127,7 +153,7 @@
   <div class="ctl"><label>tuning</label><select id="tuning"></select></div>
   <div class="ctl"><label>octave</label><button id="octDown">−</button><span id="octVal">0</span><button id="octUp">+</button></div>
   <div class="ctl" title="compress the register span: 1 = everything in one octave, 5 = full anatomical spread"><label>width</label><input type="range" id="octWidth" min="1" max="5" step="1" value="5" /><span id="octWidthVal">5</span></div>
-  <div class="ctl" title="chance a modulator spike actually changes key"><label>key drift</label><input type="range" id="keyDrift" min="0" max="0.4" step="0.01" value="0.06" /><span id="keyDriftVal">0.06</span></div>
+  <div class="ctl" title="chance a modulator spike actually changes key"><label>key drift</label><input type="range" id="keyDrift" min="0" max="0.4" step="0.01" value="0.02" /><span id="keyDriftVal">0.02</span></div>
   <div class="ctl"><label>pulse</label><input type="range" id="tempo" min="150" max="800" step="10" value="340" /><span id="tempoVal">340 ms</span></div>
   <div class="ctl"><label>density</label><input type="range" id="density" min="40" max="240" step="10" value="90" /></div>
   <div class="ctl"><label>strum</label><input type="range" id="strum" min="0" max="80" step="2" value="24" /></div>
@@ -148,11 +174,11 @@
       <option value="sparse">sparse</option>
     </select>
   </div>
-  <div class="ctl"><input type="checkbox" id="stdp" /><label for="stdp" title="spike-timing-dependent plasticity: correlated pathways self-reinforce">stdp</label></div>
+  <div class="ctl"><input type="checkbox" id="stdp" checked /><label for="stdp" title="spike-timing-dependent plasticity: correlated pathways self-reinforce">stdp</label></div>
   <div class="ctl"><label>reverb</label><input type="range" id="fxReverb" min="0" max="1" step="0.05" value="0.35" /></div>
   <div class="ctl"><label>delay</label><input type="range" id="fxDelay" min="0" max="1" step="0.05" value="0.25" /></div>
   <div class="ctl"><label>chorus</label><input type="range" id="fxChorus" min="0" max="1" step="0.05" value="0" /></div>
-  <div class="ctl"><label>walkers</label><input type="range" id="walkers" min="0" max="4" step="1" value="2" /><span id="walkersVal">2</span></div>
+  <div class="ctl"><label>walkers</label><input type="range" id="walkers" min="0" max="4" step="1" value="0" /><span id="walkersVal">0</span></div>
   <div class="ctl"><input type="checkbox" id="walkerSpread" /><label for="walkerSpread" title="transpose each walker into its own register band">spread</label></div>
   <div class="ctl"><label>variation</label><input type="range" id="variation" min="0.05" max="1" step="0.05" value="0.45" /></div>
   <div class="ctl"><label>momentum</label><input type="range" id="momentum" min="0" max="1" step="0.05" value="0.65" /></div>
@@ -173,6 +199,15 @@
     </select>
   </div>
 </header>
+<div id="padbar">
+  <div id="pads"></div>
+  <div class="padctl">
+    <button id="reinforce" title="reward: deposit survival energy on everything that just fired">✚ reinforce</button>
+    <button id="midiBtn">enable midi</button>
+    <select id="midiIn" style="display:none" title="MIDI input — play the organism"></select>
+    <select id="midiOut" style="display:none" title="MIDI output — the organism plays your gear"></select>
+  </div>
+</div>
 <main>
   <div id="viewwrap"><canvas id="net"></canvas></div>
   <aside>
@@ -193,7 +228,7 @@
       <h2>Legend</h2>
       <div><span class="sw" style="background:#e2a13f"></span>excitatory neuron (circle)</div>
       <div><span class="sw sq" style="background:#5b8def"></span>inhibitory neuron (square)</div>
-      <div><span class="sw" style="background:#8a8f98"></span>input neuron — rhythmic drive</div>
+      <div><span class="sw" style="background:#8a8f98"></span>sensory neuron — your notes arrive here</div>
       <div><span class="sw" style="border:1.5px solid #e9e4d6;background:transparent"></span>ringed = musical voice (output)</div>
       <div><span class="sw" style="border:1.5px solid #7bd8a5;background:transparent"></span>green ring = newborn structure</div>
       <div><span class="sw" style="background:#d96c6c"></span>red ✕ = pruned</div>
@@ -201,12 +236,15 @@
       <div><span class="sw" style="background:#ffd75e;transform:rotate(45deg);border-radius:1px"></span>gold diamond = modulator — rarely nudges the key round the circle of fifths</div>
     </section>
     <div class="hint">
-      Turn on <b>sound</b>, press <b>run</b>. Pitch is anatomy: region depth sets
-      the octave (center = low, edge = high), so watch regions <i>divide</i> and
-      climb in register. Ringed neurons play when they spike; violet walkers roam
-      the graph as melodic voices — and the structures they play are the ones
-      that survive. <b>Strum</b> fans chords into arpeggios; <b>variation</b> sets
-      how adventurous walkers are.
+      <b>Duet mode:</b> you are the environment this brain develops in. Turn on
+      <b>sound</b>, press <b>run</b>, then play — pads, the letter keys shown on
+      them, or a MIDI keyboard (<b>enable midi</b>). Your notes become spike
+      bursts in the gray sensory neurons, wired to the anatomy that sounds the
+      same scale degrees. There is no metronome here: what it plays back is
+      shaped by what you play, <b>stdp</b> strengthens the pathways you use, and
+      development grows around them. Hit <b>✚ reinforce</b> when you like a
+      response — it feeds the structures that made it. Amber flash = you,
+      violet flash = the model.
     </div>
   </aside>
 </main>

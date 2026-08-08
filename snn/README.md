@@ -39,6 +39,15 @@ Enable **sound**, press **run**. Try:
   (dotted), so echoes stay in the organism's tempo
 - **scale / pulse / density** — musical exploration
 
+## Duet mode
+
+`duet.html` — the human-in-the-loop experiment: your notes (MIDI keyboard,
+on-screen pads, or the computer keys shown on the pads, all locked to the
+current scale/key) become spike bursts in a tonotopic sensory layer. There's
+no metronome — you are the environment the brain develops in. STDP
+strengthens what you play, development grows around it, **✚ reinforce**
+rewards responses you like, and MIDI out lets it play your gear.
+
 ## Test it
 
 ```bash

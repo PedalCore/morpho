@@ -71,12 +71,29 @@ export class Lab {
     this.keyChangesTotal = 0;
     this.lastModStep = -Infinity;
     this.onKeyChange = null; // ({neuronId, name, rule, fifths, offset}) => void
+
+    // externally injected input spikes (e.g. MIDI → spike encoding), with
+    // optional per-spike delay so bursts can be scheduled
+    this.pendingInputFires = [];
+  }
+
+  fireInput(neuronId, delaySteps = 0) {
+    this.pendingInputFires.push({ id: neuronId, at: this.engine.stepCount + delaySteps });
   }
 
   // One 1 ms step: external drive, walkers, then neural dynamics.
   step() {
     const { pulsePeriodMs, pulseFireProb, backgroundHz, drivePattern } = this.simParams;
     const t = this.engine.stepCount;
+
+    if (this.pendingInputFires.length) {
+      const rest = [];
+      for (const f of this.pendingInputFires) {
+        if (f.at <= t) this.engine.forceFire(f.id);
+        else rest.push(f);
+      }
+      this.pendingInputFires = rest;
+    }
 
     const sub = Math.max(1, Math.round(pulsePeriodMs / 2));
     if (t % sub === 0) {

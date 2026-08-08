@@ -278,6 +278,21 @@ export class AudioEngine {
     return true;
   }
 
+  // Human monitoring voice for on-screen pads (duet mode) — immediate, no
+  // strum queue, so playing feels responsive.
+  humanNote(octave, structDegree) {
+    if (!this.enabled || !this.ctx) return;
+    this._voice({
+      freq: this.freqFor(octave, structDegree),
+      at: this.ctx.currentTime,
+      pan: 0,
+      amp: 0.09,
+      dur: 0.3,
+      type: 'sine',
+      filterMul: 5,
+    });
+  }
+
   // Structural events get their own quiet sounds so development is audible.
   birthChime(pan = 0) {
     if (!this.enabled || !this.ctx || !this.structuralSounds) return;
