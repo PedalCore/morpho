@@ -94,6 +94,31 @@ test('walkers can be seeded onto call-activated neurons (Q&A answers)', () => {
   assert.ok(notes > 3, `seeded walkers should keep playing, got ${notes}`);
 });
 
+test('rubato makes walker timing expressive; rubato 0 restores the grid', () => {
+  const intervals = (rubato) => {
+    const lab = new Lab({
+      seed: 4,
+      grammar: { inputNeurons: 0 },
+      sim: { pulseFireProb: 0, backgroundHz: 0, developmentEnabled: false },
+      walk: { count: 1, rubato },
+    });
+    const times = [];
+    lab.walkers.onNote = () => times.push(lab.engine.stepCount);
+    lab.runSteps(6000);
+    const iois = [];
+    for (let i = 1; i < times.length; i++) iois.push(times[i] - times[i - 1]);
+    return iois;
+  };
+  const step = 170; // pulse 340 / divisor 2
+  const grid = intervals(0);
+  assert.ok(grid.length > 5, 'walker should emit notes');
+  // silent steps (inhibitory landings) may skip beats, but always on-grid
+  assert.ok(grid.every((i) => i % step === 0), `rubato 0 must stay on the grid, got ${[...new Set(grid)]}`);
+  const loose = intervals(0.8);
+  assert.ok(loose.some((i) => i % step !== 0), 'rubato should leave the grid');
+  assert.ok(new Set(loose).size > 3, `rubato should vary intervals, got ${[...new Set(loose)]}`);
+});
+
 test('repeated playing under STDP moves weights in the played network', () => {
   const { lab, encoder } = duetLab(11);
   for (let e = 0; e < 4 * lab.simParams.epochSteps; e++) {

@@ -45,10 +45,23 @@ export class DialogueTracker {
 
   humanNote(degree, t) {
     if (this.state === 'response') this.closeExchange(t);
-    if (this.state !== 'call' && this.onCallStart) this.onCallStart(t);
+    if (this.state !== 'call') {
+      this.callTimes = [];
+      if (this.onCallStart) this.onCallStart(t);
+    }
     this.state = 'call';
     this.call.push(degree);
+    this.callTimes.push(t);
     this.lastHumanAt = t;
+  }
+
+  // the call's pace — mean inter-onset interval, for tempo-matched answers
+  meanCallIOI() {
+    const ts = this.callTimes ?? [];
+    if (ts.length < 2) return null;
+    let sum = 0;
+    for (let i = 1; i < ts.length; i++) sum += ts[i] - ts[i - 1];
+    return sum / (ts.length - 1);
   }
 
   modelNote(degree, t) {

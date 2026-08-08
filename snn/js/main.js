@@ -44,6 +44,7 @@ function build(seed) {
       variation: parseFloat($('variation').value),
       momentum: parseFloat($('momentum').value),
       stepDivisor: parseInt($('walkRate').value, 10),
+      rubato: parseFloat($('rubato').value),
     },
   });
   if (DUET) {
@@ -63,6 +64,8 @@ function build(seed) {
         .filter((id) => lab.graph.neurons.get(id)?.role === 'excitatory')
         .slice(0, Math.max(2, lab.walkers.params.count));
       if (top.length) lab.walkers.seedAt(top);
+      // answer at the pace of the question
+      lab.walkers.setPhrase(dialogue.meanCallIOI());
     };
     rebuildPads();
     updateDialogue();
@@ -546,6 +549,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   $('walkRate').addEventListener('change', (e) => {
     lab.walkers.params.stepDivisor = parseInt(e.target.value, 10);
+  });
+
+  $('rubato').addEventListener('input', (e) => {
+    lab.walkers.params.rubato = parseFloat(e.target.value);
   });
 
   // steer: hovering the network pulls walkers toward the cursor

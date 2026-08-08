@@ -22,6 +22,7 @@ export const DEFAULT_WALK = {
   repetitionPenalty: 0.25,
   historyLen: 6,
   teleportProb: 0.03, // occasional phrase jump
+  rubato: 0.4, // 0 = grid-locked, 1 = heavy push/pull
 };
 
 export class WalkerSystem {
@@ -44,7 +45,18 @@ export class WalkerSystem {
     this.params.count = count;
     while (this.walkers.length > count) this.walkers.pop();
     while (this.walkers.length < count) {
-      this.walkers.push({ at: this.randomStart(), history: [] });
+      this.walkers.push({ at: this.randomStart(), history: [], nextMoveAt: 0, ioiMs: null, phrasePos: 0 });
+    }
+  }
+
+  // Adopt a phrase tempo (e.g. the human call's mean inter-onset interval)
+  // and start a fresh phrase immediately — the answer speaks at the pace it
+  // was asked at.
+  setPhrase(ioiMs) {
+    for (const w of this.walkers) {
+      w.ioiMs = ioiMs ? Math.max(70, Math.min(700, ioiMs)) : null;
+      w.phrasePos = 0;
+      w.nextMoveAt = 0;
     }
   }
 
@@ -68,12 +80,43 @@ export class WalkerSystem {
     });
   }
 
-  // Called every sim step; moves walkers on their musical grid.
+  // Called every sim step. Each walker owns a continuous-time schedule —
+  // the sim ticks at 1 ms but notes fall wherever expression puts them,
+  // not on a shared grid.
   tick(stepCount, pulsePeriodMs) {
     if (!this.params.count) return;
-    const period = Math.max(20, Math.round(pulsePeriodMs / this.params.stepDivisor));
-    if (stepCount % period !== 0) return;
-    this.walkers.forEach((w, i) => this.move(w, i));
+    const base = Math.max(20, Math.round(pulsePeriodMs / this.params.stepDivisor));
+    this.walkers.forEach((w, i) => {
+      if (stepCount >= (w.nextMoveAt ?? 0)) {
+        this.move(w, i);
+        w.nextMoveAt = stepCount + this.nextInterval(w, base);
+      }
+    });
+  }
+
+  // Expressive inter-note interval: phrase tempo × phrase arch (slow into a
+  // phrase, lean forward through the middle, relax at the end, breathe
+  // between phrases) × local heat (busy anatomy pushes, quiet anatomy lays
+  // back) × jitter. rubato scales all deviation; 0 restores the grid.
+  nextInterval(w, baseMs) {
+    const r = this.params.rubato;
+    const ioi = w.ioiMs ?? baseMs;
+    w.phrasePos = (w.phrasePos ?? 0) + 1;
+    const P = 8; // notes per phrase
+    const pos = w.phrasePos % (P + 1);
+    let f;
+    if (pos === 0) {
+      f = 1 + r * 1.8; // breath between phrases
+    } else {
+      f = 1 + r * 0.35 * Math.cos((pos / P) * Math.PI * 2); // arch
+    }
+    const n = w.at != null ? this.graph.neurons.get(w.at) : null;
+    if (n) {
+      const heat = Math.min(n.activityEMA / 8, 1);
+      f *= 1 + r * (0.15 - 0.3 * heat); // hot = push, cold = laid back
+    }
+    f *= 1 + r * 0.5 * (this.rng() - 0.5); // human jitter
+    return Math.max(30, Math.round(ioi * f));
   }
 
   move(w, index) {
