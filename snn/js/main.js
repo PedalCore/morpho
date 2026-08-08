@@ -177,13 +177,16 @@ function updateLog() {
 // ---- duet mode: pads, MIDI, reinforcement ----
 
 const PAD_KEYS = 'asdfghjklqwertyuiop';
+let padOctave = 2; // lower pad row; upper row is padOctave + 1
 
 function rebuildPads() {
   const padbar = $('pads');
   if (!padbar) return;
   const scale = SCALES[audio.scaleName];
   padbar.innerHTML = '';
-  [2, 3].forEach((oct, row) => {
+  const octLabel = $('padOctVal');
+  if (octLabel) octLabel.textContent = `${padOctave}·${padOctave + 1}`;
+  [padOctave, padOctave + 1].forEach((oct, row) => {
     for (let d = 0; d < scale.length; d++) {
       const idx = row * scale.length + d;
       const b = document.createElement('button');
@@ -256,7 +259,21 @@ function setupDuet() {
     if (idx < 0 || !lab) return;
     const len = SCALES[audio.scaleName].length;
     if (idx >= len * 2) return;
-    playHuman(idx < len ? 2 : 3, idx % len);
+    playHuman(idx < len ? padOctave : padOctave + 1, idx % len);
+  });
+
+  const shiftPadOctave = (d) => {
+    padOctave = Math.max(0, Math.min(4, padOctave + d));
+    rebuildPads();
+  };
+  $('padOctDown')?.addEventListener('click', () => shiftPadOctave(-1));
+  $('padOctUp')?.addEventListener('click', () => shiftPadOctave(1));
+  // z / x also shift the playing octave, like most soft keyboards
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat || e.metaKey || e.ctrlKey) return;
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+    if (e.key === 'z') shiftPadOctave(-1);
+    if (e.key === 'x') shiftPadOctave(1);
   });
 
   // human MIDI in → spikes; model out → MIDI hardware
