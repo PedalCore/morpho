@@ -1,12 +1,14 @@
-import { Lab } from './sim/lab.js';
+import { Lab, KEY_NAMES } from './sim/lab.js';
 import { Renderer, drawRateSparkline } from './ui/renderer.js';
 import { AudioEngine, SCALES, TUNINGS } from './ui/audio.js';
+import { FifthsWheel } from './ui/fifths.js';
 
 const $ = (id) => document.getElementById(id);
 
 const audio = new AudioEngine();
 let lab = null;
 let renderer = null;
+let fifthsWheel = null;
 let running = false;
 let speed = 1;
 let epochMarks = []; // {i, born, pruned} aligned to rateHistory indices
@@ -50,9 +52,11 @@ function build(seed) {
   };
 
   audio.keyOffset = 0; // fresh organism starts back in C
-  lab.onKeyChange = ({ neuronId, name, offset }) => {
+  if (fifthsWheel) fifthsWheel.setKey(0);
+  lab.onKeyChange = ({ neuronId, name, rule, fifths, offset }) => {
     audio.keyOffset = offset;
     renderer.markKeyChange(lab.graph, neuronId);
+    if (fifthsWheel) fifthsWheel.setKey(fifths, rule);
     updateStats();
     updateLog();
   };
@@ -132,7 +136,8 @@ function updateLog() {
         return `<li class="divided">e${e.epoch} ⑂ ${e.region} branched → ${e.children.join(', ')} <em>(+${e.newNeurons} neurons)</em></li>`;
       }
       if (e.type === 'KeyChanged') {
-        return `<li class="keychange">e${e.epoch} ♮ key → ${e.key} <em>(${e.rule}, node ${e.id})</em></li>`;
+        const src = e.id === 'manual' ? '' : `, node ${e.id}`;
+        return `<li class="keychange">e${e.epoch} ♮ key → ${e.key} <em>(${e.rule}${src})</em></li>`;
       }
       return `<li class="pruned">e${e.epoch} ✕ neuron ${e.id} pruned from ${e.region} <em>(energy ${e.energy?.toFixed(2) ?? '?'})</em></li>`;
     })
@@ -211,6 +216,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
   fitCanvas();
   build(parseInt($('seed').value, 10));
+
+  // interactive circle of fifths: shows the key, click to set it manually
+  fifthsWheel = new FifthsWheel($('viewwrap'), (i) => {
+    lab.key.fifths = i;
+    lab.key.offset = (7 * i) % 12;
+    lab.lastModStep = lab.engine.stepCount; // grace period before modulators drift again
+    audio.keyOffset = lab.key.offset;
+    fifthsWheel.setKey(i);
+    lab.dev.log({ epoch: lab.epoch, type: 'KeyChanged', id: 'manual', rule: 'selected', key: KEY_NAMES[i] });
+    updateStats();
+    updateLog();
+  });
+  fifthsWheel.setKey(lab.key.fifths);
+
   requestAnimationFrame(frame);
 
   $('runBtn').addEventListener('click', () => {

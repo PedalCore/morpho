@@ -71,6 +71,19 @@
   main { flex: 1; display: flex; min-height: 0; }
   #viewwrap { flex: 1; min-width: 0; position: relative; }
   #net { display: block; width: 100%; height: 100%; }
+  .fifths { position: absolute; top: 12px; left: 12px; z-index: 5; opacity: 0.94; }
+  .fifths .node { cursor: pointer; }
+  .fifths .node circle { fill: #171b23; stroke: #242a35; stroke-width: 1; transition: fill 0.2s, stroke 0.2s; }
+  .fifths .node:hover circle { stroke: #ffd75e; }
+  .fifths .node text { fill: #9aa1ad; font: 8.5px ui-monospace, monospace; text-anchor: middle; pointer-events: none; }
+  .fifths .node.active circle { fill: #ffd75e; stroke: #ffd75e; }
+  .fifths .node.active text { fill: #14171d; font-weight: 700; }
+  .fifths .centerkey { fill: #d7dae2; font: 600 17px -apple-system, sans-serif; text-anchor: middle; }
+  .fifths .rulelabel { fill: #ffd75e; font: 8.5px ui-monospace, monospace; text-anchor: middle; opacity: 0; transition: opacity 0.4s; }
+  .fifths .rulelabel.show { opacity: 1; }
+  .fifths .pulsering { fill: none; stroke: #ffd75e; stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .fifths .pulsering.animate { animation: fifthspulse 1.2s ease-out; }
+  @keyframes fifthspulse { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(2.8); } }
   aside {
     width: 300px;
     border-left: 1px solid var(--border);
