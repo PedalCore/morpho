@@ -95,6 +95,38 @@ All 34 tests pass. Open question to explore by playing: does reinforcement +
 STDP + development make its responses converge toward the player's material,
 and over what timescale?
 
+## v5 — measuring learning; Q&A becomes walker-answered
+
+Two headless experiments (`npm run experiment:learning|dialogue`) settled the
+"is it actually learning?" question with controls:
+
+**Finding 1 — usage, not sequences** (`experiments/learning.mjs`, motif
+completion probe with STDP-off and scrambled-motif controls): trained Δlift
+0.171 ≈ scrambled Δlift 0.186, both ≫ stdp-off ≈ 0. Pair-STDP here learns
+WHAT you play (which material/anatomy), not what-follows-what. For
+conversational relevance that's the useful half; sequence memory would need
+different machinery (eligibility traces / reservoir readout).
+
+**Finding 2 — raw reverberation cannot answer** (first dialogue run): with no
+drive, network activity dies ~100 ms after the call ends (STDP-on answered 0%
+of calls; STDP-off occasionally "answered" with 300-note runaway bursts).
+The substrate either goes silent or seizes — there is no natural gap-answer.
+
+**Fix — walkers are the answer voice**: when a call ends (600 ms silence),
+walkers are teleported onto the neurons the call activated most; their
+weighted traversal during the response window IS the answer. Result: 100% of
+calls answered (~30 notes), immediate relatedness ~0.5 (tonotopic seeding),
+and session drift +0.057 with STDP vs +0.020 without — the dialogue
+measurably converges toward the player's idiom, though the effect is modest.
+
+Duet additions: q&a toggle (model holds voice while you play, answers in the
+gap), Dialogue panel (exchanges, call→response counts, relatedness score =
+degree-histogram cosine, rolling average), walkers default 2.
+
+All 35 tests pass. Next: reward-modulated STDP (eligibility traces would make
+the reinforce button act on *synapses*, not just survival, and could crack
+sequence learning); response density/length shaping; MIDI-file calls.
+
 ## Hypothesis (from the brief, §42)
 
 > Can a compact recursive developmental grammar generate a spiking neural

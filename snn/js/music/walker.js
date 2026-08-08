@@ -58,6 +58,16 @@ export class WalkerSystem {
     return new Set(this.walkers.map((w) => w.at).filter((id) => id != null));
   }
 
+  // Q&A: drop the walkers onto specific neurons (e.g. the ones a human call
+  // just activated) so their traversal becomes the answer to that call.
+  seedAt(neuronIds) {
+    if (!neuronIds.length) return;
+    this.walkers.forEach((w, i) => {
+      w.at = neuronIds[i % neuronIds.length];
+      w.history = [];
+    });
+  }
+
   // Called every sim step; moves walkers on their musical grid.
   tick(stepCount, pulsePeriodMs) {
     if (!this.params.count) return;

@@ -79,6 +79,21 @@ test('fireInput delays schedule future spikes deterministically', () => {
   assert.deepEqual(spikesAt, [0, 50]);
 });
 
+test('walkers can be seeded onto call-activated neurons (Q&A answers)', () => {
+  const { lab, encoder } = duetLab(5);
+  lab.walkers.setCount(2);
+  const excitatory = [...lab.graph.neurons.values()].filter((n) => n.role === 'excitatory');
+  const targets = [excitatory[0].id, excitatory[1].id];
+  lab.walkers.seedAt(targets);
+  const occupied = lab.walkers.occupiedIds();
+  for (const id of targets) assert.ok(occupied.has(id), `walker not seeded at ${id}`);
+  // walkers emit notes after seeding
+  let notes = 0;
+  lab.walkers.onNote = () => notes++;
+  lab.runSteps(2000);
+  assert.ok(notes > 3, `seeded walkers should keep playing, got ${notes}`);
+});
+
 test('repeated playing under STDP moves weights in the played network', () => {
   const { lab, encoder } = duetLab(11);
   for (let e = 0; e < 4 * lab.simParams.epochSteps; e++) {

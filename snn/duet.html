@@ -123,9 +123,9 @@
     overflow-y: auto;
   }
   aside h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 600; }
-  #stats { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; }
-  #stats div { display: flex; justify-content: space-between; padding: 2px 0; }
-  #stats span { color: var(--ink-2); }
+  #stats, #dialogue { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; }
+  #stats div, #dialogue div { display: flex; justify-content: space-between; padding: 2px 0; }
+  #stats span, #dialogue span { color: var(--ink-2); }
   #spark { display: block; background: var(--surface); border-radius: 6px; }
   .sparkcap { font-size: 11px; color: var(--ink-3); margin-top: 4px; }
   .sparkcap i.b { color: var(--born); font-style: normal; }
@@ -180,7 +180,7 @@
   <div class="ctl"><label>reverb</label><input type="range" id="fxReverb" min="0" max="1" step="0.05" value="0.35" /></div>
   <div class="ctl"><label>delay</label><input type="range" id="fxDelay" min="0" max="1" step="0.05" value="0.25" /></div>
   <div class="ctl"><label>chorus</label><input type="range" id="fxChorus" min="0" max="1" step="0.05" value="0" /></div>
-  <div class="ctl"><label>walkers</label><input type="range" id="walkers" min="0" max="4" step="1" value="0" /><span id="walkersVal">0</span></div>
+  <div class="ctl"><label>walkers</label><input type="range" id="walkers" min="0" max="4" step="1" value="2" /><span id="walkersVal">2</span></div>
   <div class="ctl"><input type="checkbox" id="walkerSpread" /><label for="walkerSpread" title="transpose each walker into its own register band">spread</label></div>
   <div class="ctl"><label>variation</label><input type="range" id="variation" min="0.05" max="1" step="0.05" value="0.45" /></div>
   <div class="ctl"><label>momentum</label><input type="range" id="momentum" min="0" max="1" step="0.05" value="0.65" /></div>
@@ -205,6 +205,7 @@
   <div id="pads"></div>
   <div class="padctl">
     <span class="ctl" title="playing octave for pads and computer keys (z/x to shift)"><button id="padOctDown">−</button><span id="padOctVal">2·3</span><button id="padOctUp">+</button></span>
+    <span class="ctl"><input type="checkbox" id="qa" checked /><label for="qa" title="call &amp; response: the model holds its voice while you play and answers in the gaps">q&amp;a</label></span>
     <button id="reinforce" title="reward: deposit survival energy on everything that just fired">✚ reinforce</button>
     <button id="midiBtn">enable midi</button>
     <select id="midiIn" style="display:none" title="MIDI input — play the organism"></select>
@@ -217,6 +218,11 @@
     <section>
       <h2>Organism</h2>
       <div id="stats"></div>
+    </section>
+    <section>
+      <h2>Dialogue</h2>
+      <div id="dialogue"></div>
+      <div class="sparkcap">relatedness = shared pitch material between your call and its answer (0–1)</div>
     </section>
     <section>
       <h2>Mean firing rate</h2>

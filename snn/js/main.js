@@ -3,6 +3,7 @@ import { Renderer, drawRateSparkline } from './ui/renderer.js';
 import { AudioEngine, SCALES, TUNINGS } from './ui/audio.js';
 import { FifthsWheel } from './ui/fifths.js';
 import { wireSensoryInputs, SpikeEncoder, NOTE_NAMES } from './duet/sensory.js';
+import { DialogueTracker } from './duet/dialogue.js';
 import { MidiIO } from './io/midi.js';
 
 const $ = (id) => document.getElementById(id);
@@ -16,6 +17,8 @@ let renderer = null;
 let fifthsWheel = null;
 let encoder = null;
 let sensoryInputs = [];
+let dialogue = null;
+let callCounts = new Map(); // neuronId → spikes during the current human call
 let running = false;
 let speed = 1;
 let epochMarks = []; // {i, born, pruned} aligned to rateHistory indices
@@ -47,7 +50,22 @@ function build(seed) {
     sensoryInputs = wireSensoryInputs(lab.graph, audio.scaleName, lab.streams.build);
     lab.inputIds = sensoryInputs.map((n) => n.id);
     encoder = new SpikeEncoder(lab, sensoryInputs, audio.scaleName);
+    dialogue = new DialogueTracker();
+    dialogue.onExchange = updateDialogue;
+    dialogue.onCallStart = () => callCounts.clear();
+    // when your call ends, the walkers are dropped onto the anatomy your
+    // call just lit up — their traversal is the answer
+    dialogue.onResponseStart = () => {
+      if (!$('qa')?.checked || lab.walkers.params.count === 0) return;
+      const top = [...callCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([id]) => id)
+        .filter((id) => lab.graph.neurons.get(id)?.role === 'excitatory')
+        .slice(0, Math.max(2, lab.walkers.params.count));
+      if (top.length) lab.walkers.seedAt(top);
+    };
     rebuildPads();
+    updateDialogue();
   }
   audio.pulseMs = lab.simParams.pulsePeriodMs;
   lab.walkers.posOf = (id) => {
@@ -58,23 +76,44 @@ function build(seed) {
   epochMarks = [];
 
   lab.engine.onSpike = (n) => {
+    if (DUET && dialogue?.state === 'call' && n.role === 'excitatory') {
+      callCounts.set(n.id, (callCounts.get(n.id) ?? 0) + 1);
+    }
     if (!n.isOutput) return;
-    if (audio.enabled) {
+    // Q&A gating: while you're mid-phrase, the model holds its voice and
+    // answers in the gap you leave (spikes still happen — only audio waits)
+    const qaGated =
+      DUET && $('qa')?.checked && dialogue.humanActive(lab.engine.stepCount);
+    if (audio.enabled && !qaGated) {
       const fanout = lab.graph.outgoing.get(n.id)?.length ?? 0;
       audio.noteOn(n, renderer.panOf(lab.graph, n), fanout);
     }
     if (DUET) {
-      if (midiIO.output) {
-        const scale = SCALES[audio.scaleName];
-        const midi = 36 + lab.key.offset + n.octave * 12 + scale[n.structDegree % scale.length];
-        midiIO.send(midi, 0.7);
+      const scale = SCALES[audio.scaleName];
+      const degree = n.structDegree % scale.length;
+      dialogue.modelNote(degree, lab.engine.stepCount);
+      if (midiIO.output && !qaGated) {
+        midiIO.send(36 + lab.key.offset + n.octave * 12 + scale[degree], 0.7);
       }
       flashPad(n.structDegree, 'model');
     }
   };
 
   lab.walkers.onNote = (n, walkerIndex) => {
-    if (audio.enabled) audio.walkerNote(n, renderer.panOf(lab.graph, n), walkerIndex);
+    // in q&a mode walkers speak only during the response window
+    const inResponse = !DUET || !$('qa')?.checked || dialogue.state === 'response';
+    if (DUET) {
+      const scale = SCALES[audio.scaleName];
+      const degree = n.structDegree % scale.length;
+      dialogue.modelNote(degree, lab.engine.stepCount);
+      if (inResponse) {
+        flashPad(n.structDegree, 'model');
+        if (midiIO.output) midiIO.send(36 + lab.key.offset + n.octave * 12 + scale[degree], 0.6);
+      }
+    }
+    if (audio.enabled && inResponse) {
+      audio.walkerNote(n, renderer.panOf(lab.graph, n), walkerIndex);
+    }
   };
 
   audio.keyOffset = 0; // fresh organism starts back in C
@@ -205,8 +244,21 @@ function playHuman(octave, degree) {
   const scale = SCALES[audio.scaleName];
   const midi = 36 + lab.key.offset + octave * 12 + scale[degree];
   encoder.noteOn(midi, 0.8);
+  dialogue?.humanNote(degree, lab.engine.stepCount);
   audio.humanNote(octave, degree);
   flashPad(degree, 'human');
+}
+
+function updateDialogue() {
+  const el = $('dialogue');
+  if (!el || !dialogue) return;
+  const last = dialogue.exchanges[dialogue.exchanges.length - 1];
+  el.innerHTML = `
+    <div><span>exchanges</span><b>${dialogue.exchanges.length}</b></div>
+    <div><span>last call → resp</span><b>${last ? `${last.callNotes} → ${last.respNotes}` : '—'}</b></div>
+    <div><span>last relatedness</span><b>${last ? last.score.toFixed(2) : '—'}</b></div>
+    <div><span>recent avg (10)</span><b>${dialogue.recentMean(10).toFixed(2)}</b></div>
+  `;
 }
 
 function flashPad(structDegree, kind) {
@@ -279,20 +331,11 @@ function setupDuet() {
   // human MIDI in → spikes; model out → MIDI hardware
   midiIO.onNote = (note, vel) => {
     if (!encoder) return;
-    encoder.noteOn(note, vel);
-    const scale = SCALES[audio.scaleName];
-    flashPad(0, 'human'); // generic flash; precise degree below
-    const rel = (((note % 12) - lab.key.offset) % 12 + 12) % 12;
-    let best = 0;
-    let bd = 99;
-    scale.forEach((s, i) => {
-      const d = Math.min((rel - s + 12) % 12, (s - rel + 12) % 12);
-      if (d < bd) {
-        bd = d;
-        best = i;
-      }
-    });
-    flashPad(best, 'human');
+    const r = encoder.noteOn(note, vel);
+    if (r) {
+      dialogue?.humanNote(r.degree, lab.engine.stepCount);
+      flashPad(r.degree, 'human');
+    }
   };
 
   $('midiBtn')?.addEventListener('click', async () => {
@@ -337,6 +380,7 @@ function frame(t) {
     const steps = Math.min(Math.floor(accum), 120);
     accum -= steps;
     for (let i = 0; i < steps; i++) lab.step();
+    if (DUET && dialogue) dialogue.tick(lab.engine.stepCount);
   } else {
     lastTime = t;
   }
