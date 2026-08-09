@@ -206,6 +206,32 @@ Full write-up with tables: https://soundlark.studio/research.html
 
 All 48 tests pass.
 
+## v8 — language sideline: tiny shakespeare as a liquid state machine
+
+(`experiment:language`, dataset fetched+cached on first run)
+
+Characters → input spikes → frozen recurrent organism as reservoir →
+closed-form ridge readout (backprop-free) predicting the next character.
+Arms: exact bigram, char-only readout (sanity ≈ bigram ✓), fresh reservoir,
+reservoir after developmental exposure (dev+STDP while "listening" to 15k
+chars, then frozen).
+
+```
+uniform 5.95 bpc · bigram 28.8% / 3.54 bpc
+char-only readout 28.6% · fresh reservoir 29.2% · EXPOSED reservoir 31.7%
+(seed 7 replication: fresh 29.3% → exposed 31.4%; organisms grew ~150→260
+ neurons during exposure)  · char transformer reference ≈ 58% / 1.5 bpc
+```
+
+Honest verdict: not remotely transformer-comparable (expected — no gradient
+path, tiny graphs), but the replicated +2.5pp from developmental exposure is
+the interesting result: development+STDP acts as backprop-free
+representation learning on the reservoir. Related reading now in repo docs:
+Forward-Forward SNNs (arXiv:2502.20411 — the natural next step for a
+backprop-free readout stack), Spyx (2402.18994) and Training Deep SNNs
+(2006.04436) — the surrogate-gradient track we deliberately keep out of this
+substrate.
+
 ## Hypothesis (from the brief, §42)
 
 > Can a compact recursive developmental grammar generate a spiking neural

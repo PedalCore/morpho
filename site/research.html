@@ -170,6 +170,30 @@
     for walkers is the obvious next mechanism.
   </div>
 
+  <h3>6. Sideline: language — the organism as a liquid state machine</h3>
+  <p>
+    Can the substrate carry <em>any</em> predictive signal on text? Tiny Shakespeare,
+    characters as spikes, and only a closed-form linear readout (ridge regression —
+    backprop-free) trained to predict the next character from the reservoir's spike traces:
+  </p>
+  <table>
+    <tr><th>model</th><th>accuracy</th><th>bits/char</th></tr>
+    <tr><td>uniform</td><td>—</td><td>5.95</td></tr>
+    <tr><td>bigram (exact)</td><td>28.8%</td><td>3.54</td></tr>
+    <tr><td>char-only readout (≈bigram, sanity)</td><td>28.6%</td><td>4.40*</td></tr>
+    <tr><td>fresh reservoir</td><td>29.2%</td><td>4.36*</td></tr>
+    <tr><td>reservoir after developmental exposure</td><td><b>31.7%</b></td><td>4.22*</td></tr>
+    <tr><td>char transformer (reference)</td><td>~58%</td><td>~1.5</td></tr>
+  </table>
+  <div class="verdict">
+    <b>Split, with one gem:</b> nowhere near a transformer, as expected — no gradients, ~150
+    neurons. But <em>developmental exposure to the text made the reservoir a better feature
+    map</em> (+2.5pp over the identical fresh genotype, replicated across seeds; the organism
+    grew 143→259 neurons while listening). Development + STDP is doing backprop-free
+    representation learning. (*bits/char for readout arms uses approximate softmax
+    calibration; accuracy is the clean metric.)
+  </div>
+
   <h2>What the Morpho layer adds — and what it costs</h2>
   <p>
     Every attention paper we borrowed from uses a fixed architecture. Here the attention

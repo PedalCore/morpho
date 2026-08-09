@@ -12,6 +12,7 @@
     "experiment:morphogen": "node experiments/morphogen.mjs",
     "experiment:rstdp": "node experiments/rstdp.mjs",
     "experiment:style": "node experiments/style.mjs",
+    "experiment:language": "node experiments/language.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
