@@ -398,3 +398,16 @@ Results:
 The overprovision-then-prune regime is validated with a measured boundary
 and a legible failure law: pruning must preserve the stabilizing scaffolding.
 Write-up: https://soundlark.studio/language.html
+
+## v11 — readout v2 + the Mamba mechanism (`experiment:readout2`)
+
+- Previous-char context → **34.2%, new best** (from 33.0%).
+- Multi-τ trace banks (20/80/320ms = diagonal SSM memory): at matched dims,
+  **selective (bigram-surprise-gated) state beats plain slow state 30.0 vs
+  28.5** — Mamba-Spike/SpikingMamba's core mechanism (input-dependent state
+  write) transfers to our gradient-free substrate, directionally.
+- Scaling the bank to 3203 dims at 16k fit samples collapsed the ridge
+  (14–18%) — sample-budget artifact (5:1 ratio, correlated slow traces).
+  Lever: more fit data / λ tuning before bigger banks.
+- FF head v2 (2-layer, standardized, goodness rerank): 10.1% — third failure;
+  shallow FF on reservoir features is a robust negative in our hands.

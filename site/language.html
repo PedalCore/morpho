@@ -145,6 +145,37 @@
     ~75 chars/s while streaming the full corpus, sparse activity ~1.7%.
   </div>
 
+  <h2>Result 4 — readout v2 and the Mamba mechanism</h2>
+  <p>
+    With the readout identified as the ceiling, one upgrade round on the 120k brain: more
+    feature taps, traces at three timescales (τ = 20/80/320 ms — a multi-τ exponential
+    trace bank is exactly a diagonal linear state-space memory, S4-family), previous-character
+    context, a normalized 2-layer Forward-Forward rerank head, and a gradient-free analog of
+    <a href="https://arxiv.org/abs/2408.11823">Mamba-Spike</a> /
+    <a href="https://arxiv.org/abs/2510.04595">SpikingMamba</a>'s core mechanism:
+    <em>selective state</em> — the slow trace's write gain is the character's bigram surprise,
+    so rare inputs write strongly into memory and predictable ones barely perturb it.
+  </p>
+  <table>
+    <tr><th>readout</th><th>held-out accuracy</th></tr>
+    <tr><td>v10 baseline (1024 fast taps)</td><td>33.0%</td></tr>
+    <tr><td><b>+ previous-char context</b></td><td><b>34.2% — new best</b></td></tr>
+    <tr><td>384 taps × 3τ state-space bank</td><td>28.5%</td></tr>
+    <tr><td>same + <b>selective (surprise-gated) state</b></td><td><b>30.0%</b> (+1.5pp over non-selective)</td></tr>
+    <tr><td>3072-dim bank at fixed 16k fit samples</td><td>14–18% — ridge collapse (sample-starved)</td></tr>
+    <tr><td>FF-v2 rerank (2-layer, standardized)</td><td>10.1% — still negative</td></tr>
+  </table>
+  <div class="verdict">
+    Mixed, with two clean signals. <b>Selectivity transfers:</b> at matched dimensionality the
+    Mamba-style surprise gate beats the plain slow state (+1.5pp) — input-dependent state
+    retention helps even computed gradient-free from corpus statistics. <b>Context is cheap
+    accuracy:</b> one extra symbol of context (+1.2pp) outperformed the entire temporal trace
+    bank at this sample budget — big trace banks need proportionally more fit data or stronger
+    regularization (the 3072-dim collapse is a sample-budget artifact, ratio 5:1). And
+    Forward-Forward failed a third, properly-normalized attempt in our regime — recorded as a
+    robust negative for shallow FF heads on reservoir features.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
     The readout is now the bottleneck: a deeper Forward-Forward stack, more feature taps,
