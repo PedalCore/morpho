@@ -111,11 +111,47 @@
     be competitive here — a real follow-up, not a refutation of FF.
   </p>
 
+  <h2>Result 3 — going big: 120,000 neurons, then prune down</h2>
+  <p>
+    The growth experiments run at 10² scale. The opposite regime — closer to how brains
+    actually develop — is to start from a <em>known structure, massively overprovisioned</em>,
+    and prune: a new engine (typed arrays, CSR synapses, event-driven, lazy decay) builds a
+    4-layer spiking network of 120,000 neurons / 2.4M synapses with feedforward, recurrence,
+    skips, feedback and 15% inhibition, streams the <em>full</em> tiny Shakespeare corpus,
+    and prunes by error-credit: neurons active during correct predictions live.
+  </p>
+  <p>
+    Getting a deep spiking network to compute at all is the classic stability fight — our
+    first attempts were near-silent, then seizing at 200 Hz. The working recipe: sparse
+    target rates (~2 Hz), continuous per-layer homeostatic thresholds, damped recurrent
+    gain, membrane clamps. Then:
+  </p>
+  <table>
+    <tr><th>stage</th><th>size</th><th>held-out accuracy</th></tr>
+    <tr><td>full structured brain</td><td>120,000</td><td><b>33.0%</b> — matches the 834-neuron grown organism</td></tr>
+    <tr><td>naive credit pruning</td><td>84k → 20k</td><td>collapses (27–29%) — <em>inhibition pruned first → seizure → death</em></td></tr>
+    <tr><td>role-aware pruning (E and I pruned separately)</td><td>120k → <b>50k</b></td><td><b>32.7%</b> — 58% smaller, accuracy intact</td></tr>
+    <tr><td>role-aware, further</td><td>38k</td><td>26.2% — activity floor reached</td></tr>
+  </table>
+  <div class="verdict pos">
+    Three findings. <b>(1)</b> The overprovision-then-prune regime works: more than half the
+    network is removable at zero accuracy cost, automatically, by error credit — but only if
+    pruning respects roles: naive pruning strips the inhibitory scaffolding first and the
+    network seizes, then dies (we measured the whole arc: 2030 → 5233 → 197 spikes/char).
+    <b>(2)</b> A 120k-neuron brain and an 834-neuron grown organism score the same — the
+    current ceiling (~33%) belongs to the linear readout, not to network capacity. The next
+    lever is the readout: deeper Forward-Forward stacks, more feature taps, longer context.
+    <b>(3)</b> 10⁵-scale spiking networks are perfectly tractable in a browser-class engine:
+    ~75 chars/s while streaming the full corpus, sparse activity ~1.7%.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
-    Scaling exposure further (does the developmental advantage saturate?), a deeper
-    Forward-Forward stack on the reservoir, word-level targets, and the same error-driven
-    growth mechanism pointed back at music: grow when the dialogue relatedness drops.
+    The readout is now the bottleneck: a deeper Forward-Forward stack, more feature taps,
+    and longer temporal context are the levers. Then: grow-AND-prune in one lifecycle
+    (overprovision, prune to the skeleton, regrow where error persists), word-level targets,
+    and the same error-driven mechanisms pointed back at music: grow when dialogue
+    relatedness drops.
   </p>
 
   <p class="foot">

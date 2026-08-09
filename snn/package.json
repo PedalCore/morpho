@@ -14,6 +14,7 @@
     "experiment:style": "node experiments/style.mjs",
     "experiment:language": "node experiments/language.mjs",
     "experiment:growth": "node experiments/growth.mjs",
+    "experiment:bigbrain": "node experiments/bigbrain.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }

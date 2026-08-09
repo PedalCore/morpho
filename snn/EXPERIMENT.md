@@ -376,3 +376,25 @@ is the linear readout, not the organism. Honest negative: minimal FF head
 normalization+depth before FF is competitive here.
 
 Separate write-up: https://soundlark.studio/language.html
+
+## v10 — big brain (`experiment:bigbrain`): 120k neurons, prune down
+
+New SoA engine (typed arrays, CSR, event-driven, lazy decay): 120,000-neuron
+4-layer structured spiking net (FF+recurrence+skips+feedback+15% inhibition),
+full tiny shakespeare corpus, ~75 chars/s. Stability recipe that made deep
+spiking compute possible: ~2 Hz sparse targets, CONTINUOUS per-layer
+homeostatic thresholds, recurrent gain damped (×0.45 rec, ×0.3 feedback),
+membrane clamp at 3×thr. First attempts were silent (weights too weak) then
+seizing (200 Hz) — both preserved in git history as measured failures.
+
+Results:
+- 120k structured brain: 33.0% held-out — MATCHES the 834-neuron grown
+  organism → the ~33% ceiling is the linear readout, not capacity.
+- Naive error-credit pruning kills inhibition first → seizure → collapse
+  (2030 → 5233 → 197 spikes/char across rounds; acc → 25%).
+- ROLE-AWARE pruning (E and I pruned separately, bottom 25% by credit per
+  round): 120k → 50k with accuracy intact (32.7%); floor at ~38k.
+
+The overprovision-then-prune regime is validated with a measured boundary
+and a legible failure law: pruning must preserve the stabilizing scaffolding.
+Write-up: https://soundlark.studio/language.html
