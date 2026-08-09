@@ -1,3 +1,55 @@
+# morpho · snn — developmental spiking networks as interactive music
+
+> **This fork is an experiment.** It extends the ideas of
+> [MorphoHDL](https://github.com/paradigms-of-intelligence/morpho) — recursive
+> structural growth — into **spiking neural networks** and **interactive
+> music**: a compact developmental grammar grows a recurrent spiking network
+> whose ongoing activity decides which parts of its own structure grow,
+> survive and are pruned — and everything it does is audible.
+>
+> **▶ Play with it now: [soundlark.studio](https://soundlark.studio)** — no
+> install, runs in the browser.
+
+## The two experiments (in `snn/`)
+
+### 1. [The Lab](https://soundlark.studio/snn/) — a developmental spiking network you can listen to
+
+A Morpho-style recursive grammar expands into a recurrent leaky
+integrate-and-fire network. Pitch **is** anatomy: developmental depth sets the
+register, structural position sets the scale degree — so you hear regions
+divide and climb in register, pruning thin the texture, and rare "modulator"
+neurons nudge the key around an interactive circle of fifths. Stochastic
+walkers roam the graph as melodic voices, and the structures they play are the
+ones that survive. Scales, microtonal tunings, rubato, steering, fx.
+
+### 2. [The Duet](https://soundlark.studio/snn/duet.html) — play with a developing brain
+
+The human replaces the metronome as the organism's environment. Your notes
+(MIDI keyboard, on-screen pads, or computer keys — locked to the current
+scale/key) are encoded as spike bursts into a tonotopic sensory layer wired to
+the anatomy that sounds the same degrees. There is no internal drive: it
+answers **you**, in the gaps you leave, at the tempo you asked at. STDP
+strengthens the pathways you play, development reorganizes around them, a
+reinforce button rewards answers you like, and a live *relatedness* score
+tracks whether the dialogue is converging on your material. MIDI out lets it
+play your hardware.
+
+**Docs & findings:** [`snn/README.md`](snn/README.md) (how to run and test) ·
+[`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) (hypothesis, controlled learning
+experiments, honest findings) · the research brief and parallel C++/JUCE
+plugin briefs live in [`snn/docs/`](snn/docs/).
+
+Everything is deterministic per seed (same seed = same organism, same spikes,
+same harmonic journey), tested headlessly (`cd snn && npm test`), and deployed
+automatically from this branch (`snn-lab`).
+
+---
+
+*The original MorphoHDL README follows — the upstream project this fork
+builds on, unchanged at the repository root.*
+
+---
+
 # MorphoHDL
 
 **A minimalistic language for growing circuits through structural recursion.**
