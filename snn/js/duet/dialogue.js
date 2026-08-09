@@ -13,6 +13,21 @@ export function degreeHist(degrees, len = 12) {
   return h;
 }
 
+// Inter-onset-interval histogram over log-spaced buckets — rhythm as a
+// distribution, comparable with cosine just like pitch material.
+export const IOI_BUCKETS = [90, 160, 280, 500, 900, 1600];
+
+export function ioiHist(times) {
+  const h = new Array(IOI_BUCKETS.length + 1).fill(0);
+  for (let i = 1; i < times.length; i++) {
+    const ioi = times[i] - times[i - 1];
+    let b = IOI_BUCKETS.findIndex((edge) => ioi < edge);
+    if (b === -1) b = IOI_BUCKETS.length;
+    h[b]++;
+  }
+  return h;
+}
+
 export function cosine(a, b) {
   let dot = 0;
   let na = 0;
@@ -33,7 +48,9 @@ export class DialogueTracker {
     this.histLen = histLen;
     this.state = 'idle'; // idle | call | response
     this.call = [];
+    this.callTimes = [];
     this.resp = [];
+    this.respTimes = [];
     this.lastHumanAt = -1e9;
     this.respStart = 0;
     this.exchanges = []; // {t, callNotes, respNotes, score}
@@ -65,7 +82,10 @@ export class DialogueTracker {
   }
 
   modelNote(degree, t) {
-    if (this.state === 'response') this.resp.push(degree);
+    if (this.state === 'response') {
+      this.resp.push(degree);
+      this.respTimes.push(t);
+    }
   }
 
   // any network spike during the response window — the energy cost of the
@@ -84,6 +104,7 @@ export class DialogueTracker {
       this.state = 'response';
       this.respStart = t;
       this.resp = [];
+      this.respTimes = [];
       this.respSpikes = 0;
       if (this.onResponseStart) this.onResponseStart(t);
     } else if (this.state === 'response' && t - this.respStart > this.windowMs) {
@@ -97,18 +118,25 @@ export class DialogueTracker {
         degreeHist(this.call, this.histLen),
         degreeHist(this.resp, this.histLen)
       );
+      const rhythm =
+        this.callTimes.length > 2 && this.respTimes.length > 2
+          ? cosine(ioiHist(this.callTimes), ioiHist(this.respTimes))
+          : 0;
       this.exchanges.push({
         t,
         callNotes: this.call.length,
         respNotes: this.resp.length,
         respSpikes: this.respSpikes ?? 0,
         score,
+        rhythm,
       });
       if (this.exchanges.length > this.maxExchanges) this.exchanges.shift();
       if (this.onExchange) this.onExchange(this.exchanges[this.exchanges.length - 1]);
     }
     this.call = [];
+    this.callTimes = [];
     this.resp = [];
+    this.respTimes = [];
     this.respSpikes = 0;
     this.state = 'idle';
   }

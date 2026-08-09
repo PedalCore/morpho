@@ -119,6 +119,30 @@ test('rubato makes walker timing expressive; rubato 0 restores the grid', () => 
   assert.ok(new Set(loose).size > 3, `rubato should vary intervals, got ${[...new Set(loose)]}`);
 });
 
+test('R-STDP: pairings fill eligibility, only reward moves weights', () => {
+  const { lab, encoder } = duetLab(9);
+  lab.stdp.p.mode = 'reward';
+  lab.simParams.developmentEnabled = false; // isolate plasticity from growth
+  const snapshot = () => new Map([...lab.graph.synapses.values()].map((s) => [s.id, s.weight]));
+  const w0 = snapshot();
+  for (let i = 0; i < 3 * lab.simParams.epochSteps; i++) {
+    if (i % 300 === 0) encoder.noteOn(60, 0.9);
+    lab.step();
+  }
+  const w1 = snapshot();
+  for (const [id, w] of w1) assert.equal(w, w0.get(id), 'no reward → no weight change');
+  assert.ok(lab.stdp.eligibility.size > 0, 'pairings should accumulate eligibility');
+  const touched = lab.reward(1);
+  assert.ok(touched > 0, 'reward should convert eligibility to weight change');
+  const w2 = snapshot();
+  let changed = 0;
+  for (const [id, w] of w2) {
+    if (Math.abs(w - w1.get(id)) > 1e-9) changed++;
+    if (w > 0) assert.ok(w >= 0.05 - 1e-9 && w <= 1.1 + 1e-9, `bounds hold: ${w}`);
+  }
+  assert.ok(changed > 0, 'reward moves weights');
+});
+
 test('repeated playing under STDP moves weights in the played network', () => {
   const { lab, encoder } = duetLab(11);
   for (let e = 0; e < 4 * lab.simParams.epochSteps; e++) {

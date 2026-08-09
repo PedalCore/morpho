@@ -3,12 +3,7 @@ import assert from 'node:assert/strict';
 
 import { NeuralGraph } from '../js/neural/graph.js';
 import { SpikeEngine } from '../js/neural/engine.js';
-import { resetNeuronIds } from '../js/neural/neuron.js';
-import { resetSynapseIds } from '../js/neural/synapse.js';
-
 function freshGraph() {
-  resetNeuronIds();
-  resetSynapseIds();
   return new NeuralGraph();
 }
 

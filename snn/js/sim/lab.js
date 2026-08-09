@@ -4,8 +4,6 @@
 // exactly what the tests measure.
 
 import { mulberry32, makeStreams } from '../core/rng.js';
-import { resetNeuronIds } from '../neural/neuron.js';
-import { resetSynapseIds } from '../neural/synapse.js';
 import { NeuralGraph } from '../neural/graph.js';
 import { SpikeEngine } from '../neural/engine.js';
 import { ActivityTracker } from '../neural/activity.js';
@@ -44,8 +42,6 @@ export class Lab {
     this.simParams = { ...DEFAULT_SIM, ...sim };
     this.grammarParams = { ...DEFAULT_GRAMMAR, ...grammar };
 
-    resetNeuronIds();
-    resetSynapseIds();
     this.streams = makeStreams(seed);
     this.streams.walk = mulberry32(seed ^ 0x27d4eb2f);
     this.graph = new NeuralGraph();
@@ -83,6 +79,11 @@ export class Lab {
   attachAttention(attention) {
     this.attention = attention;
     this.engine.modulation = (n) => attention.gainOf(n);
+  }
+
+  // R-STDP reward signal (reinforce button, teacher signal in experiments)
+  reward(amount = 1) {
+    return this.stdp.applyReward(this.graph, this.engine.stepCount, amount);
   }
 
   fireInput(neuronId, delaySteps = 0) {

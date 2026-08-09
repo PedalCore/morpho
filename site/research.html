@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — developmental spiking networks as interactive music</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  h3 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.null { border-color: #d96c6c; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>sound<span>lark</span> research notes</h1>
+  <p class="sub">Developmental spiking neural networks as interactive music — what we built,
+  what we measured, and what honestly didn't work.</p>
+
+  <div class="links">
+    <a href="/snn/">▶ the lab</a>
+    <a href="/snn/duet.html">▶ the duet</a>
+    <a href="/snn/attention.html">▶ attention</a>
+    <a href="https://github.com/PedalCore/morpho">code & experiments</a>
+  </div>
+
+  <h2>The idea</h2>
+  <p>
+    <a href="https://github.com/paradigms-of-intelligence/morpho">MorphoHDL</a> grows circuits
+    by recursive structural rewriting. We asked: what if that recursion grew a <em>spiking
+    neural network</em> instead — and the network's own activity decided which parts of its
+    structure grow, survive and are pruned? And what if everything it did was audible?
+  </p>
+  <p>
+    The result is a browser laboratory. A compact recursive grammar expands into a recurrent
+    leaky integrate-and-fire network. Pitch <em>is</em> anatomy: developmental depth sets the
+    register, structural position sets the scale degree — so structural events are musical
+    events. Development runs on survival energy: neurons that fire (or are played) live,
+    neglected anatomy starves and is pruned. Everything is deterministic per seed and covered
+    by a headless test suite (48 tests) that drives the exact code the browser runs.
+  </p>
+
+  <h2>The three instruments</h2>
+  <p>
+    <b>The Lab</b> — the organism plays itself: rhythmic input drive, stochastic walkers as
+    melodic voices, rare "modulator" neurons that nudge the key around an interactive circle
+    of fifths, region divisions opening new registers, microtonal tunings, rubato.
+    <b>The Duet</b> — the human replaces the metronome: notes (MIDI, pads, keyboard) are
+    encoded as spike bursts into a tonotopic sensory layer; the organism answers in the gaps
+    you leave, at the tempo you asked at. <b>Attention</b> — the duet plus attention-modulated
+    spiking (below), left as a separate page so the plain duet stays an experimental baseline.
+  </p>
+
+  <h2>What we measured</h2>
+
+  <h3>1. Answering at all is an architecture problem</h3>
+  <p>
+    A recurrent LIF net this size holds activity ~100 ms after input stops: it cannot
+    "answer in the gap" — it goes silent, or occasionally seizes (300-note runaway bursts).
+    The fix is architectural: when your phrase ends, <em>walkers</em> are teleported onto the
+    anatomy your call activated, and their weighted traversal is the answer.
+    Result: 100% of calls answered, immediate call/response relatedness ≈ 0.5
+    (degree-histogram cosine), because the seeding is tonotopic by construction.
+  </p>
+
+  <h3>2. What does it learn? Usage — not sequences</h3>
+  <p>
+    Motif-completion probes with controls: train a 4-note motif 50×, cue with its first two
+    notes, measure whether responses predict the continuation.
+  </p>
+  <table>
+    <tr><th>condition</th><th>Δ continuation-lift</th></tr>
+    <tr><td>trained motif (STDP)</td><td>+0.17</td></tr>
+    <tr><td>scrambled-order control</td><td>+0.19</td></tr>
+    <tr><td>STDP off</td><td>≈ 0</td></tr>
+  </table>
+  <div class="verdict null">
+    <b>Null:</b> trained ≈ scrambled — pair-STDP learns <em>what</em> you play (material,
+    anatomy) but not <em>what follows what</em>. Reward-modulated STDP (eligibility traces,
+    teacher reward, with a decorrelated-reward control) did not rescue sequence learning
+    either. The substrate lacks directed cross-degree pathways for order to live in.
+  </div>
+  <p>
+    A specialization control (train idiom A, probe idiom A vs unseen idiom B over a session)
+    likewise came back flat: the organism <em>mirrors</em>; its constant A-over-B advantage
+    exists before training and is architectural. These nulls are the most useful results we
+    have — they say precisely where the substrate's ceiling is.
+  </p>
+
+  <h3>3. Attention: the MA-SNN result reproduced musically</h3>
+  <p>
+    Adapting <a href="https://arxiv.org/abs/2209.13929">Attention Spiking Neural Networks</a>
+    (gradient-free): leaf regions are the "channels"; each region's synaptic input is gated by
+    how well its pitch material matches recently heard notes. Ablated on 60-exchange sessions,
+    4 seeds, all arms with STDP + development:
+  </p>
+  <table>
+    <tr><th>arm</th><th>relatedness</th><th>spikes / exchange</th></tr>
+    <tr><td>attention off</td><td>0.544</td><td>485</td></tr>
+    <tr><td>balanced (boost + suppress)</td><td>0.563</td><td><i>605</i></td></tr>
+    <tr><td>suppress-only</td><td><b>0.602</b></td><td><b>85</b></td></tr>
+    <tr><td>suppress + temporal mixing</td><td><b>0.610</b></td><td>101</td></tr>
+  </table>
+  <div class="verdict pos">
+    <b>Positive:</b> suppress-only attention gives more related answers at ~85% fewer spikes —
+    the same "sparser and better" signature MA-SNN reports (their spike reduction: 84.9%).
+    Symmetric boosting destabilizes the recurrent net and is rejected. Attention works here by
+    removing noise, not by shouting.
+  </div>
+  <p>
+    Temporal mixing — inspired by SpikeVoice's Spiking Temporal-Sequential Attention
+    (<a href="https://aclanthology.org/2024.acl-long.429/">ACL 2024</a>) — attends over
+    context <em>depth</em> (three timescales of heard material, sharpness-weighted) before
+    attending over structure. Under a static-idiom protocol it ties with plain suppression;
+    its expected advantage (adapting when the player's material changes) is untested — the
+    fair test is an idiom-switch session, queued as future work.
+  </p>
+
+  <h3>4. Attention as morphogen</h3>
+  <p>
+    Because the attention "channels" are also the developmental units, attention can feed
+    survival: strongly attended regions receive energy, so what the player attends to is what
+    develops. Ablation over 120-exchange sessions: idiom coverage of the anatomy rises in both
+    arms (0.56 → 0.64 — activity-driven development is already a morphogen), with the
+    attention trickle adding a modest sharpening (Δcoverage +0.077 vs +0.062; late relatedness
+    0.596 vs 0.566) and — striking — organisms that stay ~50% larger, because attention
+    feeds anatomy that pruning would otherwise starve.
+  </p>
+
+  <h3>5. Style capture: Beethoven in, Beethoven-ish out</h3>
+  <p>
+    Train on the Ode to Joy theme (30 passes), then probe with simple novel cues and compare
+    responses to the theme's distributions, against an untrained twin of the same genotype:
+  </p>
+  <table>
+    <tr><th></th><th>pitch-style similarity</th><th>rhythm-style similarity</th></tr>
+    <tr><td>trained</td><td><b>0.81</b></td><td>0.21</td></tr>
+    <tr><td>fresh twin</td><td>0.76</td><td>0.32</td></tr>
+  </table>
+  <div class="verdict">
+    <b>Split:</b> pitch material leans toward the trained style (one seed strongly: 0.87 vs
+    0.63); rhythm does not — because nothing in the system learns rhythm yet. Answer timing
+    comes from the expressive rubato scheduler, not from training. A learned IOI vocabulary
+    for walkers is the obvious next mechanism.
+  </div>
+
+  <h2>What the Morpho layer adds — and what it costs</h2>
+  <p>
+    Every attention paper we borrowed from uses a fixed architecture. Here the attention
+    channels <em>are</em> the developmental units, which makes attention-shapes-structure a
+    one-line integration rather than a research program. The cost is the mirror image: no
+    gradient path, tiny graphs, topology that changes under you — chasing learned-attention
+    results at scale belongs in a separate fixed-topology effort, not this substrate.
+  </p>
+
+  <h2>Living with an organism</h2>
+  <p>
+    Organisms are now persistent: full deterministic snapshots (every membrane potential,
+    in-flight spike, plasticity trace, RNG stream) — a restored organism continues
+    spike-for-spike identically, verified by test. Save/load lives in the browser; export and
+    import move organisms between people as files. And any MIDI file can be the player:
+    <em>train from midi</em> replays a score into the sensory layer at whatever sim speed you
+    like, then you jam with whatever it became.
+  </p>
+
+  <h2>Where this goes</h2>
+  <p>
+    Rhythm learning (walker IOI vocabularies), idiom-switch tests for temporal attention,
+    reward shaping through play (the reinforce button already drives R-STDP eligibility),
+    overnight MIDI-corpus training on persistent organisms, and porting the validated
+    mechanisms — walker answers, suppress attention, structural pitch, energy survival — to
+    the native C++/JUCE instrument this research track runs alongside.
+  </p>
+
+  <p class="foot">
+    Everything here is reproducible: <code>cd snn && npm test</code> (48 tests) ·
+    <code>npm run experiment:learning|dialogue|attention|specialization|morphogen|rstdp|style</code>
+    — each prints the tables above from scratch.
+    Built on <a href="https://github.com/paradigms-of-intelligence/morpho">MorphoHDL</a>
+    (Apache 2.0). References: Yao et al.,
+    <a href="https://arxiv.org/abs/2209.13929">Attention Spiking Neural Networks</a>;
+    Wang et al., <a href="https://aclanthology.org/2024.acl-long.429/">SpikeVoice</a>;
+    Izhikevich, <em>Solving the distal reward problem</em> (R-STDP);
+    <a href="https://arxiv.org/abs/2401.05373">Dynamic Spiking GNNs</a>;
+    <a href="https://arxiv.org/abs/2509.21342">SGNNBench</a>.
+  </p>
+</article>
+</body>
+</html>

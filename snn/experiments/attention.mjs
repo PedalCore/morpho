@@ -29,7 +29,7 @@ const NOTE_MS = 140;
 const GAP_MS = 700;
 const RESPONSE_MS = 2000;
 
-function makeLab(seed, attnStrength, bias = 'balanced') {
+function makeLab(seed, attnStrength, bias = 'balanced', temporalMix = false) {
   const lab = new Lab({
     seed,
     grammar: { inputNeurons: 0, outputFraction: 0.5 },
@@ -40,13 +40,13 @@ function makeLab(seed, attnStrength, bias = 'balanced') {
   const inputs = wireSensoryInputs(lab.graph, SCALE, lab.streams.build);
   lab.inputIds = inputs.map((n) => n.id);
   if (attnStrength > 0) {
-    lab.attachAttention(new RegionalAttention(lab.graph, scale.length, { strength: attnStrength, bias }));
+    lab.attachAttention(new RegionalAttention(lab.graph, scale.length, { strength: attnStrength, bias, temporalMix }));
   }
   return { lab, encoder: new SpikeEncoder(lab, inputs, SCALE) };
 }
 
-function session(seed, attnStrength, bias = 'balanced') {
-  const { lab, encoder } = makeLab(seed, attnStrength, bias);
+function session(seed, attnStrength, bias = 'balanced', temporalMix = false) {
+  const { lab, encoder } = makeLab(seed, attnStrength, bias, temporalMix);
   const playerRng = mulberry32(seed ^ 0x5eed);
   const scores = [];
   let respDegrees = [];
@@ -101,14 +101,16 @@ function session(seed, attnStrength, bias = 'balanced') {
 }
 
 const seeds = [7, 23, 42, 77];
-const agg = { off: [], on: [], sup: [] };
+const agg = { off: [], on: [], sup: [], sts: [] };
 for (const seed of seeds) {
   const off = session(seed, 0);
   const on = session(seed, 0.7);
   const sup = session(seed, 0.7, 'suppress');
+  const sts = session(seed, 0.7, 'suppress', true);
   agg.off.push(off);
   agg.on.push(on);
   agg.sup.push(sup);
+  agg.sts.push(sts);
   console.log(
     `seed ${String(seed).padStart(3)}  attn-off  rel ${off.overall.toFixed(2)} (${off.early.toFixed(2)}→${off.late.toFixed(2)})  ${off.notes.toFixed(1)} notes  ${off.spikes.toFixed(0)} spikes/exchange`
   );
@@ -117,6 +119,9 @@ for (const seed of seeds) {
   );
   console.log(
     `          suppress  rel ${sup.overall.toFixed(2)} (${sup.early.toFixed(2)}→${sup.late.toFixed(2)})  ${sup.notes.toFixed(1)} notes  ${sup.spikes.toFixed(0)} spikes/exchange`
+  );
+  console.log(
+    `          sup+STSA  rel ${sts.overall.toFixed(2)} (${sts.early.toFixed(2)}→${sts.late.toFixed(2)})  ${sts.notes.toFixed(1)} notes  ${sts.spikes.toFixed(0)} spikes/exchange`
   );
 }
 const m = (rows, f) => rows.reduce((a, r) => a + f(r), 0) / rows.length;
@@ -129,5 +134,8 @@ console.log(
 );
 console.log(
   `suppress: relatedness ${m(agg.sup, (r) => r.overall).toFixed(3)}  drift ${(m(agg.sup, (r) => r.late) - m(agg.sup, (r) => r.early)).toFixed(3)}  spikes/exchange ${m(agg.sup, (r) => r.spikes).toFixed(0)}`
+);
+console.log(
+  `sup+STSA: relatedness ${m(agg.sts, (r) => r.overall).toFixed(3)}  drift ${(m(agg.sts, (r) => r.late) - m(agg.sts, (r) => r.early)).toFixed(3)}  spikes/exchange ${m(agg.sts, (r) => r.spikes).toFixed(0)}`
 );
 console.log('\nMA-SNN signature = attn-on holds/raises relatedness at fewer spikes per answer');

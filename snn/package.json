@@ -8,6 +8,10 @@
     "experiment:learning": "node experiments/learning.mjs",
     "experiment:dialogue": "node experiments/dialogue.mjs",
     "experiment:attention": "node experiments/attention.mjs",
+    "experiment:specialization": "node experiments/specialization.mjs",
+    "experiment:morphogen": "node experiments/morphogen.mjs",
+    "experiment:rstdp": "node experiments/rstdp.mjs",
+    "experiment:style": "node experiments/style.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }

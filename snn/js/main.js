@@ -6,6 +6,8 @@ import { wireSensoryInputs, SpikeEncoder, NOTE_NAMES } from './duet/sensory.js';
 import { DialogueTracker } from './duet/dialogue.js';
 import { MidiIO } from './io/midi.js';
 import { RegionalAttention } from './attention/attention.js';
+import { serializeLab, deserializeLab } from './sim/serialize.js';
+import { parseSMF } from './io/smf.js';
 
 const $ = (id) => document.getElementById(id);
 // duet mode: no metronome drive — the human plays the organism via MIDI/pads
@@ -23,6 +25,10 @@ let encoder = null;
 let sensoryInputs = [];
 let dialogue = null;
 let callCounts = new Map(); // neuronId → spikes during the current human call
+// MIDI-file training: notes fed into the sensory layer on sim time
+let trainNotes = null; // [{tMs, note, vel}]
+let trainIdx = 0;
+let trainStartStep = 0;
 let running = false;
 let speed = 1;
 let epochMarks = []; // {i, born, pruned} aligned to rateHistory indices
@@ -30,7 +36,7 @@ let lastTime = 0;
 let accum = 0;
 
 function build(seed) {
-  lab = new Lab({
+  const fresh = new Lab({
     seed,
     sim: {
       pulsePeriodMs: parseInt($('tempo').value, 10),
@@ -52,15 +58,26 @@ function build(seed) {
     },
   });
   if (DUET) {
-    sensoryInputs = wireSensoryInputs(lab.graph, audio.scaleName, lab.streams.build);
-    lab.inputIds = sensoryInputs.map((n) => n.id);
-    encoder = new SpikeEncoder(lab, sensoryInputs, audio.scaleName);
+    const inputs = wireSensoryInputs(fresh.graph, audio.scaleName, fresh.streams.build);
+    fresh.inputIds = inputs.map((n) => n.id);
     if (ATTN) {
-      const attn = new RegionalAttention(lab.graph, SCALES[audio.scaleName].length, {
-        strength: parseFloat($('attnStrength')?.value ?? 0.6),
-      });
-      lab.attachAttention(attn);
+      fresh.attachAttention(
+        new RegionalAttention(fresh.graph, SCALES[audio.scaleName].length, {
+          strength: parseFloat($('attnStrength')?.value ?? 0.6),
+          temporalMix: true, // STSA-style: attend over context depth too
+        })
+      );
     }
+  }
+  adopt(fresh);
+}
+
+// Wire an organism (freshly grown OR restored from a save) into the page.
+function adopt(newLab) {
+  lab = newLab;
+  if (DUET) {
+    sensoryInputs = lab.inputIds.map((id) => lab.graph.neurons.get(id)).filter(Boolean);
+    encoder = new SpikeEncoder(lab, sensoryInputs, audio.scaleName);
     dialogue = new DialogueTracker();
     dialogue.onExchange = updateDialogue;
     dialogue.onCallStart = () => callCounts.clear();
@@ -141,8 +158,9 @@ function build(seed) {
     }
   };
 
-  audio.keyOffset = 0; // fresh organism starts back in C
-  if (fifthsWheel) fifthsWheel.setKey(0);
+  // a fresh organism starts in C; a restored one keeps its harmonic state
+  audio.keyOffset = lab.key.offset;
+  if (fifthsWheel) fifthsWheel.setKey(lab.key.fifths);
   lab.onKeyChange = ({ neuronId, name, rule, fifths, offset }) => {
     audio.keyOffset = offset;
     renderer.markKeyChange(lab.graph, neuronId);
@@ -182,8 +200,65 @@ function build(seed) {
     updateLog();
   };
 
+  if (DUET) {
+    rebuildPads();
+    updateDialogue();
+  }
   updateStats();
   updateLog();
+}
+
+// ---- organism persistence ----
+
+const STORE_KEY = `organism-${MODE}`;
+
+function flashBtn(id, text) {
+  const btn = $(id);
+  if (!btn) return;
+  const orig = btn.dataset.label ?? btn.textContent;
+  btn.dataset.label = orig;
+  btn.textContent = text;
+  clearTimeout(btn._revert);
+  btn._revert = setTimeout(() => (btn.textContent = orig), 1200);
+}
+
+function saveOrganism() {
+  const data = serializeLab(lab);
+  data.savedAt = new Date().toISOString();
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  flashBtn('saveBtn', '✓ saved');
+}
+
+function loadOrganism() {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (!raw) {
+    flashBtn('loadBtn', 'no save');
+    return;
+  }
+  adopt(deserializeLab(JSON.parse(raw), { AttentionClass: RegionalAttention }));
+  flashBtn('loadBtn', '✓ loaded');
+}
+
+function exportOrganism() {
+  const data = serializeLab(lab);
+  data.savedAt = new Date().toISOString();
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `organism-${lab.seed}-e${lab.epoch}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importOrganism(file) {
+  file.text().then((text) => {
+    try {
+      adopt(deserializeLab(JSON.parse(text), { AttentionClass: RegionalAttention }));
+      flashBtn('importBtn', '✓ imported');
+    } catch (err) {
+      flashBtn('importBtn', 'bad file');
+    }
+  });
 }
 
 function updateStats() {
@@ -290,6 +365,7 @@ function updateDialogue() {
     <div><span>exchanges</span><b>${dialogue.exchanges.length}</b></div>
     <div><span>last call → resp</span><b>${last ? `${last.callNotes} → ${last.respNotes}` : '—'}</b></div>
     <div><span>last relatedness</span><b>${last ? last.score.toFixed(2) : '—'}</b></div>
+    <div><span>rhythm match</span><b>${last && last.rhythm ? last.rhythm.toFixed(2) : '—'}</b></div>
     <div><span>recent avg (10)</span><b>${dialogue.recentMean(10).toFixed(2)}</b></div>
     ${extra}
   `;
@@ -318,6 +394,7 @@ function reinforceRecent() {
       count++;
     }
   }
+  lab.reward(1); // R-STDP: converts eligibility traces to weight change (no-op in immediate mode)
   lab.dev.log({ epoch: lab.epoch, type: 'Reinforced', count });
   updateLog();
 
@@ -372,6 +449,35 @@ function setupDuet() {
     }
   };
 
+  // train from a MIDI file: the file becomes the player
+  $('midiTrainBtn')?.addEventListener('click', () => {
+    if (trainNotes) {
+      trainNotes = null; // acts as a stop button while training
+      flashBtn('midiTrainBtn', 'stopped');
+      return;
+    }
+    $('midiFile').click();
+  });
+  $('midiFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    file.arrayBuffer().then((buf) => {
+      try {
+        const parsed = parseSMF(buf);
+        if (!parsed.notes.length) throw new Error('no notes');
+        trainNotes = parsed.notes;
+        trainIdx = 0;
+        trainStartStep = lab.engine.stepCount;
+        running = true;
+        $('runBtn').textContent = '⏸ pause';
+        flashBtn('midiTrainBtn', `${parsed.notes.length} notes…`);
+      } catch {
+        flashBtn('midiTrainBtn', 'bad midi file');
+      }
+    });
+  });
+
   $('midiBtn')?.addEventListener('click', async () => {
     if (!midiIO.supported) {
       $('midiBtn').textContent = 'no midi support';
@@ -413,7 +519,29 @@ function frame(t) {
     lastTime = t;
     const steps = Math.min(Math.floor(accum), 120);
     accum -= steps;
-    for (let i = 0; i < steps; i++) lab.step();
+    for (let i = 0; i < steps; i++) {
+      // MIDI-file training: replay the file into the organism on sim time
+      // (crank the speed control to train faster than real time)
+      if (trainNotes) {
+        const simMs = lab.engine.stepCount - trainStartStep;
+        while (trainIdx < trainNotes.length && trainNotes[trainIdx].tMs <= simMs) {
+          const ev = trainNotes[trainIdx++];
+          const r = encoder?.noteOn(ev.note, ev.vel);
+          if (r) {
+            dialogue?.humanNote(r.degree, lab.engine.stepCount);
+            flashPad(r.degree, 'human');
+          }
+        }
+        if (trainIdx >= trainNotes.length) {
+          trainNotes = null;
+          flashBtn('midiTrainBtn', '✓ done');
+        } else if (lab.engine.stepCount % 1000 === 0) {
+          const btn = $('midiTrainBtn');
+          if (btn) btn.textContent = `training ${Math.round((trainIdx / trainNotes.length) * 100)}%`;
+        }
+      }
+      lab.step();
+    }
     if (DUET && dialogue) dialogue.tick(lab.engine.stepCount);
   } else {
     lastTime = t;
@@ -544,6 +672,15 @@ window.addEventListener('DOMContentLoaded', () => {
   $('reseed').addEventListener('click', () => {
     $('seed').value = Math.floor(Math.random() * 100000);
     build(parseInt($('seed').value, 10));
+  });
+
+  $('saveBtn')?.addEventListener('click', saveOrganism);
+  $('loadBtn')?.addEventListener('click', loadOrganism);
+  $('exportBtn')?.addEventListener('click', exportOrganism);
+  $('importBtn')?.addEventListener('click', () => $('importFile').click());
+  $('importFile')?.addEventListener('change', (e) => {
+    if (e.target.files[0]) importOrganism(e.target.files[0]);
+    e.target.value = '';
   });
 
   scaleSel.addEventListener('change', (e) => {

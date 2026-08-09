@@ -1,10 +1,7 @@
 // Leaky Integrate-and-Fire neuron. Pure simulation state — no visualization
 // or audio state lives here (renderer/audio keep their own maps keyed by id).
 
-let NEXT_ID = 1;
-export function resetNeuronIds() {
-  NEXT_ID = 1;
-}
+// ids are assigned by NeuralGraph (per-graph counters — organisms may coexist)
 
 export const ROLES = {
   INPUT: 'input', // externally driven, never integrates
@@ -29,7 +26,7 @@ export class Neuron {
     structDegree = 0,
     bornEpoch = 0,
   } = {}) {
-    this.id = NEXT_ID++;
+    this.id = 0; // assigned by NeuralGraph.addNeuron
     this.role = role;
     this.region = region;
     this.isOutput = isOutput;

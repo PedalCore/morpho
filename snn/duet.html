@@ -151,6 +151,7 @@
   <div class="ctl"><input type="checkbox" id="devSounds" checked /><label for="devSounds" title="birth chimes, prune thuds, division arpeggios">birth sfx</label></div>
   <div class="ctl"><input type="checkbox" id="devToggle" checked /><label for="devToggle">development</label></div>
   <div class="ctl"><label>seed</label><input type="number" id="seed" value="42" /><button id="rebuild">grow</button><button id="reseed">random</button><button id="branch" title="recursive fan-out: sprout new sibling populations off existing regions">⑂ branch</button></div>
+  <div class="ctl"><button id="saveBtn" title="snapshot this organism to browser storage">💾 save</button><button id="loadBtn" title="restore the saved organism — it continues exactly where it left off">load</button><button id="exportBtn" title="download the organism as a file">⇩</button><button id="importBtn" title="load an organism file">⇧</button><input type="file" id="importFile" accept=".json" style="display:none" /></div>
   <div class="ctl"><label>scale</label><select id="scale"></select></div>
   <div class="ctl"><label>tuning</label><select id="tuning"></select></div>
   <div class="ctl"><label>octave</label><button id="octDown">−</button><span id="octVal">0</span><button id="octUp">+</button></div>
@@ -208,6 +209,8 @@
     <span class="ctl" title="playing octave for pads and computer keys (z/x to shift)"><button id="padOctDown">−</button><span id="padOctVal">2·3</span><button id="padOctUp">+</button></span>
     <span class="ctl"><input type="checkbox" id="qa" checked /><label for="qa" title="call &amp; response: the model holds its voice while you play and answers in the gaps">q&amp;a</label></span>
     <button id="reinforce" title="reward: deposit survival energy on everything that just fired">✚ reinforce</button>
+        <button id="midiTrainBtn" title="train the organism from a MIDI file — the file becomes the player (crank speed to train faster)">🎼 train from midi</button>
+    <input type="file" id="midiFile" accept=".mid,.midi" style="display:none" />
     <button id="midiBtn">enable midi</button>
     <select id="midiIn" style="display:none" title="MIDI input — play the organism"></select>
     <select id="midiOut" style="display:none" title="MIDI output — the organism plays your gear"></select>

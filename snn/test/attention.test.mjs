@@ -101,6 +101,29 @@ test('attention trickles survival energy into attended regions', () => {
   assert.ok(boosted > 0, 'strongly attended regions should gain energy');
 });
 
+test('temporal mixing: fresh distinct material outweighs stale context; silence hands over to slow memory', () => {
+  const { attn } = attnLab(7, 0.7, 'suppress');
+  attn.params.temporalMix = true;
+  // long-ago material: degree 5, decayed heavily
+  for (let i = 0; i < 10; i++) attn.noteHeard(5);
+  for (let i = 0; i < 12; i++) attn.update(); // ~3 s of silence
+  // fresh distinct phrase: degree 0
+  for (let i = 0; i < 4; i++) attn.noteHeard(0);
+  attn.update();
+  const ctxFresh = attn._context();
+  assert.ok(
+    ctxFresh[0] > ctxFresh[5],
+    `fresh phrase should dominate the mixed context: ${ctxFresh.map((v) => v.toFixed(2))}`
+  );
+  // now fall silent: fast context decays away, slow memory keeps degree 0+5
+  for (let i = 0; i < 10; i++) attn.update();
+  const ctxQuiet = attn._context();
+  assert.ok(
+    ctxQuiet[0] > 0.01,
+    'slow timescale should retain session material through silence'
+  );
+});
+
 test('attention runs deterministically inside the sim loop', () => {
   const run = () => {
     const { lab, encoder } = attnLab(42, 0.6);

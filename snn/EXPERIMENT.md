@@ -170,6 +170,42 @@ branch if ever wanted.
 
 All 42 tests pass.
 
+## v7 — research sprint: controls, R-STDP, persistence, MIDI, STSA
+
+Full write-up with tables: https://soundlark.studio/research.html
+
+- **Rhythm relatedness** added to the dialogue metric (IOI-histogram cosine).
+- **Specialization control** (`experiment:specialization`): NULL — train on
+  idiom A, probe A vs unseen B: the index does not grow, and pre-training
+  A-advantage is architectural. The organism mirrors; it does not specialize.
+- **Attention-as-morphogen** (`experiment:morphogen`): coverage of the played
+  idiom rises in BOTH arms (0.56→0.64 — activity-driven development is itself
+  a morphogen); the attention energy trickle adds a modest sharpening
+  (Δcoverage +0.077 vs +0.062, late rel 0.596 vs 0.566) and keeps organisms
+  ~50% larger. (Also fixed: trickle threshold was unreachable in suppress
+  mode — both arms had been bit-identical.)
+- **R-STDP** (`experiment:rstdp`): eligibility traces + reward implemented
+  (reinforce button now delivers targeted synaptic credit; lab.reward()).
+  Sequence learning still NULL: contingent reward beats random reward but not
+  immediate STDP. Order has nowhere to live in this anatomy.
+- **Organism persistence**: full deterministic snapshots (RNG streams,
+  in-flight spikes, traces, walkers, attention) — restored organisms continue
+  spike-for-spike identically (tested). Save/load/export/import on all pages.
+  Required refactor: per-graph id counters (module globals broke coexisting
+  organisms).
+- **MIDI-file training**: minimal SMF parser; "train from midi" replays a
+  score into the sensory layer on sim time (speed control = training speed).
+- **Style capture** (`experiment:style`, Ode to Joy ×30 vs untrained twin):
+  pitch style leans trained (0.81 vs 0.76; one seed 0.87 vs 0.63); rhythm
+  style NULL — nothing learns rhythm yet. Next mechanism: learned walker IOI
+  vocabulary.
+- **STSA-inspired temporal mixing** (SpikeVoice, ACL 2024): attention over
+  context depth (3 timescales, sharpness-weighted) before structure. Ties
+  with plain suppression under a static idiom (0.610 vs 0.602); fair test
+  (idiom-switch sessions) queued. On by default on attention.html.
+
+All 48 tests pass.
+
 ## Hypothesis (from the brief, §42)
 
 > Can a compact recursive developmental grammar generate a spiking neural

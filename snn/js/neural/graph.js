@@ -7,6 +7,8 @@ import { Synapse } from './synapse.js';
 
 export class NeuralGraph {
   constructor() {
+    this.nextNeuronId = 1;
+    this.nextSynapseId = 1;
     this.neurons = new Map(); // id -> Neuron
     this.synapses = new Map(); // id -> Synapse
     this.outgoing = new Map(); // neuronId -> Synapse[]
@@ -38,6 +40,7 @@ export class NeuralGraph {
 
   addNeuron(opts) {
     const n = new Neuron(opts);
+    n.id = this.nextNeuronId++;
     this.neurons.set(n.id, n);
     this.outgoing.set(n.id, []);
     this.incoming.set(n.id, []);
@@ -51,6 +54,7 @@ export class NeuralGraph {
       throw new Error(`synapse endpoints must exist: ${opts.source}->${opts.target}`);
     }
     const s = new Synapse(opts);
+    s.id = this.nextSynapseId++;
     this.synapses.set(s.id, s);
     this.outgoing.get(s.source).push(s);
     this.incoming.get(s.target).push(s);
