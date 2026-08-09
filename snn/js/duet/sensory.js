@@ -64,6 +64,7 @@ export class SpikeEncoder {
     if (!input) return null;
     const burst = velocity > 0.7 ? 3 : velocity > 0.35 ? 2 : 1;
     for (let b = 0; b < burst; b++) this.lab.fireInput(input.id, b * 12);
+    this.lab.attention?.noteHeard(best);
     return { degree: best, inputId: input.id };
   }
 }

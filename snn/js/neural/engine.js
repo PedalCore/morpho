@@ -12,6 +12,9 @@ export class SpikeEngine {
     this.ringSize = maxDelaySteps + 1;
     this.ring = Array.from({ length: this.ringSize }, () => []);
     this.onSpike = null; // (neuron, step) => void — audio/renderer hook
+    // optional multiplicative gain on synaptic delivery, per target neuron —
+    // attention modulates membrane input here (MA-SNN style); null = off
+    this.modulation = null; // (neuron) => gain
     this.lastStepSpikes = [];
   }
 
@@ -51,7 +54,7 @@ export class SpikeEngine {
     for (let i = 0; i < arrivals.length; i += 2) {
       const n = neurons.get(arrivals[i]);
       if (n && n.role !== 'input' && this.stepCount >= n.refractoryUntil) {
-        n.membrane += arrivals[i + 1];
+        n.membrane += this.modulation ? arrivals[i + 1] * this.modulation(n) : arrivals[i + 1];
       }
     }
     arrivals.length = 0;

@@ -127,6 +127,49 @@ All 35 tests pass. Next: reward-modulated STDP (eligibility traces would make
 the reinforce button act on *synapses*, not just survival, and could crack
 sequence learning); response density/length shaping; MIDI-file calls.
 
+## v6 — attention (attention.html): MA-SNN's result reproduced musically
+
+Third experiment page, leaving lab and duet as untouched baselines. Borrowed
+from the literature:
+
+- **Regional attention** (MA-SNN, arXiv:2209.13929, gradient-free): leaf
+  regions = channels; per-region gain from cosine similarity between the
+  region's pitch profile and a recency-weighted histogram of recently heard
+  notes; gains modulate synaptic delivery (`engine.modulation`).
+- **Temporal attention**: recency weighting in the heard-note histogram +
+  recency-weighted walker seeding (answers pick up the tail of the phrase).
+- **Attention as morphogen** (novel here): strongly attended regions receive
+  survival energy each update — sustained attention shapes development.
+- **Energy accounting** (SGNNBench discipline): spikes-per-exchange logged in
+  the dialogue benchmark and UI.
+
+**Ablation** (`npm run experiment:attention`, 60-exchange idiom sessions,
+4 seeds, dev+STDP on in all arms):
+
+```
+attn-off:            relatedness 0.544   spikes/exchange 485
+balanced (1±s/2):    relatedness 0.561   spikes/exchange 534   ← no benefit
+suppress-only:       relatedness 0.610   spikes/exchange  73   ← the result
+```
+
+Suppress-only attention (best-matching region keeps full voice, others
+damped, nothing amplified) reproduces MA-SNN's headline: **sparser AND
+better** — +12% relatedness at **85% fewer spikes** (MA-SNN reported 84.9%
+spike reduction on DVS Gesture — coincidentally close). Symmetric boosting
+failed: amplification destabilizes a recurrent net (one seed ran away);
+suppression only removes off-material noise. `bias: 'suppress'` is now the
+default.
+
+What Morpho added: the regions attention operates over ARE the developmental
+units, so attention-guided survival plugs straight into growth/pruning — an
+attention-shapes-structure loop none of the referenced papers have (they all
+use fixed architectures). What Morpho would impede: chasing the papers'
+learned-attention results at scale — no gradient path here, tiny graphs,
+topology changes under you. That work belongs in a separate fixed-topology
+branch if ever wanted.
+
+All 42 tests pass.
+
 ## Hypothesis (from the brief, §42)
 
 > Can a compact recursive developmental grammar generate a spiking neural

@@ -5,10 +5,14 @@ import { FifthsWheel } from './ui/fifths.js';
 import { wireSensoryInputs, SpikeEncoder, NOTE_NAMES } from './duet/sensory.js';
 import { DialogueTracker } from './duet/dialogue.js';
 import { MidiIO } from './io/midi.js';
+import { RegionalAttention } from './attention/attention.js';
 
 const $ = (id) => document.getElementById(id);
 // duet mode: no metronome drive — the human plays the organism via MIDI/pads
-const DUET = document.body.dataset.mode === 'duet';
+// attention mode: duet + MA-SNN-style regional attention (attention.html)
+const MODE = document.body.dataset.mode ?? 'lab';
+const ATTN = MODE === 'attention';
+const DUET = MODE === 'duet' || ATTN;
 
 const audio = new AudioEngine();
 const midiIO = new MidiIO();
@@ -51,6 +55,12 @@ function build(seed) {
     sensoryInputs = wireSensoryInputs(lab.graph, audio.scaleName, lab.streams.build);
     lab.inputIds = sensoryInputs.map((n) => n.id);
     encoder = new SpikeEncoder(lab, sensoryInputs, audio.scaleName);
+    if (ATTN) {
+      const attn = new RegionalAttention(lab.graph, SCALES[audio.scaleName].length, {
+        strength: parseFloat($('attnStrength')?.value ?? 0.6),
+      });
+      lab.attachAttention(attn);
+    }
     dialogue = new DialogueTracker();
     dialogue.onExchange = updateDialogue;
     dialogue.onCallStart = () => callCounts.clear();
@@ -58,10 +68,21 @@ function build(seed) {
     // call just lit up — their traversal is the answer
     dialogue.onResponseStart = () => {
       if (!$('qa')?.checked || lab.walkers.params.count === 0) return;
+      const now = lab.engine.stepCount;
       const top = [...callCounts.entries()]
+        .map(([id, count]) => {
+          const n = lab.graph.neurons.get(id);
+          // attention mode: recency-weight the call activity (temporal
+          // attention) — the answer picks up the tail of the question
+          const w =
+            ATTN && n?.lastSpikeStep >= 0
+              ? count * Math.exp(-(now - n.lastSpikeStep) / 800)
+              : count;
+          return [id, w, n];
+        })
+        .filter(([, , n]) => n?.role === 'excitatory')
         .sort((a, b) => b[1] - a[1])
         .map(([id]) => id)
-        .filter((id) => lab.graph.neurons.get(id)?.role === 'excitatory')
         .slice(0, Math.max(2, lab.walkers.params.count));
       if (top.length) lab.walkers.seedAt(top);
       // answer at the pace of the question
@@ -82,6 +103,7 @@ function build(seed) {
     if (DUET && dialogue?.state === 'call' && n.role === 'excitatory') {
       callCounts.set(n.id, (callCounts.get(n.id) ?? 0) + 1);
     }
+    if (DUET && n.role !== 'input') dialogue?.spike(); // energy accounting
     if (!n.isOutput) return;
     // Q&A gating: while you're mid-phrase, the model holds its voice and
     // answers in the gap you leave (spikes still happen — only audio waits)
@@ -256,11 +278,20 @@ function updateDialogue() {
   const el = $('dialogue');
   if (!el || !dialogue) return;
   const last = dialogue.exchanges[dialogue.exchanges.length - 1];
+  let extra = '';
+  if (ATTN) {
+    const top = lab.attention?.topRegion;
+    extra = `
+      <div><span>spikes / answer</span><b>${last ? last.respSpikes : '—'}</b></div>
+      <div><span>attending</span><b>${top ? `${top.path} ×${top.gain.toFixed(2)}` : '—'}</b></div>
+    `;
+  }
   el.innerHTML = `
     <div><span>exchanges</span><b>${dialogue.exchanges.length}</b></div>
     <div><span>last call → resp</span><b>${last ? `${last.callNotes} → ${last.respNotes}` : '—'}</b></div>
     <div><span>last relatedness</span><b>${last ? last.score.toFixed(2) : '—'}</b></div>
     <div><span>recent avg (10)</span><b>${dialogue.recentMean(10).toFixed(2)}</b></div>
+    ${extra}
   `;
 }
 
@@ -387,7 +418,7 @@ function frame(t) {
   } else {
     lastTime = t;
   }
-  renderer.draw(lab.graph, lab.engine, lab.walkers);
+  renderer.draw(lab.graph, lab.engine, lab.walkers, ATTN ? lab.attention : null);
 }
 
 function fitCanvas() {
@@ -553,6 +584,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   $('rubato').addEventListener('input', (e) => {
     lab.walkers.params.rubato = parseFloat(e.target.value);
+  });
+
+  $('attnStrength')?.addEventListener('input', (e) => {
+    if (lab.attention) lab.attention.params.strength = parseFloat(e.target.value);
   });
 
   // steer: hovering the network pulls walkers toward the cursor

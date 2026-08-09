@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>morpho-snn duet — play with a developing brain</title>
+<title>morpho-snn attention — a brain that listens back</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
 <style>
   :root {
@@ -142,9 +142,9 @@
   .hint { font-size: 11.5px; color: var(--ink-3); border-top: 1px solid var(--border); padding-top: 10px; }
 </style>
 </head>
-<body data-mode="duet">
+<body data-mode="attention">
 <header>
-  <h1>morpho<span>·</span>snn <span style="color:var(--ink-3);font-weight:400">duet — play with a developing brain</span> <a class="pagelink" href="index.html">lab →</a> <a class="pagelink" href="attention.html">attention →</a></h1>
+  <h1>morpho<span>·</span>snn <span style="color:var(--ink-3);font-weight:400">attention — a brain that listens back</span> <a class="pagelink" href="duet.html">duet →</a> <a class="pagelink" href="index.html">lab →</a></h1>
   <button id="runBtn">▶ run</button>
   <div class="ctl"><input type="checkbox" id="audioToggle" /><label for="audioToggle">sound</label></div>
   <div class="ctl"><input type="checkbox" id="spikeNotes" checked /><label for="spikeNotes" title="output-neuron spike voices — untick to hear walkers only">spikes</label></div>
@@ -192,6 +192,7 @@
     </select>
   </div>
   <div class="ctl" title="expressive timing: 0 = grid-locked, 1 = heavy push and pull"><label>rubato</label><input type="range" id="rubato" min="0" max="1" step="0.05" value="0.4" /></div>
+  <div class="ctl" title="regional attention strength: regions matching your recent material lean in, others quiet down"><label>attention</label><input type="range" id="attnStrength" min="0" max="1" step="0.05" value="0.6" /></div>
   <div class="ctl"><input type="checkbox" id="steer" /><label for="steer" title="hover the network to pull walkers toward the cursor">steer</label></div>
   <div class="ctl"><label>speed</label>
     <select id="speedSel">
@@ -243,18 +244,20 @@
       <div><span class="sw" style="border:1.5px solid #7bd8a5;background:transparent"></span>green ring = newborn structure</div>
       <div><span class="sw" style="background:#d96c6c"></span>red ✕ = pruned</div>
       <div><span class="sw" style="border:1.5px solid #be8cff;background:transparent"></span>violet ring = walker (melodic agent)</div>
+      <div><span class="sw" style="background:#6ee7dd;opacity:0.6"></span>cyan halo = attended region — leaning in to your material</div>
       <div><span class="sw" style="background:#ffd75e;transform:rotate(45deg);border-radius:1px"></span>gold diamond = modulator — rarely nudges the key round the circle of fifths</div>
     </section>
     <div class="hint">
-      <b>Duet mode:</b> you are the environment this brain develops in. Turn on
-      <b>sound</b>, press <b>run</b>, then play — pads, the letter keys shown on
-      them, or a MIDI keyboard (<b>enable midi</b>). Your notes become spike
-      bursts in the gray sensory neurons, wired to the anatomy that sounds the
-      same scale degrees. There is no metronome here: what it plays back is
-      shaped by what you play, <b>stdp</b> strengthens the pathways you use, and
-      development grows around them. Hit <b>✚ reinforce</b> when you like a
-      response — it feeds the structures that made it. Amber flash = you,
-      violet flash = the model.
+      <b>Attention mode</b> — the duet plus MA-SNN-style regional attention
+      (<a class="pagelink" href="https://arxiv.org/abs/2209.13929">arXiv:2209.13929</a>):
+      the region whose pitch material best matches what you've recently played
+      keeps its full voice (cyan halo), the rest quiet down — measured: 12%
+      more related answers at 85% fewer spikes. Watch
+      <b>spikes/answer</b> drop while relatedness holds. Attention also feeds
+      survival energy, so what you attend to is what develops. The
+      <b>attention</b> slider at 0 reproduces plain duet behaviour for direct
+      comparison. Everything else works as in the duet: play pads, letter keys,
+      or MIDI; it answers in the gaps at your tempo.
     </div>
   </aside>
 </main>

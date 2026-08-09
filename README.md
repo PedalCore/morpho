@@ -10,7 +10,7 @@
 > **▶ Play with it now: [soundlark.studio](https://soundlark.studio)** — no
 > install, runs in the browser.
 
-## The two experiments (in `snn/`)
+## The three experiments (in `snn/`)
 
 ### 1. [The Lab](https://soundlark.studio/snn/) — a developmental spiking network you can listen to
 
@@ -33,6 +33,15 @@ strengthens the pathways you play, development reorganizes around them, a
 reinforce button rewards answers you like, and a live *relatedness* score
 tracks whether the dialogue is converging on your material. MIDI out lets it
 play your hardware.
+
+### 3. [Attention](https://soundlark.studio/snn/attention.html) — a brain that listens back
+
+The duet plus attention-modulated spiking, adapted (gradient-free) from
+[Attention Spiking Neural Networks](https://arxiv.org/abs/2209.13929): the
+region of the anatomy whose pitch material best matches your recent playing
+keeps its full voice, the rest quiet down — and attention feeds survival, so
+what you attend to is what develops. Measured against the plain duet:
+**+12% answer relatedness at 85% fewer spikes.**
 
 **Docs & findings:** [`snn/README.md`](snn/README.md) (how to run and test) ·
 [`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) (hypothesis, controlled learning

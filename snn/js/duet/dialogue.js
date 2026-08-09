@@ -68,6 +68,12 @@ export class DialogueTracker {
     if (this.state === 'response') this.resp.push(degree);
   }
 
+  // any network spike during the response window — the energy cost of the
+  // answer (SGNNBench-style accounting: spikes per answer)
+  spike() {
+    if (this.state === 'response') this.respSpikes = (this.respSpikes ?? 0) + 1;
+  }
+
   // is the human mid-phrase right now? (used to gate Q&A audio)
   humanActive(t, holdMs = 350) {
     return t - this.lastHumanAt < holdMs;
@@ -78,6 +84,7 @@ export class DialogueTracker {
       this.state = 'response';
       this.respStart = t;
       this.resp = [];
+      this.respSpikes = 0;
       if (this.onResponseStart) this.onResponseStart(t);
     } else if (this.state === 'response' && t - this.respStart > this.windowMs) {
       this.closeExchange(t);
@@ -90,12 +97,19 @@ export class DialogueTracker {
         degreeHist(this.call, this.histLen),
         degreeHist(this.resp, this.histLen)
       );
-      this.exchanges.push({ t, callNotes: this.call.length, respNotes: this.resp.length, score });
+      this.exchanges.push({
+        t,
+        callNotes: this.call.length,
+        respNotes: this.resp.length,
+        respSpikes: this.respSpikes ?? 0,
+        score,
+      });
       if (this.exchanges.length > this.maxExchanges) this.exchanges.shift();
       if (this.onExchange) this.onExchange(this.exchanges[this.exchanges.length - 1]);
     }
     this.call = [];
     this.resp = [];
+    this.respSpikes = 0;
     this.state = 'idle';
   }
 

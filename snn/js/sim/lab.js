@@ -75,6 +75,14 @@ export class Lab {
     // externally injected input spikes (e.g. MIDI → spike encoding), with
     // optional per-spike delay so bursts can be scheduled
     this.pendingInputFires = [];
+
+    // optional attention component (attention.html experiment)
+    this.attention = null;
+  }
+
+  attachAttention(attention) {
+    this.attention = attention;
+    this.engine.modulation = (n) => attention.gainOf(n);
   }
 
   fireInput(neuronId, delaySteps = 0) {
@@ -109,6 +117,8 @@ export class Lab {
     for (const id of this.inputIds) {
       if (this.streams.sim() < pBg) this.engine.forceFire(id);
     }
+
+    if (this.attention && t % this.attention.periodMs === 0) this.attention.update();
 
     this.walkers.tick(t, pulsePeriodMs);
 

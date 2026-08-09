@@ -93,7 +93,7 @@ export class Renderer {
     return this.positionOf(graph, n).x * 2 - 1;
   }
 
-  draw(graph, engine, walkers = null) {
+  draw(graph, engine, walkers = null, attention = null) {
     const { ctx, canvas } = this;
     const w = canvas.width;
     const h = canvas.height;
@@ -106,6 +106,25 @@ export class Renderer {
 
     ctx.fillStyle = COLORS.surface;
     ctx.fillRect(0, 0, w, h);
+
+    // attention halos: cyan glow on regions the organism is attending to
+    if (attention && attention.gains.size) {
+      for (const region of graph.leafRegions()) {
+        const gain = attention.gains.get(region.path);
+        if (!gain || gain <= 1.03) continue;
+        const c = this.regionCenter(graph, region.path);
+        const p = px(c);
+        const r = c.spread * S * 1.9;
+        const alpha = Math.min(0.35, (gain - 1) * 0.7);
+        const grad = ctx.createRadialGradient(p.x, p.y, r * 0.2, p.x, p.y, r);
+        grad.addColorStop(0, `rgba(110,231,221,${alpha})`);
+        grad.addColorStop(1, 'rgba(110,231,221,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
     // synapses
     ctx.lineWidth = 1;

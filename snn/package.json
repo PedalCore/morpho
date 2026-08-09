@@ -7,6 +7,7 @@
     "test": "node --test 'test/*.test.mjs'",
     "experiment:learning": "node experiments/learning.mjs",
     "experiment:dialogue": "node experiments/dialogue.mjs",
+    "experiment:attention": "node experiments/attention.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
