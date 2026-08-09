@@ -176,6 +176,33 @@
     robust negative for shallow FF heads on reservoir features.
   </div>
 
+  <h2>Result 5 — autoregression: conditioning pays, belief feedback doesn't, generation is humbling</h2>
+  <p>
+    The readout already trains on the autoregressive factorization P(next&nbsp;|&nbsp;history)
+    with teacher forcing — GPT's objective. Three questions remained: does richer explicit
+    conditioning keep paying? does feeding the model's own <em>posterior</em> back as features
+    (RNN-style belief recurrence, via two-stage stacking) help? and what happens when it
+    actually <em>writes</em> — sampling a character, feeding it back into the spiking brain?
+  </p>
+  <table>
+    <tr><th>arm (all at 40k fit samples)</th><th>accuracy</th></tr>
+    <tr><td>v11 features, 16k fit (prior best)</td><td>34.2%</td></tr>
+    <tr><td>same features, 40k fit</td><td>38.0%</td></tr>
+    <tr><td>+ second previous char</td><td><b>39.1%</b></td></tr>
+    <tr><td>+ belief feedback</td><td>39.2% (≈ null)</td></tr>
+  </table>
+  <div class="verdict">
+    <b>New best 39.1%</b> — closing on halfway between bigram (28.8%) and a transformer
+    (~58%), still fully backprop-free. The jump came from <em>data and conditioning</em>, not
+    machinery: +3.8pp from more fit samples alone, +1.1pp from one more character of context.
+    Belief feedback is an honest null under teacher forcing (the posterior adds nothing the
+    features didn't already contain). And free-running generation produces gibberish — the
+    classic exposure-bias lesson made vivid: 39% teacher-forced accuracy is mostly confident
+    predictions of spaces and common letters, and a model never trained on its own outputs
+    drifts off-manifold within characters. Generation quality, not held-out accuracy, is the
+    honest yardstick still far away.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
     The readout is now the bottleneck: a deeper Forward-Forward stack, more feature taps,

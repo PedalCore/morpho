@@ -411,3 +411,16 @@ Write-up: https://soundlark.studio/language.html
   Lever: more fit data / λ tuning before bigger banks.
 - FF head v2 (2-layer, standardized, goodness rerank): 10.1% — third failure;
   shallow FF on reservoir features is a robust negative in our hands.
+
+## v12 — autoregression (`experiment:autoreg`)
+
+Already autoregressive in factorization (teacher-forced next-char). Tested
+the missing senses at the corrected sample budget (40k fit):
+- same features as v11 best: 34.2% → **38.0%** (data alone)
+- + 2nd previous char: **39.1% — new best** (backprop-free, vs bigram 28.8,
+  transformer ≈58)
+- belief feedback (two-stage posterior stacking): 39.2% — honest null under
+  teacher forcing
+- free-running generation (brain hears its own sampled output): gibberish —
+  exposure bias made vivid; generation, not held-out accuracy, is the honest
+  distant yardstick.

@@ -16,6 +16,7 @@
     "experiment:growth": "node experiments/growth.mjs",
     "experiment:bigbrain": "node experiments/bigbrain.mjs",
     "experiment:readout2": "node experiments/readout2.mjs",
+    "experiment:autoreg": "node experiments/autoreg.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
