@@ -353,3 +353,26 @@ sim / development). Same seed + same parameters = identical topology and
 spike-for-spike identical history (covered by test). Changing tempo/scale/
 density sliders mid-run affects audio only, not simulation determinism —
 except the pulse slider, which changes the input drive and thus the sim.
+
+## v9 — error-driven growth (`experiment:growth`)
+
+The capacity hypothesis: grow when unable to answer correctly, stop when
+capacity suffices. Online delta-rule readout streams tiny shakespeare
+(100k chars); rolling error sets development's growth budget; correct
+predictions deposit survival energy on just-active neurons. Controls:
+frozen, and always-grow (max pressure regardless of error).
+
+```
+frozen 143n → 31.9% | always-grow 600n(cap) → 32.3% | ERROR-DRIVEN 600n → 33.3%
+ceiling 1400: error arm self-limits at 834n (growth decelerates as error
+falls, +100/10k chars early → +30-40 late), accuracy saturates ~600n → 33.3%
+```
+
+Error-gated growth beats frozen AND blind growth at equal size — error
+gating + correctness-survival direct capacity usefully. The
+progressive-growth-to-adequacy trajectory is visible; the residual ceiling
+is the linear readout, not the organism. Honest negative: minimal FF head
+(1 layer, 64 hidden) badly underperforms ridge (12.1% / 3.7%) — needs
+normalization+depth before FF is competitive here.
+
+Separate write-up: https://soundlark.studio/language.html

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — can a developmental spiking organism predict language?</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>sound<span>lark</span> language notes</h1>
+  <p class="sub">A sideline to the music research: can a developmental spiking organism
+  predict text — and can prediction <em>error</em> drive its growth toward the capacity
+  the task needs?</p>
+
+  <div class="links">
+    <a href="research.html">← music research notes</a>
+    <a href="https://github.com/PedalCore/morpho">code & experiments</a>
+  </div>
+
+  <h2>Setup: the organism as a liquid state machine</h2>
+  <p>
+    No gradients enter the network — ever. Characters of tiny Shakespeare arrive as spike
+    bursts through per-character input neurons; the recurrent developmental organism acts as
+    a temporal feature map (a reservoir); and only simple readouts are trained on its spike
+    traces: closed-form ridge regression, an online delta-rule softmax, and a
+    <a href="https://arxiv.org/abs/2502.20411">Forward-Forward</a> head (layer-local,
+    goodness-based — Hinton's backprop-free algorithm, recently ported to SNNs).
+  </p>
+  <p>
+    We are deliberately not chasing transformers (~1.5 bits/char, ~58% next-char accuracy on
+    this dataset with millions of trained parameters). The questions are about the substrate:
+  </p>
+
+  <h2>Result 1 — developmental exposure improves the reservoir</h2>
+  <table>
+    <tr><th>model</th><th>next-char accuracy</th><th>bits/char</th></tr>
+    <tr><td>uniform</td><td>—</td><td>5.95</td></tr>
+    <tr><td>bigram (exact)</td><td>28.8%</td><td>3.54</td></tr>
+    <tr><td>char-only readout (sanity ≈ bigram)</td><td>28.6%</td><td>—</td></tr>
+    <tr><td>fresh organism reservoir</td><td>29.2%</td><td>—</td></tr>
+    <tr><td>reservoir after developmental exposure</td><td><b>31.7%</b></td><td>—</td></tr>
+    <tr><td>char transformer (reference)</td><td>~58%</td><td>~1.5</td></tr>
+  </table>
+  <div class="verdict pos">
+    Letting the organism develop while listening (growth + pruning + STDP over 15k
+    characters, then frozen) produced a better feature map than the identical fresh genotype:
+    +2.5pp, replicated across seeds, organisms growing ~150 → ~260 neurons. Development is
+    acting as <em>backprop-free representation learning</em> — the same mechanism the music
+    experiments found as "attention-as-morphogen", confirmed on a different modality.
+  </div>
+
+  <h2>Result 2 — error-driven growth</h2>
+  <p>
+    The developmental hypothesis, sharpened: an organism should grow <em>when it lacks the
+    capacity to answer correctly</em>, and stop when capacity suffices. Mechanism: an online
+    readout predicts each next character as text streams; the rolling <em>error rate</em>
+    sets development's growth budget, and <em>correct</em> predictions deposit survival
+    energy on the neurons that were just active — what helps, lives; what doesn't, starves.
+    Controls: a frozen arm (no development) and an always-grow arm (maximum growth pressure
+    regardless of error — so "more neurons" alone can't masquerade as the result).
+  </p>
+  <table>
+    <tr><th>arm</th><th>final size</th><th>held-out accuracy (fresh ridge)</th></tr>
+    <tr><td>frozen (no development)</td><td>143 neurons</td><td>31.9%</td></tr>
+    <tr><td>always-grow control</td><td>600 (budget cap)</td><td>32.3%</td></tr>
+    <tr><td><b>error-driven</b></td><td>600 (cap)</td><td><b>33.3%</b></td></tr>
+    <tr><td>error-driven, ceiling raised to 1400</td><td><b>834 — self-limited</b></td><td>33.3%</td></tr>
+  </table>
+  <div class="verdict pos">
+    Error-driven growth beats the frozen organism (+1.4pp) <em>and</em> beats blind growth at
+    identical final size (+1.0pp) — the error gating and correctness-survival direct capacity
+    usefully; it is not just "more neurons". And with the ceiling out of reach, growth
+    <em>decelerates as error falls</em> (+100 neurons per 10k chars early, +30–40 late,
+    settling at 834 of a possible 1400) while accuracy saturates near 600 neurons — the
+    progressive-growth-toward-adequate-capacity trajectory, with the residual limit now in
+    the linear readout rather than the organism.
+  </div>
+  <p>
+    Honest negative: our minimal Forward-Forward head (one layer, 64 hidden units, goodness
+    classification) underperformed closed-form ridge badly (12.1% on the frozen organism,
+    worse on grown ones). FF likely needs feature normalization, depth and more training to
+    be competitive here — a real follow-up, not a refutation of FF.
+  </p>
+
+  <h2>Where this sideline goes</h2>
+  <p>
+    Scaling exposure further (does the developmental advantage saturate?), a deeper
+    Forward-Forward stack on the reservoir, word-level targets, and the same error-driven
+    growth mechanism pointed back at music: grow when the dialogue relatedness drops.
+  </p>
+
+  <p class="foot">
+    Reproduce: <code>cd snn && npm run experiment:language</code> ·
+    <code>npm run experiment:growth</code> (fetches the dataset on first run; ~15 min).
+    Part of the <a href="research.html">morpho·snn research track</a>.
+    References: Hinton, <em>The Forward-Forward Algorithm</em>;
+    Ghader et al., <a href="https://arxiv.org/abs/2502.20411">Backpropagation-free SNNs with
+    FF</a>; Maass et al., liquid state machines;
+    <a href="https://arxiv.org/abs/2402.18994">Spyx</a> and
+    <a href="https://arxiv.org/abs/2006.04436">Training Deep SNNs</a> mark the
+    surrogate-gradient road we deliberately did not take here.
+  </p>
+</article>
+</body>
+</html>
