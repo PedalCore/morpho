@@ -46,6 +46,9 @@ const CONFIGS = [
   { taps: 1024, fit: 10000 },
   { taps: 1024, fit: 20000 },
   { taps: 1024, fit: 80000 },
+  // joint frontier: the data axis saturated at fixed d — does more d re-open it?
+  { taps: 2048, fit: 80000 },
+  { taps: 4096, fit: 80000 },
 ];
 
 const outPath = new URL(`./results/scaling-seed${SEED}.json`, import.meta.url);

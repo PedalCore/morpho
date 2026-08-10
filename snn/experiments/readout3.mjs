@@ -29,9 +29,9 @@ import { developBrain } from './evolve.mjs';
 
 const SEED = Number(process.argv[2] ?? 42);
 const N = 120000;
-const TAPS = 1024;
+const TAPS = Number(process.env.TAPS ?? 1024);
 const CALIB_CHARS = 5000;
-const FIT_CHARS = 40000;
+const FIT_CHARS = Number(process.env.FIT_CHARS ?? 40000);
 const TEST_CHARS = 3000;
 const STEPS_PER_CHAR = 10;
 const REFRAC = 4;
@@ -304,11 +304,14 @@ function accOf(W, X, y) {
 }
 
 // ---------- run arms (per-arm checkpoint) ----------
-const outPath = new URL(`./results/readout3-seed${SEED}.json`, import.meta.url);
+const cfgTag = (TAPS === 1024 && FIT_CHARS === 40000) ? '' : `-taps${TAPS}-fit${FIT_CHARS}`;
+const outPath = new URL(`./results/readout3-seed${SEED}${cfgTag}.json`, import.meta.url);
 const results = existsSync(outPath)
   ? JSON.parse(readFileSync(outPath, 'utf8'))
   : { SEED, N, TAPS, TAUS, FIT_CHARS, arms: {} };
+const armFilter = process.env.ARMS ? process.env.ARMS.split(',') : null;
 for (const [name, arm] of Object.entries(ARMS)) {
+  if (armFilter && !armFilter.includes(name)) continue;
   if (results.arms[name]) {
     console.log(`${name.padEnd(12)} acc=${(results.arms[name].acc * 100).toFixed(1)}%  (checkpointed)`);
     continue;

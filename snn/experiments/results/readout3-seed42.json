@@ -1,0 +1,38 @@
+{
+ "SEED": 42,
+ "N": 120000,
+ "TAPS": 1024,
+ "TAUS": [
+  20,
+  80,
+  320
+ ],
+ "FIT_CHARS": 40000,
+ "arms": {
+  "A0-rates": {
+   "acc": 0.43233333333333335,
+   "d": 1213,
+   "trainedParams": 78845
+  },
+  "A1-multitau": {
+   "acc": 0.3576666666666667,
+   "d": 3247,
+   "trainedParams": 211055
+  },
+  "A2-pairs": {
+   "acc": 0.43933333333333335,
+   "d": 3261,
+   "trainedParams": 211965
+  },
+  "A3-elm": {
+   "acc": 0.44533333333333336,
+   "d": 3261,
+   "trainedParams": 211965
+  },
+  "A4-chargate": {
+   "acc": 0.449,
+   "d": 3261,
+   "trainedParams": 211965
+  }
+ }
+}

@@ -1,0 +1,22 @@
+scaling sweep · ladder-best genome @ 120000n · 7 configs · seed 42
+taps256-fit40000   acc=38.2%  trained=29k (0.7m)
+taps512-fit40000   acc=39.8%  trained=46k (1.4m)
+taps1024-fit40000  acc=42.5%  trained=79k (2.4m)
+taps2048-fit40000  acc=43.2%  trained=144k (3.8m)
+taps1024-fit10000  acc=30.4%  trained=79k (4.1m)
+taps1024-fit20000  acc=41.0%  trained=79k (4.5m)
+taps1024-fit80000  acc=42.4%  trained=79k (6.1m)
+
+saved to experiments/results/scaling-seed42.json
+scaling sweep · ladder-best genome @ 120000n · 9 configs · seed 42
+taps256-fit40000   acc=38.2%  (checkpointed)
+taps512-fit40000   acc=39.8%  (checkpointed)
+taps1024-fit40000  acc=42.5%  (checkpointed)
+taps2048-fit40000  acc=43.2%  (checkpointed)
+taps1024-fit10000  acc=30.4%  (checkpointed)
+taps1024-fit20000  acc=41.0%  (checkpointed)
+taps1024-fit80000  acc=42.4%  (checkpointed)
+taps2048-fit80000  acc=44.5%  trained=144k (2.9m)
+taps4096-fit80000  acc=45.6%  trained=274k (10.2m)
+
+saved to experiments/results/scaling-seed42.json

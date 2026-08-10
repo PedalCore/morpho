@@ -1,0 +1,8 @@
+readout3 · ladder-best genome @120000n (1.34M syn) · taps 1024 × τ[20,80,320] · fit 40000 · seed 42
+A0-rates     acc=43.2%  d=1213 trained=79k  (0.8m)
+A1-multitau  acc=35.8%  d=3247 trained=211k  (3.3m)
+A2-pairs     acc=43.9%  d=3261 trained=212k  (5.3m)
+A3-elm       acc=44.5%  d=3261 trained=212k  (7.8m)
+A4-chargate  acc=44.9%  d=3261 trained=212k  (9.3m)
+
+saved to experiments/results/readout3-seed42.json

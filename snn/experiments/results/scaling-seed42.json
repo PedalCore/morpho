@@ -1,0 +1,188 @@
+{
+ "SEED": 42,
+ "N": 120000,
+ "CALIB": 5000,
+ "TEST": 3000,
+ "configs": {
+  "taps256-fit40000": {
+   "taps": 256,
+   "fit": 40000,
+   "acc": 0.382,
+   "trainedParams": 29315,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1877.5,
+    "hz": 1.56,
+    "deadFrac": 0.241,
+    "taps": 255,
+    "buildMs": 129,
+    "simMs": 41572
+   }
+  },
+  "taps512-fit40000": {
+   "taps": 512,
+   "fit": 40000,
+   "acc": 0.398,
+   "trainedParams": 45825,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1877.5,
+    "hz": 1.56,
+    "deadFrac": 0.241,
+    "taps": 509,
+    "buildMs": 106,
+    "simMs": 41455
+   }
+  },
+  "taps1024-fit40000": {
+   "taps": 1024,
+   "fit": 40000,
+   "acc": 0.42533333333333334,
+   "trainedParams": 78780,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1877.5,
+    "hz": 1.56,
+    "deadFrac": 0.241,
+    "taps": 1016,
+    "buildMs": 97,
+    "simMs": 59873
+   }
+  },
+  "taps2048-fit40000": {
+   "taps": 2048,
+   "fit": 40000,
+   "acc": 0.43233333333333335,
+   "trainedParams": 144040,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1877.5,
+    "hz": 1.56,
+    "deadFrac": 0.241,
+    "taps": 2020,
+    "buildMs": 140,
+    "simMs": 84764
+   }
+  },
+  "taps1024-fit10000": {
+   "taps": 1024,
+   "fit": 10000,
+   "acc": 0.30366666666666664,
+   "trainedParams": 78780,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1876.8,
+    "hz": 1.56,
+    "deadFrac": 0.256,
+    "taps": 1016,
+    "buildMs": 172,
+    "simMs": 17288
+   }
+  },
+  "taps1024-fit20000": {
+   "taps": 1024,
+   "fit": 20000,
+   "acc": 0.4096666666666667,
+   "trainedParams": 78780,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1874.6,
+    "hz": 1.56,
+    "deadFrac": 0.25,
+    "taps": 1016,
+    "buildMs": 96,
+    "simMs": 27173
+   }
+  },
+  "taps1024-fit80000": {
+   "taps": 1024,
+   "fit": 80000,
+   "acc": 0.424,
+   "trainedParams": 78780,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1874.6,
+    "hz": 1.56,
+    "deadFrac": 0.233,
+    "taps": 1016,
+    "buildMs": 108,
+    "simMs": 91871
+   }
+  },
+  "taps2048-fit80000": {
+   "taps": 2048,
+   "fit": 80000,
+   "acc": 0.44466666666666665,
+   "trainedParams": 144040,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1874.6,
+    "hz": 1.56,
+    "deadFrac": 0.233,
+    "taps": 2020,
+    "buildMs": 115,
+    "simMs": 173658
+   }
+  },
+  "taps4096-fit80000": {
+   "taps": 4096,
+   "fit": 80000,
+   "acc": 0.4563333333333333,
+   "trainedParams": 273520,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1874.6,
+    "hz": 1.56,
+    "deadFrac": 0.233,
+    "taps": 4012,
+    "buildMs": 397,
+    "simMs": 438649
+   }
+  }
+ }
+}
