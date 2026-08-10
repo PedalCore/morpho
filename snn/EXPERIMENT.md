@@ -578,3 +578,30 @@ gen0-best seed99     40.4%   syn/n 12.9
 - Caveat: one build seed per arm (the protocol's deterministic seed);
   v13's transfer data says selected genomes vary less across builds than
   the hand law, but 42.5% carries single-build uncertainty.
+
+## v15 — generation as a measurement + the linear ceiling — design pre-registered
+
+Motivated by the scaling analysis (substrate size N: measured zero slope;
+trained readout params × data: the live axis; long context: the structural
+gap to the ~10.7M-param transformer reference). Two instruments, protocols
+fixed before results:
+
+**Generation benchmark** (`experiment:genbench`): make generation quality a
+number. (1) Metric: bits/char of generated text under an interpolated 1–5
+gram model trained on 900k corpus chars; real held-out text = floor,
+uniform noise = ceiling. (2) Closed-form scheduled sampling: drive the
+brain with a mixture of true and self-sampled chars (p ∈ {0, 0.25, 0.5}),
+collect ridge rows under that mixed distribution (targets stay true),
+refit closed-form — exposure-bias repair with zero backprop. Substrate:
+the 42.5% ladder-best genome @120k, full budget, temp 0.8.
+PREDICTION (memory-gap hypothesis): scheduled sampling improves gen-bpc
+somewhat; teacher-forced accuracy and generation quality stay far apart.
+
+**Scaling sweep** (`experiment:scaling`): where does the linear readout
+saturate? Taps axis 256/512/1024/2048 @40k fit; data axis 10k/20k/40k/80k
+@1024 taps, same genome/protocol. Trained params = (taps+196)×65.
+PREDICTION: both axes bend toward a mid-40s plateau (a linear map over
+spike traces + 3 chars of context is n-gram-class); past it the lever is
+mechanism (deep readout / memory-rewarded substrate), not size.
+
+Both per-config checkpointed. 2 new tests (58 total). Results below.

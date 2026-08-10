@@ -20,6 +20,8 @@
     "experiment:evolve": "node experiments/evolve.mjs",
     "experiment:evolve2": "node experiments/evolve2.mjs",
     "experiment:fullbudget": "node experiments/fullbudget.mjs",
+    "experiment:genbench": "node experiments/genbench.mjs",
+    "experiment:scaling": "node experiments/scaling.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
