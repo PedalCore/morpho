@@ -424,3 +424,40 @@ the missing senses at the corrected sample budget (40k fit):
 - free-running generation (brain hears its own sampled output): gibberish —
   exposure bias made vivid; generation, not held-out accuracy, is the honest
   distant yardstick.
+
+## v13 — evolution of development (`experiment:evolve`) — design pre-registered
+
+The missing experiment from the original Morpho discussion: evolve the
+**rule for producing networks**, never a network. An 11-gene genome
+parameterizes the same per-neuron statistical wiring law that built the
+v10–v12 structured brains (E/I ratio, ff/rec/skip/fb/inh fan-outs, weight
+bases, recurrent/feedback gains, delay spread) — genome length constant in
+N, so one genome instantiates at any size. Readout frozen at v12's arm E
+(fast taps + cur/prev/prev2 one-hots, ridge): if fitness moves, development
+moved it, not the learner. Layer count stays fixed at 4 — structural genes
+are v14's question.
+
+Pre-registered protocol (before results were known):
+
+- **Fitness** `F(g) = mean_N acc − 0.5·std_N acc − 0.02·(syn/neuron)/100`
+  over N ∈ {2k, 4k, 8k} — selecting for scale *robustness* plus a
+  connectivity cost, not accuracy at one size.
+- **Optimizer** deliberately boring (μ+λ) ES: pop 16, 12 generations, top
+  25% survive, uniform crossover (p=0.3) + gaussian mutation (σ=0.15,
+  p=0.5/gene) in normalized gene space. Common random numbers per
+  generation (shared build seed + corpus window, rotated each generation);
+  elites re-evaluated every generation. The novelty budget is spent on
+  *what* is evolved, not the optimizer.
+- **Baselines** v12 hand genome · random genomes (= gen-0 population) ·
+  best of gen 0 — identical pipeline, one shared fresh window at the end.
+- **Transfer** frozen winners instantiated at held-out 16k/32k/60k with the
+  identical (small) readout budget; **120k stays genuinely held out** behind
+  an explicit `--120k` flag until everything else is done.
+- **Per-phenotype metrics logged**, not just accuracy: synapses/neuron,
+  realized E/I, recurrent + long-range fractions, spikes/char, dead-neuron
+  fraction, build/sim time — so "evolution found accuracy by tripling
+  connectivity" is distinguishable from a genuinely better law.
+
+Deterministic and resumable (checkpoint per generation in
+`experiments/results/`); pipeline validated end-to-end by 5 new tests
+(53 total) + smoke run. Results below when the runs complete.
