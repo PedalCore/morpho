@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — laws that grow machines</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  h3 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; line-height: 1.35;
+        background: #12151b; border: 1px solid #242a35; border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; margin: 14px 0; color: #c4c9d4; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .cap { color: #9aa1ad; font-size: 13.5px; margin: -8px 0 14px; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>laws that <span>grow machines</span></h1>
+  <p class="sub">Evolution can discover a constant-size hereditary rule that generates
+  FSM-exact recurrent circuits at sizes never encountered during evolution — and a
+  controlled baseline shows that for linear tasks the active ingredient is parameter
+  tying, not hierarchical recursion. Experiments 1–2 on the MorphoHDL dynamic-systems
+  extension. August 2026.</p>
+
+  <div class="links">
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code &amp; experiments</a>
+    <a href="/morpho-defects.html">← experiment 0: sparse defects</a>
+    <a href="/research.html">← research notes</a>
+  </div>
+
+  <h2>Setup</h2>
+  <p>
+    Building on the <a href="/morpho-defects.html">Experiment 0 platform</a>, we evolve
+    input-driven synchronous recurrent circuits: a typed genome of LUT genes (arity 1–3,
+    truth table, DAG-ordered source references over constants, inputs, registers and
+    earlier LUTs), register next-state references, and output references. Every recurrent
+    path crosses a register by construction, so semantics stay deterministic. Selection is
+    lexicographic — correctness first, hardware cost (on the compiled, dead-code-eliminated
+    phenotype) second — with a random-search control at identical evaluation budget.
+    Solved circuits are verified <em>exactly</em> against a reference finite-state machine
+    by product-machine BFS over both input values: "exact" means exact for every possible
+    infinite input sequence, not accuracy on samples.
+  </p>
+
+  <h2>Experiment 1 — the calibration where the optimum is known</h2>
+  <p>
+    Delayed recall (y<sub>t</sub> = x<sub>t−d</sub>) requires at least d bits of state; the
+    d-register shift register achieves it with zero gates. Direct evolution, 4 seeds per
+    delay:
+  </p>
+  <table>
+    <tr><th>d</th><th>evolution</th><th>random (same budget)</th><th>live registers of every solved run</th></tr>
+    <tr><td>1–4</td><td>4/4 solved, exact</td><td>4/4</td><td><b>exactly d</b></td></tr>
+    <tr><td>8</td><td>4/4</td><td>2/4</td><td><b>exactly 8</b></td></tr>
+    <tr><td>16</td><td>1/4</td><td>0/4</td><td><b>exactly 16</b></td></tr>
+  </table>
+  <p>
+    Every solved circuit — 21 across both methods — sits exactly on the information-theoretic
+    lower bound; none ever used a spare register. The d=16 winner is a shift register up to
+    state relabeling: a permuted chain threaded through NOT pairs that cancel. Evolution
+    separates from random search at d≈8.
+  </p>
+  <p>
+    Temporal parity (y<sub>t</sub> = x<sub>t</sub> ⊕ … ⊕ x<sub>t−k</sub>) adds computation to
+    memory, and exposes the wall: k=1 solves 4/4 (1 register + 1 XOR, optimal), k=2 solves
+    4/4 for evolution vs 0/4 for random, k=4 solves 1/4 — and the winner stores
+    <em>partial parities</em> in its registers rather than raw history — but at k≥8 both
+    methods sit at chance (~0.50). An almost-correct parity circuit is fully decorrelated
+    from the target, so the landscape offers no gradient. Direct evolution
+    <em>failed under this preregistered representation and matched budget</em> — a
+    statement about this protocol, not about all direct search.
+  </p>
+
+  <h2>Experiment 2 — constant genomes, unseen sizes</h2>
+  <p>
+    We then replace circuit genomes with <em>law</em> genomes of constant length,
+    instantiable at any size k. Two representations, deliberately contrasted:
+    a <b>developmental</b> grammar (63 ints: a recursive cell with a two-signal interface;
+    size splits k → ⌊k/2⌋ + ⌈k/2⌉, so non-dyadic sizes are native; evolvable LUT banks;
+    registers only in base cells) and a <b>shared-rule</b> baseline (31 ints: one evolved
+    stage repeated k times — parameter tying without hierarchy). No task-named primitives
+    in either. Hand-written laws in both grammars confirm expressibility before evolution
+    gets a chance.
+  </p>
+  <p>
+    Preregistered protocol: train <em>only</em> at k ∈ {1, 2, 4}, primary fitness = minimum
+    accuracy over the three sizes (a law that breaks any training size is not a law).
+    Freeze. Zero-shot instantiate at k = 3, 5, 6, 7, 8, 12, 16 — k≥8 never exposed during
+    evolution, not even for model selection.
+  </p>
+  <table>
+    <tr><th>representation (parity)</th><th>|genome|</th><th>train 1,2,4</th><th>zero-shot 8</th><th>zero-shot 16</th><th>non-dyadic 3,5,6,7,12</th></tr>
+    <tr><td>hand developmental</td><td>63</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>hand shared-rule</td><td>31</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>evolved developmental</td><td>63</td><td>1/8</td><td><b>1/8</b></td><td><b>1/8</b></td><td><b>1/8</b></td></tr>
+    <tr><td>evolved shared-rule</td><td>31</td><td>5/8</td><td><b>5/8</b></td><td><b>5/8</b></td><td><b>5/8</b></td></tr>
+    <tr><td>direct genome (Exp 1, at size)</td><td>∝ k</td><td>✓ to k=4</td><td><i>0/4</i></td><td><i>0/4</i></td><td>—</td></tr>
+  </table>
+  <div class="verdict pos">
+    Every genome that solved the training sizes — six of six, across both representations —
+    generalized FSM-exactly to <em>all</em> unseen sizes, dyadic and not. Zero generalization
+    failures. Constant hereditary complexity generating linearly growing exact computation:
+    registers(k) = k, the state lower bound, at every instantiation.
+  </div>
+
+  <h3>The evolved law beats the hand law</h3>
+  <p>
+    The hand developmental law computes parity with a balanced XOR tree — logic depth
+    log&nbsp;k. The frozen evolved winner has <b>depth 1 at every k</b>. It found the systolic
+    solution: registers hold sliding partial parities
+    (r<sub>i</sub> ← x ⊕ r<sub>i−1</sub>), so the fold is pipelined through <em>time</em>
+    instead of built in <em>space</em> — the space↔time transformation the recurrent
+    substrate was built to make discoverable, achieved without wasting a single state bit.
+  </p>
+
+  <h3>What the baseline prevented us from claiming</h3>
+  <p>
+    Shared-rule solved training 5/8; developmental 1/8. Hierarchical recursion did not make
+    search easier here — <em>parameter tying</em> did: one mutation edits a rule reused
+    throughout the generated machine, which repairs the parity landscape's
+    all-or-nothing geometry. The demonstrated claim is therefore not "recursion wins" but:
+    indirect, scale-independent encodings turn a finite-circuit search problem into a
+    search for a reusable computational law; for this linear task, sharing is the important
+    ingredient, and extra recursive indirection makes discovery harder. Which computational
+    structures benefit from which developmental biases is now the open question.
+  </p>
+
+  <h2>Same grammars, different task</h2>
+  <p>
+    To rule out task-shaped representations, we pointed the byte-identical grammars at
+    delayed recall (train k ∈ {1,2,4}, freeze, zero-shot as above):
+  </p>
+  <table>
+    <tr><th>representation (recall)</th><th>|genome|</th><th>train 1,2,4</th><th>zero-shot 8</th><th>zero-shot 16</th><th>non-dyadic 3,5,6,7,12</th></tr>
+    <tr><td>evolved developmental</td><td>63</td><td>8/8</td><td><b>8/8</b></td><td><b>8/8</b></td><td><b>8/8</b></td></tr>
+    <tr><td>evolved shared-rule</td><td>31</td><td>8/8</td><td><b>8/8</b></td><td><b>8/8</b></td><td><b>8/8</b></td></tr>
+  </table>
+  <p>
+    Every seed of both representations found a law; every frozen law is exact at every
+    unseen size; winners instantiate exactly k registers with <em>zero gates</em> — the
+    shift-register optimum, rediscovered as a generative rule rather than a circuit.
+    Across both tasks the transfer record is now 22/22: solving the training sizes has
+    never once failed to generalize. The generalization is carried by the constant-genome
+    constraint itself.
+  </p>
+
+  <h2>Demonstrated vs. not demonstrated</h2>
+  <p><b>Demonstrated:</b> exact recurrent-topology evolution to the state lower bound with
+  product-machine verification; a clear evolution-vs-random separation at d≥8 and parity
+  k=2 (4 and 8 seeds per condition — experimental separation, not a universal
+  search-theoretic claim); constant-length genomes whose frozen instantiations are exact at
+  2–4× the largest trained size and at non-dyadic sizes; perfect solve-train ⇒
+  generalize transfer (6/6); a depth-1 systolic parity law structurally superior to the
+  hand-designed tree.</p>
+  <p><b>Not demonstrated:</b> that recursion outperforms parameter tying anywhere (the
+  next experiments target tasks with genuine divide-and-combine structure, e.g.
+  sliding-window majority); scaling beyond k=16; anything about non-binary or
+  asynchronous substrates; and all "failed" statements are relative to the preregistered
+  representations and matched budgets.</p>
+
+  <h2>What's next</h2>
+  <p>
+    Copy-after-delay (load → retain → cue → emit) with the same genotype machinery — the
+    first task where state must be used <em>conditionally</em>; then a deliberately
+    hierarchical task family (sliding-window majority/threshold), where a recursive
+    representation can offer O(log k) structural depth and the tying-vs-recursion
+    comparison has something real to measure.
+  </p>
+
+  <p class="foot">
+    Code: <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">PedalCore/morpho@dynamic-systems</a>
+    (<code>evolve/experiment1.py</code>, <code>evolve/experiment2.py</code>,
+    <code>evolve/fsm_verify.py</code>). Companion result:
+    <a href="/morpho-defects.html">sparse defects in a traffic jam</a> (Experiment 0).
+    All reported numbers use held-out streams disjoint from training; "exact" always means
+    product-machine-verified over every possible input sequence.
+  </p>
+</article>
+</body>
+</html>

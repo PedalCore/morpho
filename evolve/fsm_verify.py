@@ -22,13 +22,17 @@ import numpy as np
 
 
 def _expand(sim, ref, layer):
-    """All transitions out of `layer`: [(child_key, y, input, parent_ref)]."""
+    """All transitions out of `layer`: [(child_key, y, input, parent_ref)].
+    Input ints enumerate all 2^x_n input-wire combinations (bit i = wire i)."""
+    x_n = len(sim.c.inputs[0])
     s_batch = np.stack([np.frombuffer(s, dtype=np.int32) for s, _ in layer],
                        axis=1)
     refs = [r for _, r in layer]
     transitions = []
-    for b in (0, 1):
-        x = np.full((1, 1, len(layer)), b, dtype=np.int32)
+    for b in range(1 << x_n):
+        bits = [(b >> i) & 1 for i in range(x_n)]
+        x = np.tile(np.array(bits, dtype=np.int32)[:, None, None],
+                    (1, 1, len(layer)))
         y, new_s = sim.run(1, x, state0=s_batch, samples=len(layer),
                            return_state=True)
         y = np.asarray(y).reshape(-1)
