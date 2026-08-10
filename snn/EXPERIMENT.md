@@ -461,3 +461,63 @@ Pre-registered protocol (before results were known):
 Deterministic and resumable (checkpoint per generation in
 `experiments/results/`); pipeline validated end-to-end by 5 new tests
 (53 total) + smoke run. Results below when the runs complete.
+
+### v13 results (3 independent evolutionary seeds; 120k unlocked last)
+
+Evolution ran at N ∈ {2k, 4k, 8k}; every genome below was then FROZEN and
+instantiated at held-out 16k/32k/60k/120k (15–60× beyond evolution).
+Numbers are held-out next-char accuracy under the frozen small readout
+budget (256 taps, 8k fit — NOT comparable to v12's 39.1%, which used 1024
+taps / 40k fit).
+
+```
+                 evo scales (2/4/8k)      held-out (16/32/60/120k)     syn/n
+seed 42  v12     36.3 / 37.3 / 37.4    37.2 / 38.4 / 38.3 / 39.0      19.9
+         gen0    36.0 / 37.7 / 36.9    39.2 / 40.2 / 38.8 / 40.7      11.2
+         evolved 36.6 / 37.3 / 37.3    38.5 / 38.7 / 38.4 / 38.9      10.6
+seed 7   v12     36.3 / 36.3 / 36.9    37.6 / 37.3 / 36.9 / 37.8      19.9
+         gen0    36.3 / 36.3 / 37.5    38.2 / 39.3 / 39.1 / 38.9      16.9
+         evolved 36.0 / 36.1 / 36.6    38.5 / 38.6 / 39.1 / 38.7      12.0
+seed 99  v12     36.3 / 36.3 / 35.8    38.5 / 37.3 / 37.3 / 36.1      19.9
+         gen0    36.8 / 37.2 / 37.0    38.9 / 39.7 / 39.3 / 39.3      12.9
+         evolved 36.2 / 36.5 / 37.5    37.9 / 38.5 / 37.7 / 38.1       5.9
+```
+
+Findings, in order of confidence:
+
+1. **Scale transfer is real.** All six small-scale-selected genomes
+   (gen0-best + evolved-best × 3 seeds) hold or improve at 120k
+   (38.1–40.7%, mean 39.1%) vs the hand law's 36.1–39.0% (mean 37.6%),
+   at 1.2–3.3× fewer synapses (0.71–2.03M vs 2.38M). Nothing collapsed.
+   The developmental representation — 11 numbers — carries to sizes it
+   never saw. The hand law is also the *least robust* across build seeds
+   at scale (36.1% with 90%-dead layers on one seed, 33k spikes/char
+   near-seizure on another): selection at small scale implicitly selected
+   for physiology that survives the frozen homeostatic protocol.
+2. **Convergent developmental signature across independent lineages:**
+   all three winners pushed inhibitory fraction to the gene's UPPER BOUND
+   (0.34–0.35 vs hand 0.15), cut feedforward fan (14 → 2–7), kept or
+   raised long-range skips, and nearly eliminated intra-layer recurrence
+   (6 → 0–2). Sparse, inhibition-rich, skip-dominated, barely recurrent.
+   The bound-pinning means the true optimum may lie outside the legal
+   range — widen it in v14. And recurrence being selected out says that
+   under THIS readout, reservoir recurrence does not earn its synapses.
+3. **Honest null on the optimizer: accuracy-wise, evolution ≈ random
+   search.** At evolution scales all arms sit at ~36–37%; gen-0's best
+   random genome transfers as well as (often better than) the evolved
+   one. 12 generations of (μ+λ) bought connectivity reduction (19.9 →
+   5.9–12.0 syn/n at matched accuracy — a real Pareto move the β-penalty
+   only partly explains), not accuracy. The paper question "do laws
+   selected small deploy large?" answers YES, but the selection pressure
+   that matters so far is *screening the parameter space*, not iterating
+   on it. More generations, bigger populations, or lower eval noise are
+   the v14 levers.
+4. **Protocol caveat:** the frozen 1500-char calibration under-adapts
+   thresholds at ≥32k (large dead fractions in all arms). Held-out
+   accuracy at scale therefore leans on sparse activity + char one-hots.
+   All arms share the handicap, so comparisons stand, but absolute
+   numbers at scale are depressed.
+
+Reproduce: `npm run experiment:evolve [seed]`, then
+`npm run experiment:evolve -- transfer results/evolve-seed<S>.json --120k`.
+Full per-phenotype metrics in `experiments/results/evolve-seed{42,7,99}.json`.

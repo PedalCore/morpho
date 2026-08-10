@@ -203,18 +203,56 @@
     honest yardstick still far away.
   </div>
 
+  <h2>Result 6 — evolving the law, not the network</h2>
+  <p>
+    The experiment this whole fork was circling: don't evolve a network, evolve the
+    <em>rule that produces networks</em>. An 11-gene genome parameterizes the per-neuron
+    developmental wiring law behind Results 3–5 (E/I ratio, fan-outs, weight bases, gains,
+    delay spread) — genome length constant in N, so the same genome instantiates a brain at
+    any size. The readout stayed frozen at Result 5's; a deliberately boring (μ+λ) evolution
+    strategy ran at 2k–8k neurons with fitness = mean accuracy across scales − a variance
+    penalty (selecting scale <em>robustness</em>) − a connectivity cost. The pre-registered
+    test: freeze the winners, instantiate at held-out 16k–120k — 15–60× beyond anything
+    evolution saw — with 120k unlocked only after everything else was recorded.
+  </p>
+  <table>
+    <tr><th>arm (mean of 3 independent seeds)</th><th>acc @ 120k</th><th>synapses @ 120k</th></tr>
+    <tr><td>hand-designed law (Results 3–5)</td><td>37.6% (36.1–39.0)</td><td>2.38M</td></tr>
+    <tr><td>best random genome (gen 0)</td><td><b>39.6%</b> (38.9–40.7)</td><td>1.34–2.03M</td></tr>
+    <tr><td>best evolved genome</td><td><b>38.6%</b> (38.1–38.9)</td><td>0.71–1.44M</td></tr>
+  </table>
+  <div class="verdict pos">
+    <b>The developmental representation transfers across scale.</b> All six
+    small-scale-selected genomes hold 38.1–40.7% at 120k — a size they never saw — beating
+    the hand law's mean while using up to 3.3× fewer synapses. And three independent
+    lineages converged on the same signature: inhibition-rich (E/I gene pinned at its upper
+    bound), feedforward cut, long-range skips kept, intra-layer recurrence selected
+    <em>out</em>. Eleven numbers now specify a million-synapse brain better than we designed
+    by hand. (Accuracies here use a smaller frozen readout budget than Result 5's 39.1% —
+    compare within the table only.)
+  </div>
+  <div class="verdict">
+    <b>Honest null:</b> accuracy-wise, 12 generations of evolution ≈ random search — the
+    gen-0 winner transfers as well as the evolved one. What evolution demonstrably bought is
+    <em>sparsity</em> (19.9 → 5.9 synapses/neuron at matched accuracy). Selection screened
+    the space of developmental laws; it didn't yet climb it. Bigger populations, wider gene
+    bounds (the E/I pin), and structural genes — evolving the program, not its parameters —
+    are the next rungs.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
-    The readout is now the bottleneck: a deeper Forward-Forward stack, more feature taps,
-    and longer temporal context are the levers. Then: grow-AND-prune in one lifecycle
-    (overprovision, prune to the skeleton, regrow where error persists), word-level targets,
-    and the same error-driven mechanisms pointed back at music: grow when dialogue
-    relatedness drops.
+    Structural evolution of the developmental program itself (v14): enabling and disabling
+    growth operators, layer counts, rule composition — Morpho's genotype idea in full. Plus
+    the readout levers (deeper Forward-Forward stack, more taps, longer context),
+    grow-AND-prune in one lifecycle, word-level targets, and the same error-driven
+    mechanisms pointed back at music: grow when dialogue relatedness drops.
   </p>
 
   <p class="foot">
     Reproduce: <code>cd snn && npm run experiment:language</code> ·
-    <code>npm run experiment:growth</code> (fetches the dataset on first run; ~15 min).
+    <code>npm run experiment:growth</code> ·
+    <code>npm run experiment:evolve</code> (fetches the dataset on first run).
     Part of the <a href="research.html">morpho·snn research track</a>.
     References: Hinton, <em>The Forward-Forward Algorithm</em>;
     Ghader et al., <a href="https://arxiv.org/abs/2502.20411">Backpropagation-free SNNs with

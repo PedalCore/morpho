@@ -97,6 +97,16 @@ gradient-free substrate; and the honest negatives — shallow Forward-Forward
 heads underperform ridge three times running, belief feedback is null, and
 free-running generation is still gibberish (exposure bias made vivid).
 
+**v13 — evolving the law, not the network:** an 11-gene genome over the
+developmental wiring rule (constant length in N), evolved at 2k–8k neurons
+and frozen, transfers to a held-out 120k-neuron brain it never saw:
+38.1–40.7% across all six selected lineages vs the hand-designed law's
+36.1–39.0%, at up to 3.3× fewer synapses — with three independent runs
+converging on the same signature (inhibition-rich, feedforward-sparse,
+skip-dominated, recurrence selected out). Honest null: accuracy-wise,
+evolution ≈ random search over the genome space; what it demonstrably
+bought is sparsity. Protocol was pre-registered before results.
+
 **Docs:** [`snn/README.md`](snn/README.md) (how to run and test) ·
 [`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) (hypothesis, protocol, findings,
 v1–v12) · the research brief and parallel C++/JUCE plugin briefs live in

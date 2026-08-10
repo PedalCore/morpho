@@ -75,6 +75,7 @@ npm run experiment:growth          # error-driven growth (grow only while wrong)
 npm run experiment:bigbrain        # 120k-neuron SoA brain + role-aware pruning
 npm run experiment:readout2        # prev-char context + Mamba-style state
 npm run experiment:autoreg         # 39.1% best; belief feedback + generation
+npm run experiment:evolve          # v13: evolve the developmental law itself
 ```
 
 The language experiments fetch and cache tiny shakespeare on first run.

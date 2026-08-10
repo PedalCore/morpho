@@ -1,0 +1,12 @@
+v13 transfer · held-out scales [16000,32000,60000] · readout budget frozen (taps 256, fit 8000) · 120k still held out (--120k)
+v12-hand      N= 16000  acc=37.2%  syn/n=19.88 spikes/char=3324.9 dead=10% (0.2m)
+v12-hand      N= 32000  acc=38.4%  syn/n=19.89 spikes/char=74.3 dead=85% (0.3m)
+v12-hand      N= 60000  acc=38.3%  syn/n=19.86 spikes/char=283.9 dead=64% (0.4m)
+gen0-best     N= 16000  acc=39.2%  syn/n=11.14 spikes/char=251.6 dead=23% (0.4m)
+gen0-best     N= 32000  acc=40.2%  syn/n=11.17 spikes/char=544.5 dead=25% (0.5m)
+gen0-best     N= 60000  acc=38.8%  syn/n=11.14 spikes/char=1032 dead=25% (0.5m)
+evolved-best  N= 16000  acc=38.5%  syn/n=10.61 spikes/char=354.5 dead=29% (0.5m)
+evolved-best  N= 32000  acc=38.7%  syn/n=10.64 spikes/char=472.6 dead=38% (0.6m)
+evolved-best  N= 60000  acc=38.4%  syn/n=10.58 spikes/char=874.3 dead=38% (0.6m)
+
+transfer results appended to experiments/results/evolve-seed42.json
