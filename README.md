@@ -60,9 +60,39 @@ def ripple_adder(a, b, c):
 
 ---
 
+## 🔁 Dynamic Systems Extension (v0.2, this branch)
+
+`tiny_morpho_seq.py` extends the Python reference implementation from pure functions `y = f(x)` to dynamical systems `s[t+1] = F(s[t], x[t])`. The circuit IR becomes a cyclic graph; cycles are classified by SCC analysis:
+
+* **Acyclic ops** → ordinary combinational logic.
+* **Cycles broken by `REG`** → legal synchronous state, simulated step-by-step.
+* **Cycles without `REG`** → asynchronous fixed-point circuits, opt-in via `allow_async=True` and relaxed to a fixed point each step (oscillation is detected and reported).
+
+Two new primitives (`REG(init)`/`DRIVE(q, next)` for registers, `FORWARD(ref)`/`TIE(fw, val)` for raw feedback) are enough to express cellular automata, bit-serial arithmetic, LFSRs, and latches with the existing Morpho mechanisms — no CA-specific language features:
+
+```python
+def make_eca(rule, width):        # e.g. Rule 110 on a ring of `width` cells
+    Rule = LUT(3, rule)
+    @morpho
+    def eca():
+        state = REG(np.zeros(width, dtype=np.int32))
+        l = CAT(state[-1:], state[:-1])   # cyclic left/right neighbors
+        r = CAT(state[1:], state[:1])
+        DRIVE(state, Rule(r, state, l))
+        return state
+    return eca
+
+trace = compile_seq(make_eca(110, 64)).run(32, state0=seed)  # (width, T) spacetime
+```
+
+The same relational structure can live in space or in time: `serial_adder` is the ripple-carry chain rotated into the time dimension — one full adder plus one register handles any operand width. Run `python3 tiny_morpho_seq.py` for the test suite (verified against numpy oracles and the combinational adders) and a Rule 110 demo.
+
+---
+
 ## 📁 Repository Structure
 
 * `tiny_morpho.py`: Standalone Python reference implementation of MorphoHDL with simulation, compilation, and verification tests.
+* `tiny_morpho_seq.py`: Sequential/dynamical-systems extension: registers, feedback, discrete-time simulation, and cellular automata.
 * `demo.html` / `index.html`: Web-based interactive explorer and interactive article.
 * `js/`: Core browser runtime and engine:
   * `compiler.js`: Flat SoA compiler and width inference engine.
