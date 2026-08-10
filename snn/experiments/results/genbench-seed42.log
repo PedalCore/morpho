@@ -2,6 +2,13 @@ genbench · ladder-best genome @ 120000n (1.34M syn) · taps 1024 · fit 40000 �
 calibrated (0.1m)
 n-gram scorer (1-5 gram, 900k chars): real held-out 2.52 bpc · uniform noise 8.25 bpc
 
-teacher-forced ridge: acc 43.2% (0.9m)
-  [p=0] gen 8.23 bpc · "acmQ:L'Zvsg e&BAuiAnV.RmZyz3fBejDbAXKn.GREKpMZvKhGks'3GlotXfWPmqu:qhSsGsg cFXRONlxqh3LkMuo…"
-  [p=0] teacher-forced acc 43.2% · gen 8.23 bpc (floor 2.52, noise 8.25) (0.9m)
+teacher-forced ridge: acc 43.2% (0.8m)
+  [p=0] gen 4.38 bpc · "onok oamskl obMAre thankeyz n: the lhod magnI't sart eherrisamprt thet wiThILIRThksa foore…"
+  [p=0 greedy] gen 1.93 bpc · "the are the  he cour and the the in the come the in the come the in the come the in the co…"
+  [p=0] teacher-forced acc 43.2% · gen 4.38 bpc (floor 2.52, noise 8.25) (0.9m)
+  [p=0.25] gen 4.35 bpc · "got:\nNENour\nWOLAsUNoU Sihuz n: oed mas bf gseiven?YoM Nous: datkn wnet ti m, linruso foi…"
+  [p=0.25] teacher-forced acc 41.0% · gen 4.35 bpc (floor 2.52, noise 8.25) (1.7m)
+  [p=0.5] gen 4.57 bpc · "IUS:\nI itme n fath th momyv.I hoan. .o\nAaUSgKnpeoiss\n\nCissLfeastr tnet tn ofeleattoo e…"
+  [p=0.5] teacher-forced acc 36.5% · gen 4.57 bpc (floor 2.52, noise 8.25) (2.5m)
+
+saved to experiments/results/genbench-seed42.json

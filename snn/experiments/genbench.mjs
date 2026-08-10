@@ -33,7 +33,8 @@ const FIT_CHARS = 40000;
 const TEST_CHARS = 3000;
 const GEN_CHARS = 1500;
 const PRIME_CHARS = 100;
-const TEMP = 0.8; // sampling temperature for feeding AND generation
+const TEMP = 0.8; // power-law temperature for feeding AND generation
+const GREEDY = 0.0; // extra generation arm: argmax decoding
 const PS = [0, 0.25, 0.5];
 const STEPS_PER_CHAR = 10;
 const TAU = 20;
@@ -255,12 +256,21 @@ function scoresOf(W, x) {
   }
   return scScratch;
 }
+// PROTOCOL AMENDMENT (documented in EXPERIMENT.md): ridge scores are
+// approximate class probabilities in [0,1] — softmaxing raw scores at
+// T≈1 is near-uniform (max ratio e^{1/T}) and made generation read as
+// noise regardless of model belief (v12's generation demo shared this
+// flaw). Amended: clamp scores to a probability floor and apply
+// power-law temperature p_i ∝ max(s_i, ε)^{1/T}; temp → 0 is greedy.
 function sampleFrom(sc, temp, rng) {
-  let mx = -Infinity;
-  for (let vv = 0; vv < V; vv++) if (sc[vv] > mx) mx = sc[vv];
+  if (temp <= 0.01) { // greedy
+    let b = 0;
+    for (let vv = 1; vv < V; vv++) if (sc[vv] > sc[b]) b = vv;
+    return b;
+  }
   let z = 0;
   const p = new Float64Array(V);
-  for (let vv = 0; vv < V; vv++) { p[vv] = Math.exp((sc[vv] - mx) / temp); z += p[vv]; }
+  for (let vv = 0; vv < V; vv++) { p[vv] = Math.pow(Math.max(sc[vv], 1e-4), 1 / temp); z += p[vv]; }
   let roll = rng() * z;
   for (let vv = 0; vv < V; vv++) { roll -= p[vv]; if (roll <= 0) return vv; }
   return V - 1;
@@ -313,7 +323,7 @@ const outPath = new URL(`./results/genbench-seed${SEED}.json`, import.meta.url);
 const results = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {
   SEED, N, TAPS, FIT_CHARS, TEMP, floorBpc, noiseBpc, arms: {},
 };
-function generate(W, tag) {
+function generate(W, tag, temp = TEMP) {
   // prime with real text, then free-run; brain hears its own output
   for (let k = 0; k < PRIME_CHARS; k++) runChar(ids[pos + k]);
   let c1 = ids[pos + PRIME_CHARS - 1], c2 = ids[pos + PRIME_CHARS - 2],
@@ -322,7 +332,7 @@ function generate(W, tag) {
   const seq = [];
   for (let g = 0; g < GEN_CHARS; g++) {
     const sc = scoresOf(W, rowOf(c1, c2, c3));
-    const next = sampleFrom(sc, TEMP, rng);
+    const next = sampleFrom(sc, temp, rng);
     seq.push(next);
     runChar(next);
     c3 = c2; c2 = c1; c1 = next;
@@ -363,6 +373,10 @@ for (const p of PS) {
   }
   const gen = generate(W, tag);
   results.arms[tag] = { accTF, ...gen };
+  if (p === 0) {
+    const greedy = generate(W, 'p=0 greedy', GREEDY);
+    results.arms['p=0-greedy'] = { accTF, ...greedy };
+  }
   writeFileSync(outPath, JSON.stringify(results, null, 1));
   console.log(
     `  [${tag}] teacher-forced acc ${(accTF * 100).toFixed(1)}% · gen ${gen.bpc.toFixed(2)} bpc ` +

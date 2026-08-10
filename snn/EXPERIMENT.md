@@ -674,3 +674,41 @@ Findings:
 5. v12-hand seized during evaluation twice more (seed99 60k: 71k
    spikes/char; seed42 120k: 49k) — the fragility result is now
    systematic across v13, v14 and the full-budget control.
+
+### v15 results, part 1 — generation measured (`experiment:genbench`)
+
+Instrument: bits/char under a 1–5 gram corpus model; floor = real held-out
+text 2.52 bpc, ceiling = uniform noise 8.25 bpc. Substrate: ladder-best
+genome @120k, full budget (teacher-forced 43.2% on this window).
+
+**Protocol amendment (flat-sampler artifact, discovered mid-run):** ridge
+scores approximate probabilities in [0,1]; softmaxing them at T≈1 (the
+pre-registered decoder, inherited from v12's generation demo) is
+near-uniform — first run generated at 8.23 bpc ≈ noise BY CONSTRUCTION.
+Amended to power-law sampling on clamped scores (greedy = argmax);
+flat-sampler run preserved in results/genbench-seed42-flatsampler.*.
+
+```
+                     gen bpc    teacher-forced acc
+p=0    sampled T0.8    4.38        43.2%
+p=0    greedy          1.93*       43.2%
+p=0.25 sampled         4.35        41.0%
+p=0.5  sampled         4.57        36.5%
+```
+
+1. **v12's "gibberish" verdict retroactively revised:** decoded properly,
+   free-running generation produces word-fragment English ("…thankeyz n:
+   the lhod magnI't sart…") at 4.38 bpc — far from noise. The model
+   generates at roughly trigram quality; the old demo's decoder was
+   flattening it to uniform.
+2. **(*) Metric caveat, caught immediately: gen-bpc is gameable.** Greedy
+   scores BELOW the real-text floor by looping "the in the come" — the
+   n-gram scorer rewards degenerate blandness. bpc needs a
+   repetition/diversity companion before "beats the floor" means
+   anything. Honest operating number: sampled 4.38.
+3. **Scheduled sampling: null, as the memory-gap hypothesis predicted.**
+   Generation improves ≤0.03 bpc at p=0.25 and worsens at p=0.5, while
+   teacher-forced accuracy degrades monotonically. Exposure bias is not
+   the binding constraint; the teacher-forced ↔ generation gap
+   (43.2% vs 4.38-bpc trigram-grade text) is a memory gap. The
+   pre-registered prediction stands confirmed.

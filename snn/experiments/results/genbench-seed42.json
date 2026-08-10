@@ -9,8 +9,23 @@
  "arms": {
   "p=0": {
    "accTF": 0.43233333333333335,
-   "bpc": 8.231753970390043,
-   "sample": "acmQ:L'Zvsg e&BAuiAnV.RmZyz3fBejDbAXKn.GREKpMZvKhGks'3GlotXfWPmqu:qhSsGsg cFXRONlxqh3LkMuowOoM;RI Qph;ghSvg;Ome?YLnwmta.IjBqXSDypUok-AOsgPduMdLCOn&FlyU.Os.qqZ-i&drR &-\\nEqycJupoCHgovq&sMzsPsquBoJy Z.M "
+   "bpc": 4.382042610101382,
+   "sample": "onok oamskl obMAre thankeyz n: the lhod magnI't sart eherrisamprt thet wiThILIRThksa foores shan.\\n\\nhiAnd wihhthILAmygse fodled worhe betings ne my foy MarNove tUTnU :\\n'atsA tlo enows thyouren thu nal,"
+  },
+  "p=0-greedy": {
+   "accTF": 0.43233333333333335,
+   "bpc": 1.9303007846257298,
+   "sample": "the are the  he cour and the the in the come the in the come the in the come the in the come the in the come the in the come the in the come the in the come the in the come the in the come the in the "
+  },
+  "p=0.25": {
+   "accTF": 0.4096666666666667,
+   "bpc": 4.347526128529556,
+   "sample": "got:\\nNENour\\nWOLAsUNoU Sihuz n: oed mas bf gseiven?YoM Nous: datkn wnet ti m, linruso foiths shanN\\nSor thethIOggIeIrseth foiteagrndot citld?l peapl'dgye it wot t:'s  LA'Uizensto, sous thys,isn thvan f "
+  },
+  "p=0.5": {
+   "accTF": 0.36533333333333334,
+   "bpc": 4.567870790089226,
+   "sample": "IUS:\\nI itme n fath th momyv.I hoan. .o\\nAaUSgKnpeoiss\\n\\nCissLfeastr tnet tn ofeleattoo eomsouend ih mor ooesp: rnThervisg aoRome wonlm besrbitehe en arve gpasta t ste  a dsusesstOLLest tevmatno tes\\nTee "
   }
  }
 }
