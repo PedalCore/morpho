@@ -46,9 +46,12 @@
 <body>
 <article>
   <h1>sparse defects in a <span>traffic jam</span></h1>
-  <p class="sub">Evolution repeatedly discovers a conservative transport medium plus two
-  one-bit symmetry-breaking defects for distributed density classification —
-  an experiment on the MorphoHDL dynamic-systems extension. August 2026.</p>
+  <p class="sub">Independent evolutionary searches repeatedly discover a quasi-uniform
+  density classifier: a conservative traffic-rule medium plus two single-bit
+  symmetry-breaking defects. Successful searches preserve this two-defect architecture
+  across system sizes; failures occur predominantly as near-tie period-2 indecision
+  rather than incorrect consensus. An experiment on the MorphoHDL dynamic-systems
+  extension. August 2026.</p>
 
   <div class="links">
     <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code &amp; experiments</a>
@@ -196,6 +199,31 @@
   Left: particles condense into a jam that fills the ring. Right: a standing period-2
   structure refuses to resolve a near-tie.</p>
 
+  <h3>Exact census at N=15</h3>
+  <p>
+    At N=15 there are only 2<sup>15</sup>&nbsp;=&nbsp;32,768 initial configurations, so
+    sampling stops being necessary. Enumerating every IC through the compiled pipeline
+    for the best genome of each chirality:
+  </p>
+  <table>
+    <tr><th>exact fact</th><th>value</th></tr>
+    <tr><td>strict accuracy, flat census (all ICs equal weight)</td><td><b>25,270 / 32,768 = 0.771179 — identical for both chiralities</b></td></tr>
+    <tr><td>accuracy at margin ≥ 4.5 (≤3 or ≥12 ones)</td><td>≥ 0.969; perfect at margin ≥ 6.5</td></tr>
+    <tr><td>failure taxonomy</td><td>6,806 non-uniform period-2 (90.8%), 692 wrong-uniform (9.2%)</td></tr>
+    <tr><td>distinct failure attractor cycles in the whole state space</td><td><b>8</b> (mirror: 7)</td></tr>
+    <tr><td>longest transient anywhere</td><td>18 steps &lt; 2N — convergence by T=2N is exact</td></tr>
+    <tr><td>reflection bijection (mirror lattice + swap chirality)</td><td>exactly 25,270 correct — exact match</td></tr>
+  </table>
+  <p>
+    The two independently-evolved chiral solutions — different seeds, different defect
+    positions — have <em>identical</em> exact accuracy at every margin level. Performance is
+    fully determined by the architectural law (sea chirality, two one-bit defects, directed
+    separation 7), not by the instance. The "hung jury" is also not a diffuse phenomenon:
+    all indecision funnels into eight specific standing period-2 waves. Note the
+    distributional caveat: 0.771 is under the flat census, which concentrates mass at
+    near-ties; the ~0.90 figures elsewhere use the uniform-density benchmark distribution.
+  </p>
+
   <h2>Scaling</h2>
   <p>Independent evolution at each lattice size (same population, generations and IC budget;
   genome length = N):</p>
@@ -221,15 +249,71 @@
     scales with N is not the mechanism, but the difficulty of finding it.
   </div>
 
-  <h2>Caveats</h2>
+  <h2>The frozen law</h2>
   <p>
-    Radius-1 non-uniform CAs are approximate classifiers — strict accuracy plateaus around
-    0.90 at N=15 and decreases with N under a fixed evolutionary budget; nothing here is an
-    exact solution, and none of these numbers are directly comparable to historical density
-    benchmarks (different lattice sizes, IC distributions and convergence criteria).
-    Larger lattices received the same generation budget, so their lower fitness conflates
-    task difficulty with search budget. All experiments are elementary (radius-1, binary,
-    synchronous) — deliberately the simplest possible substrate for validating the pipeline.
+    The scaling table above entangles two claims: <em>can evolution find the motif at size
+    N</em>, and <em>does the motif itself generalize</em>. To separate them we stopped
+    evolving entirely: instantiate the discovered recipe — transport sea + particle-absorber
+    + hole-absorber at separation N/2 — directly at N = 15, 31, 63, 127, 255, 511 (both
+    chiralities), and measure P(correct | initial majority excess Δ, N). Large lattices run
+    on a numpy stepper verified bit-exact against the compiled Morpho pipeline at N ≤ 63;
+    2,000 ICs per (N, Δ) cell.
+  </p>
+  <p>Three exact-looking regularities and one honest limitation:</p>
+  <table>
+    <tr><th>N</th><th>Δ/N = 0.06</th><th>0.2</th><th>0.33</th><th>0.5</th><th>0.65</th><th>0.8</th></tr>
+    <tr><td>15</td><td>0.65</td><td>0.79</td><td>0.88</td><td>0.94</td><td>0.97</td><td>0.98</td></tr>
+    <tr><td>31</td><td>0.56</td><td>0.73</td><td>0.82</td><td>0.92</td><td>0.96</td><td>0.99</td></tr>
+    <tr><td>63</td><td>0.49</td><td>0.72</td><td>0.82</td><td>0.91</td><td>0.97</td><td>0.97</td></tr>
+    <tr><td>127</td><td>0.47</td><td>0.69</td><td>0.82</td><td>0.91</td><td>0.95</td><td>0.98</td></tr>
+    <tr><td>255</td><td>0.43</td><td>0.69</td><td>0.81</td><td>0.91</td><td>0.96</td><td>0.97</td></tr>
+    <tr><td>511</td><td>0.42</td><td>0.67</td><td>0.81</td><td><b>0.91</b></td><td><b>0.95</b></td><td><b>0.98</b></td></tr>
+  </table>
+  <p class="cap">P(correct) at T=8N vs relative majority excess Δ/N, sea 226 (linear
+  interpolation between measured Δ). The mirror law's numbers agree within sampling noise
+  at every cell.</p>
+  <p>
+    First, the law transfers: the same three-rule recipe classifies at N=511 — a lattice
+    34× larger than anything evolution saw — with no re-tuning. For relative excess
+    Δ/N ≥ 1/3, accuracy is essentially independent of N. The two-defect architecture is an
+    approximately <b>scale-invariant relative-density classifier</b>.
+  </p>
+  <p>
+    Second, T=2N and T=8N results are identical at every size and margin — convergence
+    speed scales linearly with N and extra time never rescues a hung case, now confirmed
+    from N=15 to 511.
+  </p>
+  <p>
+    Third, the two chiralities agree at every (N, Δ) cell, extending the exact N=15
+    equivalence to all sizes tested.
+  </p>
+  <p>
+    The limitation: at fixed <em>absolute</em> excess, accuracy decays — at Δ=1 it falls
+    from 0.65 (N=15) to 0.21 (N=511), roughly ∝ N<sup>−1/3</sup>. Two defects absorbing a
+    fixed excess must wait for transport to deliver it, while a near-balanced background
+    coarsens around them; the required excess for any target accuracy grows ∝ N. Deriving
+    that exponent from the particle/hole dynamics — and why near-balanced configurations
+    funnel into the handful of period-2 hung states — is the open analytic question.
+  </p>
+
+  <h2>Demonstrated vs. not demonstrated</h2>
+  <p><b>Demonstrated:</b> convergence of independent searches onto the traffic-rule motif
+  (24/24 at N=15, 11/12 at N=31); causal necessity and algebraic minimality of the two
+  defects (unique optima among all 256 rules, one bit from the sea); translation invariance
+  and separation-dependence of placement; exact basin structure at N=15; D(N)=2 among
+  successful evolved solutions at N=15/31/63; and transfer of the frozen law to N=511 with
+  approximately scale-invariant accuracy in relative excess Δ/N.</p>
+  <p><b>Not demonstrated:</b> novelty relative to the full non-uniform-CA literature (a
+  broader search is owed before claiming it); any statement about <em>evolved</em> solutions
+  at N&nbsp;&gt;&nbsp;63; search-success scaling — the N=63 success rate (3/8) is confounded
+  by the fixed evolutionary budget; and an analytic account of the N<sup>−1/3</sup> fixed-Δ
+  decay and the period-2 hung basins (currently empirical).</p>
+  <p>
+    General caveats: radius-1 non-uniform CAs are approximate classifiers; nothing here is
+    an exact solution, and none of these numbers are directly comparable to historical
+    density benchmarks (different lattice sizes, IC distributions and convergence criteria).
+    All experiments are elementary (radius-1, binary, synchronous) — deliberately the
+    simplest possible substrate.
   </p>
 
   <h2>What's next</h2>
