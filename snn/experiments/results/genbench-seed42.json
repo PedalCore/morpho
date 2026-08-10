@@ -1,0 +1,16 @@
+{
+ "SEED": 42,
+ "N": 120000,
+ "TAPS": 1024,
+ "FIT_CHARS": 40000,
+ "TEMP": 0.8,
+ "floorBpc": 2.52301578082048,
+ "noiseBpc": 8.245621039090265,
+ "arms": {
+  "p=0": {
+   "accTF": 0.43233333333333335,
+   "bpc": 8.231753970390043,
+   "sample": "acmQ:L'Zvsg e&BAuiAnV.RmZyz3fBejDbAXKn.GREKpMZvKhGks'3GlotXfWPmqu:qhSsGsg cFXRONlxqh3LkMuowOoM;RI Qph;ghSvg;Ome?YLnwmta.IjBqXSDypUok-AOsgPduMdLCOn&FlyU.Os.qqZ-i&drR &-\\nEqycJupoCHgovq&sMzsPsquBoJy Z.M "
+  }
+ }
+}

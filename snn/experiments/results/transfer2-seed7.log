@@ -1,0 +1,12 @@
+v14 transfer · held-out scales [16000,32000,60000] · calib 5000 · 120k still held out (--120k)
+v12-hand      N= 16000  acc=34.5%  L=4 syn/n=19.87 spikes/char=5937.3 dead=11% (0.8m)
+v12-hand      N= 32000  acc=34.2%  L=4 syn/n=19.88 spikes/char=2000.4 dead=14% (1.8m)
+v12-hand      N= 60000  acc=35.3%  L=4 syn/n=19.9 spikes/char=159 dead=79% (2.4m)
+gen0-best     N= 16000  acc=36.7%  L=3 syn/n=14.29 spikes/char=108 dead=46% (2.5m)
+gen0-best     N= 32000  acc=36.7%  L=3 syn/n=14.29 spikes/char=204.9 dead=48% (2.6m)
+gen0-best     N= 60000  acc=37.8%  L=3 syn/n=14.33 spikes/char=386.4 dead=47% (2.7m)
+evolved-best  N= 16000  acc=36.4%  L=2 syn/n=2.92 spikes/char=229.9 dead=42% (2.7m)
+evolved-best  N= 32000  acc=36.2%  L=2 syn/n=2.92 spikes/char=453.6 dead=43% (2.8m)
+evolved-best  N= 60000  acc=36.7%  L=2 syn/n=2.91 spikes/char=858 dead=43% (2.8m)
+
+transfer results appended to experiments/results/evolve2-seed7.json

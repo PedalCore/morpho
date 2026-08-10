@@ -1,0 +1,7 @@
+genbench · ladder-best genome @ 120000n (1.34M syn) · taps 1024 · fit 40000 · temp 0.8 · arms p=[0,0.25,0.5]
+calibrated (0.1m)
+n-gram scorer (1-5 gram, 900k chars): real held-out 2.52 bpc · uniform noise 8.25 bpc
+
+teacher-forced ridge: acc 43.2% (0.9m)
+  [p=0] gen 8.23 bpc · "acmQ:L'Zvsg e&BAuiAnV.RmZyz3fBejDbAXKn.GREKpMZvKhGks'3GlotXfWPmqu:qhSsGsg cFXRONlxqh3LkMuo…"
+  [p=0] teacher-forced acc 43.2% · gen 8.23 bpc (floor 2.52, noise 8.25) (0.9m)

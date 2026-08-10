@@ -631,3 +631,46 @@ so every arm is directly comparable:
 
 Substrate depth is settled (v14: 2 layers, 3/3 seeds); v16c explores
 readout depth instead. Queue: after v14 transfers + v15 genbench/scaling.
+
+### v14 results, part 2 — structural evolution: depth 2, unanimously
+
+3 independent seeds, 20 generations each, layer count genomic (2–6),
+bounds widened everywhere v13 pinned. Shared-window final reports and
+held-out transfer (calib 5000; all numbers within-protocol only):
+
+```
+shared window (2/4/8k)   seed42   seed7    seed99
+  v12-hand               0.319    0.319    0.317      L=4, syn/n 19.9
+  v13-winner             0.331    0.331    0.331      L=4, syn/n 11.1
+  v14-gen0-best          0.336    0.327    0.339      L=2/3/2
+  v14-evolved            0.338    0.330    0.336      L=2, syn/n 7.9/2.9/12.2
+
+held-out 120k            v12-hand   gen0-best   evolved-best
+  seed42                 34.6%      35.9%       36.8%
+  seed7                  35.1%      37.1%       36.5%
+  seed99                 35.3%      37.6%       37.1%
+```
+
+Findings:
+
+1. **Depth 2 beats depth 4, unanimously.** All three lineages' winners
+   chose n_layers=2 — the first structural gene contradicted the designer
+   in every independent run, and the choice survives transfer to 120k
+   (every selected genome beats its v12-hand control there).
+2. **The v13 signature was conditional on imposed depth.** With depth
+   free, inhibitory fraction abandoned v13's 0.35 pin (seed42 0.05,
+   seed7 0.08, seed99 0.22): the "inhibition-rich" law was compensation
+   for forced 4-layer stability, not a universal principle. Depth-2 is
+   the convergent discovery; within it, many wirings work (ff_fan spans
+   5–28 across winners). A caution for interpreting any evolved genome:
+   signatures are relative to the constraint set.
+3. **Sparsity extreme:** seed7's winner computes at 2.9 syn/neuron
+   (~350k synapses at 120k — 6.8× fewer than the hand law) and still
+   beats it at every held-out size. All v14 arms beat v13-winner on the
+   shared windows.
+4. **Evolution vs gen-0: 2/3 seeds, small margins.** Better than v13's
+   0/3, still not decisive. The noise reduction helped; the honest
+   statement remains "screening dominates, iteration adds a little."
+5. v12-hand seized during evaluation twice more (seed99 60k: 71k
+   spikes/char; seed42 120k: 49k) — the fragility result is now
+   systematic across v13, v14 and the full-budget control.
