@@ -605,3 +605,29 @@ spike traces + 3 chars of context is n-gram-class); past it the lever is
 mechanism (deep readout / memory-rewarded substrate), not size.
 
 Both per-config checkpointed. 2 new tests (58 total). Results below.
+
+## v16 — beyond the linear form — program pre-registered
+
+Three attacks on the (predicted) linear ceiling, in order of increasing
+depth of change; all on the 42.5% ladder-best genome @120k, full budget,
+so every arm is directly comparable:
+
+- **v16a `experiment:readout3` — richer features, linear solve.** Five
+  arms, only the feature map changes: A0 rate-trace control; A1 multi-τ
+  banks (20/80/320ms — v11's mechanism at the 40k sample budget v11
+  lacked); A2 second-order tap-pair products; A3 fixed random ReLU
+  projections (ELM); A4 char-gated bilinear taps. All closed-form ridge.
+  PREDICTION: A1/A4 win if the ceiling is a feature-map problem; five-way
+  tie at ~42% means the reservoir's readable information is exhausted.
+- **v16c — Forward-Forward done properly** (to be built): normalization +
+  depth + goodness design per the FF-SNN literature, replacing the three
+  casual shallow attempts that failed (12.1%, 10.1%, —). The readout-depth
+  axis, gradient-free.
+- **v16d — three-factor plasticity** (to be built): reward-modulated STDP
+  (local eligibility × global correctness scalar) shaping the substrate's
+  1.3M weights during a training phase, then frozen readout as usual.
+  Converts untrained parameters into slowly-trained ones — the deepest
+  change, and the return of the substrate's biology.
+
+Substrate depth is settled (v14: 2 layers, 3/3 seeds); v16c explores
+readout depth instead. Queue: after v14 transfers + v15 genbench/scaling.

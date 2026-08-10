@@ -22,6 +22,7 @@
     "experiment:fullbudget": "node experiments/fullbudget.mjs",
     "experiment:genbench": "node experiments/genbench.mjs",
     "experiment:scaling": "node experiments/scaling.mjs",
+    "experiment:readout3": "node experiments/readout3.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
