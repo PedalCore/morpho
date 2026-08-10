@@ -42,9 +42,10 @@ def instantiate_shared(g, k):
         return rsigs[int(g['o_out'][0]) % len(rsigs)]
     return net
 
-def hand_shared():
-    """Hand parity law: carry = (delay line value, running parity).
-    init: (x, 0); stage: r <- cin0; cout = (r, cin1 ^ r); y = x ^ cout1."""
+def hand_shared(task='parity'):
+    """Hand law: carry = (delay line value, running parity).
+    init: (x, 0); stage: r <- cin0; cout = (r, cin1 ^ r);
+    parity: y = x ^ cout1;  recall: y = cout0."""
     g = spec_random(np.random.default_rng(0), SHARED_SPEC)
     XOR = 0b0110
     g['i_in'][:] = [2, 0]
@@ -55,4 +56,6 @@ def hand_shared():
     g['o_arity'][0], g['o_lut'][0] = 2, XOR  # y = x ^ co1
     g['o_refs'][0][:2] = [2, 4]
     g['o_out'][0] = 5
+    if task == 'recall':
+        g['o_out'][0] = 3                    # y = cout0 = x delayed by k
     return g

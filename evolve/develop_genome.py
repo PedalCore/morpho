@@ -113,12 +113,12 @@ def instantiate_dev(g, k):
     return net
 
 
-def hand_dev():
-    """The human-written developmental parity law, expressed in the grammar.
+def hand_dev(task='parity'):
+    """The human-written developmental law, expressed in the grammar.
     Interface: v0 = input delayed by size, v1 = parity of the delayed window.
     base:  r0 <- u0; v0 = v1 = r0
     rec:   A on u0; B on A.v0; v0 = B.v0; v1 = A.v1 XOR B.v1
-    top:   cell(x, k); y = x XOR v1
+    top:   parity: y = x XOR v1;  recall: y = v0
     """
     g = spec_random(np.random.default_rng(0), DEV_SPEC)
     XOR = 0b0110
@@ -133,4 +133,6 @@ def hand_dev():
     g['t_arity'][0], g['t_lut'][0] = 2, XOR   # y = x ^ v1
     g['t_refs'][0][:2] = [2, 4]
     g['t_out'][0] = 5
+    if task == 'recall':
+        g['t_out'][0] = 3                     # y = v0 = x delayed by k
     return g

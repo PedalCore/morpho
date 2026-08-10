@@ -33,7 +33,7 @@ from tiny_morpho_seq import compile_seq
 from .develop_genome import (DEV_SPEC, instantiate_dev, hand_dev,
                              spec_random, spec_mutate, genome_size)
 from .shared_genome import SHARED_SPEC, instantiate_shared, hand_shared
-from .temporal_tasks import parity_case, parity_ref, score
+from .temporal_tasks import TASKS1, score
 from .fsm_verify import verify
 
 REPS = {'developmental': (DEV_SPEC, instantiate_dev, hand_dev),
@@ -45,37 +45,37 @@ ZEROSHOT_KS = (3, 5, 6, 7, 8, 12, 16)
 def _step_n(k):
     return max(32, 3 * k + 16)
 
-def _acc(inst, g, k, rng, case_n, long=False):
-    x, target, mask = parity_case(rng, k, case_n * (4 if long else 1),
-                                  _step_n(k) * (2 if long else 1))
+def _acc(inst, g, k, rng, case_n, task, long=False):
+    x, target, mask = TASKS1[task][0](rng, k, case_n * (4 if long else 1),
+                                      _step_n(k) * (2 if long else 1))
     sim = compile_seq(inst(g, k), (1,))
     y = sim.run(x.shape[1], x, samples=x.shape[2])
     m = sim.metrics()
     return score(y[0], target, mask), m
 
-def eval_multi(g, inst, rng, case_n=64):
+def eval_multi(g, inst, rng, task, case_n=64):
     accs, cost = [], 0.0
     for k in TRAIN_KS:
-        acc, m = _acc(inst, g, k, rng, case_n)
+        acc, m = _acc(inst, g, k, rng, case_n, task)
         accs.append(acc)
         cost += 3 * m['registers'] + m['gates'] + 0.2 * m['edges']
     return (min(accs), float(np.mean(accs)), -cost)
 
-def _zeroshot(g, inst, rng):
+def _zeroshot(g, inst, rng, task):
     per_k = {}
     for k in TRAIN_KS + ZEROSHOT_KS:
-        acc, m = _acc(inst, g, k, rng, 128, long=True)
+        acc, m = _acc(inst, g, k, rng, 128, task, long=True)
         exact = None
         if acc == 1.0:
-            v = verify(compile_seq(inst(g, k), (1,)), parity_ref(k), warmup=k,
-                       max_states=1 << 21)
+            v = verify(compile_seq(inst(g, k), (1,)), TASKS1[task][1](k),
+                       warmup=k, max_states=1 << 21)
             exact = v['exact']
         per_k[k] = {'acc': acc, 'exact': exact, 'registers': m['registers'],
                     'gates': m['gates'], 'depth': m['logic_depth']}
     return per_k
 
 
-def train_run(rep, seed, pop_n=64, gen_max=800, case_n=64,
+def train_run(rep, seed, task='parity', pop_n=64, gen_max=800, case_n=64,
               elite_n=4, tourney_n=3, patience=150, quiet=True):
     spec, inst, _ = REPS[rep]
     rng = np.random.default_rng(seed)
@@ -85,7 +85,7 @@ def train_run(rep, seed, pop_n=64, gen_max=800, case_n=64,
     for gen in range(gen_max):
         scored = []
         for g in pop:
-            fit = eval_multi(g, inst, rng, case_n)
+            fit = eval_multi(g, inst, rng, task, case_n)
             evals += 1
             scored.append((fit, g))
         scored.sort(key=lambda t: t[0], reverse=True)
@@ -106,31 +106,31 @@ def train_run(rep, seed, pop_n=64, gen_max=800, case_n=64,
             children.append(spec_mutate(winner, rng, spec))
         pop = ranked[:elite_n] + children
 
-    return _finish(ranked[0], rep, rep, seed, evals, solved_at, rng)
+    return _finish(ranked[0], rep, rep, seed, evals, solved_at, rng, task)
 
-def _finish(g, rep, label, seed, evals, solved_at, rng):
+def _finish(g, rep, label, seed, evals, solved_at, rng, task):
     spec, inst, _ = REPS[rep]
-    return {'rep': label, 'seed': seed, 'evals': evals,
+    return {'rep': label, 'task': task, 'seed': seed, 'evals': evals,
             'evals_to_solve': solved_at, 'genome_size': genome_size(spec),
-            'per_k': _zeroshot(g, inst, rng),
+            'per_k': _zeroshot(g, inst, rng, task),
             'genome': {k: v.tolist() for k, v in g.items()}}
 
-def hand_run(rep):
+def hand_run(rep, task='parity'):
     spec, inst, hand = REPS[rep]
-    return _finish(hand(), rep, f'hand_{rep}', 0, 0, 0,
-                   np.random.default_rng(777))
+    return _finish(hand(task), rep, f'hand_{rep}', 0, 0, 0,
+                   np.random.default_rng(777), task)
 
 
 def _run_one(job):
-    rep, seed = job
-    return train_run(rep, seed)
+    rep, seed, task = job
+    return train_run(rep, seed, task)
 
-def sweep(seed_n, workers, out):
+def sweep(seed_n, workers, out, task='parity'):
     open(out, 'w').close()
     with open(out, 'a') as f:
         for rep in REPS:
-            f.write(json.dumps(hand_run(rep)) + '\n')
-    jobs = [(rep, seed) for rep in REPS for seed in range(seed_n)]
+            f.write(json.dumps(hand_run(rep, task)) + '\n')
+    jobs = [(rep, seed, task) for rep in REPS for seed in range(seed_n)]
     with mp.Pool(workers) as pool:
         for rec in pool.imap_unordered(_run_one, jobs):
             with open(out, 'a') as f:
@@ -154,7 +154,8 @@ def _load(path):
 def summarize(path):
     recs = _load(path)
     nd = [k for k in ZEROSHOT_KS if k not in (8, 16)]
-    print(f"\n== developmental generalization: temporal parity "
+    task = recs[0].get('task', 'parity')
+    print(f"\n== developmental generalization: {task} "
           f"(train k=1,2,4; freeze; zero-shot) ==")
     print(f"{'representation':<22} {'|g|':>4} {'train 1,2,4':>12} "
           f"{'zs 8':>5} {'zs 16':>6} {'non-dyadic 3,5,6,7,12':>22}")
@@ -182,14 +183,15 @@ def summarize(path):
 
 
 def selftest():
-    for rep in REPS:
-        rec = hand_run(rep)
-        for k in TRAIN_KS + ZEROSHOT_KS:
-            p = rec['per_k'][k]
-            assert p['exact'], f"hand {rep} not exact at k={k}: {p}"
-        regs = [rec['per_k'][k]['registers'] for k in (1, 2, 4, 8, 16)]
-        print(f"hand {rep}: |genome|={rec['genome_size']}, exact at all "
-              f"k in {TRAIN_KS + ZEROSHOT_KS}, registers(1,2,4,8,16)={regs}")
+    for task in ('parity', 'recall'):
+        for rep in REPS:
+            rec = hand_run(rep, task)
+            for k in TRAIN_KS + ZEROSHOT_KS:
+                p = rec['per_k'][k]
+                assert p['exact'], f"hand {rep}/{task} not exact at k={k}: {p}"
+            regs = [rec['per_k'][k]['registers'] for k in (1, 2, 4, 8, 16)]
+            print(f"hand {rep}/{task}: |genome|={rec['genome_size']}, exact "
+                  f"at all unseen k, registers(1,2,4,8,16)={regs}")
     print("selftest passed")
 
 
@@ -198,16 +200,18 @@ def main():
     sub = p.add_subparsers(dest='cmd', required=True)
     sub.add_parser('selftest')
     s = sub.add_parser('sweep')
+    s.add_argument('--task', choices=TASKS1, default='parity')
     s.add_argument('--seeds', type=int, default=8)
     s.add_argument('--workers', type=int, default=6)
-    s.add_argument('--out', default='runs/exp2_parity.jsonl')
+    s.add_argument('--out', default=None)
     s2 = sub.add_parser('summarize')
     s2.add_argument('path')
     args = p.parse_args()
     if args.cmd == 'selftest':
         selftest()
     elif args.cmd == 'sweep':
-        sweep(args.seeds, args.workers, args.out)
+        out = args.out or f'runs/exp2_{args.task}.jsonl'
+        sweep(args.seeds, args.workers, out, args.task)
     else:
         summarize(args.path)
 
