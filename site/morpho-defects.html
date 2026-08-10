@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — sparse defects in a traffic jam</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  h3 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; line-height: 1.35;
+        background: #12151b; border: 1px solid #242a35; border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; margin: 14px 0; color: #c4c9d4; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .verdict.null { border-color: #d96c6c; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .cols { display: flex; gap: 14px; flex-wrap: wrap; }
+  .cols pre { flex: 1; min-width: 240px; }
+  .cap { color: #9aa1ad; font-size: 13.5px; margin: -8px 0 14px; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>sparse defects in a <span>traffic jam</span></h1>
+  <p class="sub">Independent evolutionary searches repeatedly discover a quasi-uniform
+  density classifier: a conservative traffic-rule medium plus two single-bit
+  symmetry-breaking defects. Successful searches preserve this two-defect architecture
+  across system sizes; failures occur predominantly as near-tie period-2 indecision
+  rather than incorrect consensus. An experiment on the MorphoHDL dynamic-systems
+  extension. August 2026.</p>
+
+  <div class="links">
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code &amp; experiments</a>
+    <a href="https://paradigms-of-intelligence.github.io/morpho/">MorphoHDL (upstream)</a>
+    <a href="/research.html">← research notes</a>
+  </div>
+
+  <h2>Setup</h2>
+  <p>
+    We extended Google's <a href="https://github.com/paradigms-of-intelligence/morpho">MorphoHDL</a>
+    reference implementation from pure combinational functions <code>y&nbsp;=&nbsp;f(x)</code> to
+    dynamical systems <code>s[t+1]&nbsp;=&nbsp;F(s[t],&nbsp;x[t])</code>: a <code>REG</code> state
+    primitive, explicit feedback wires, SCC classification of cycles (synchronous vs.
+    opt-in asynchronous), and a discrete-time simulator
+    (<code>tiny_morpho_seq.py</code>). Cellular automata need no special language
+    features — a ring CA is a register bank, two cyclic shifts, and one LUT.
+  </p>
+  <p>Every fitness evaluation runs the entire honest pipeline:</p>
+  <pre>genome  →  Morpho cell  →  compile_seq (cyclic gate graph)  →  bit-exact simulation  →  fitness</pre>
+  <p>
+    Experiment 0 genotype: one Wolfram rule per cell of a non-uniform radius-1 CA on a ring
+    (genome length = lattice size N, by design). Tournament selection, five mutation
+    operators, fresh training ICs each generation, disjoint held-out ICs for all reported
+    numbers, initial densities sampled uniformly in [0,1]. Verified bit-exact against a
+    numpy oracle throughout.
+  </p>
+
+  <h2>Replication: the motif is the result</h2>
+  <p>
+    Density classification (relax to all-ones iff the initial configuration has majority
+    ones) with N=15, T=2N, 300 generations, 24 independent seeds:
+  </p>
+  <table>
+    <tr><th>quantity</th><th>value</th></tr>
+    <tr><td>held-out smooth fitness</td><td>median 0.946, IQR [0.941, 0.950]</td></tr>
+    <tr><td>held-out strict accuracy</td><td>median <b>0.901</b></td></tr>
+    <tr><td>sea rule</td><td><b>24/24 seeds: rule 184 (×16) or its mirror 226 (×8)</b> — the right/left elementary traffic rules</td></tr>
+    <tr><td>defect cells (≠ sea)</td><td>mean 2.0 per genome</td></tr>
+  </table>
+  <div class="verdict pos">
+    Every independent search converged onto one of the two number-conserving particle-transport
+    rules as a homogeneous medium, decorated with ~2 exceptional cells. Rule 184 is the same
+    transport mechanism used in Fukś's exact two-rule density construction
+    (<a href="https://arxiv.org/abs/comp-gas/9703001">comp-gas/9703001</a>) — evolution
+    finds the transport substrate on its own, then replaces the classical second rule with
+    spatially sparse defects.
+  </div>
+  <p>
+    Synchronization (reach the global all-0 ↔ all-1 blinking orbit) is the control contrast:
+    20/24 seeds solve it <em>perfectly</em>, but via 15 different sea rules with ~7 defects
+    (mean sea fraction 0.52). Same fitness protocol, radically different genotype landscape:
+    density imposes a narrow mechanism; synchronization admits many.
+  </p>
+
+  <h2>The mechanism, causally</h2>
+  <p>Best N=15 genome: sea 226 with defects <b>224 @ cell 3</b> and <b>234 @ cell 10</b>.
+  Ablations on a fixed 5,000-IC bank:</p>
+  <table>
+    <tr><th>variant</th><th>smooth</th><th>strict</th></tr>
+    <tr><td>evolved</td><td><b>0.954</b></td><td><b>0.906</b></td></tr>
+    <tr><td>uniform sea (defects removed)</td><td><i>0.769</i></td><td><i>0.125</i></td></tr>
+    <tr><td>revert defect A only</td><td>0.855</td><td>0.554</td></tr>
+    <tr><td>revert defect B only</td><td>0.857</td><td>0.571</td></tr>
+    <tr><td>move either defect ±1 cell</td><td>0.951–0.953</td><td>0.902–0.909</td></tr>
+  </table>
+  <p>
+    The medium alone cannot classify (traffic conserves particle number); each defect is
+    individually necessary; exact position is irrelevant. Sweeping <em>all 210 ordered
+    placements</em> of the two defect rules shows fitness depends almost only on their
+    directed separation (within-separation σ ≈ 0.003), peaking at separation 7 ≈ N/2 —
+    exactly where evolution put them. Antipodal defects each process half the ring.
+  </p>
+  <h3>The defects are algebraically minimal</h3>
+  <p>
+    Sweeping all 256 rules at each defect position (everything else fixed): the evolved rule
+    is the <em>unique</em> optimum at both positions, and each is exactly one truth-table bit
+    from the sea:
+  </p>
+  <table>
+    <tr><th>cell</th><th>rule</th><th>edit vs sea 226</th><th>local meaning</th></tr>
+    <tr><td>defect A</td><td>224</td><td>(l,c,r)=(0,0,1) → 0</td><td>an arriving particle on empty background is absorbed — <b>deletes surplus particles</b>, decides all-zeros</td></tr>
+    <tr><td>defect B</td><td>234</td><td>(l,c,r)=(0,1,1) → 1</td><td>a particle holds against incoming traffic — <b>absorbs holes</b>, decides all-ones</td></tr>
+  </table>
+  <p>
+    Pooled across all 36 density seeds (N=15 and N=31): <b>78 of 88 defects are one-bit
+    edits of their own sea rule</b>, and the common (sea, defect) pairs are chirality-matched
+    mirrors — (184: 248, 168) for right-moving seas, (226: 234, 224) for left-moving.
+    Evolution repeatedly finds the same two complementary symmetry-breaking bits, in whichever
+    transport direction it committed to first. The runner-up rule at both defect positions is
+    232 — the majority rule.
+  </p>
+
+  <h3>Where and how it fails</h3>
+  <p>
+    Strict accuracy vs. initial majority margin (20,000 ICs): perfect at margin ≥ 6.5,
+    ≥ 0.99 at 5.5, degrading smoothly to ~0.68 only at the minimal margin (7-vs-8 ones).
+    The failures are not slow convergence — performance is <em>identical</em> at T=2N, 4N and 8N.
+    Of 1,933 failures, 92% end in a non-uniform period-2 attractor (mean ones 7.47 ≈ exact
+    tie) and only 0.7% of all cases commit to the wrong homogeneous state. The classifier's
+    failure mode is a hung jury, not a wrong verdict.
+  </p>
+  <div class="cols">
+  <pre>success: 8 ones vs 7 zeros → all-ones
+##.#..###.#..#.
+.##..#.###..#.#
+#.#.#.#.##.#.#.
+.#.#.#.#.##.#.#
+#.#.#.#.#.##.#.
+.#.#.#.#.####.#
+#.#.#.#.#.####.
+.#.#.#.#.######
+#.#.#.#.#.#####
+##.#.#.#.######
+###.#.#.#.#####
+####.#.#.######
+#####.#.#.#####
+######.#.######
+#######.#.#####
+########.######
+#########.#####
+###############
+###############</pre>
+  <pre>hung: 8 ones vs 7 zeros → period-2
+.#.#...##.##.##
+#.#...#.#####.#
+##...#.#.#####.
+.#..#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######
+#...#.#.#.#####
+#....#.#.######</pre>
+  </div>
+  <p class="cap">Space-time diagrams of the best evolved classifier (defects at cells 3 and 10).
+  Left: particles condense into a jam that fills the ring. Right: a standing period-2
+  structure refuses to resolve a near-tie.</p>
+
+  <h3>Exact census at N=15</h3>
+  <p>
+    At N=15 there are only 2<sup>15</sup>&nbsp;=&nbsp;32,768 initial configurations, so
+    sampling stops being necessary. Enumerating every IC through the compiled pipeline
+    for the best genome of each chirality:
+  </p>
+  <table>
+    <tr><th>exact fact</th><th>value</th></tr>
+    <tr><td>strict accuracy, flat census (all ICs equal weight)</td><td><b>25,270 / 32,768 = 0.771179 — identical for both chiralities</b></td></tr>
+    <tr><td>accuracy at margin ≥ 4.5 (≤3 or ≥12 ones)</td><td>≥ 0.969; perfect at margin ≥ 6.5</td></tr>
+    <tr><td>failure taxonomy</td><td>6,806 non-uniform period-2 (90.8%), 692 wrong-uniform (9.2%)</td></tr>
+    <tr><td>distinct failure attractor cycles in the whole state space</td><td><b>8</b> (mirror: 7)</td></tr>
+    <tr><td>longest transient anywhere</td><td>18 steps &lt; 2N — convergence by T=2N is exact</td></tr>
+    <tr><td>reflection bijection (mirror lattice + swap chirality)</td><td>exactly 25,270 correct — exact match</td></tr>
+  </table>
+  <p>
+    The two independently-evolved chiral solutions — different seeds, different defect
+    positions — have <em>identical</em> exact accuracy at every margin level. Performance is
+    fully determined by the architectural law (sea chirality, two one-bit defects, directed
+    separation 7), not by the instance. The "hung jury" is also not a diffuse phenomenon:
+    all indecision funnels into eight specific standing period-2 waves. Note the
+    distributional caveat: 0.771 is under the flat census, which concentrates mass at
+    near-ties; the ~0.90 figures elsewhere use the uniform-density benchmark distribution.
+  </p>
+
+  <h2>Scaling</h2>
+  <p>Independent evolution at each lattice size (same population, generations and IC budget;
+  genome length = N):</p>
+  <table>
+    <tr><th>N</th><th>seeds</th><th>transport sea found</th><th>defects when found</th><th>best strict</th></tr>
+    <tr><td>15</td><td>24</td><td><b>24/24</b> (184 ×16, 226 ×8)</td><td>1–3 (median 2)</td><td>0.911</td></tr>
+    <tr><td>31</td><td>12</td><td><b>11/12</b> (184 ×6, 226 ×5)</td><td>2–6 (median 2)</td><td>0.885</td></tr>
+    <tr><td>63</td><td>8</td><td><b>3/8</b> (226 ×3)</td><td>2, 3, 6</td><td>0.864</td></tr>
+  </table>
+  <p>
+    At N=63 the fixed search budget bites: the seeds split into two clusters. Five never
+    escape messy genomes (28–38 defects, strict ≤ 0.34); three find the motif — and when
+    they do, it is the <em>same</em> mechanism. The best N=63 genome is sea 226 with exactly
+    two defects, rules <b>224 and 234</b> — the identical one-bit edits found at N=15, now
+    classifying a lattice four times larger. Its ablation reproduces the causal structure
+    exactly (uniform sea: strict 0.03; each defect individually necessary; position
+    irrelevant). For successful searches, defect count stays <b>O(1)</b> as N grows —
+    D(N) = 2 at N = 15, 31 and 63 — with sea fraction rising to 0.97.
+  </p>
+  <div class="verdict pos">
+    A homogeneous conservative transport substrate plus a constant number of evolved one-bit
+    defects performs approximate global density classification as system size grows. What
+    scales with N is not the mechanism, but the difficulty of finding it.
+  </div>
+
+  <h2>The frozen law</h2>
+  <p>
+    The scaling table above entangles two claims: <em>can evolution find the motif at size
+    N</em>, and <em>does the motif itself generalize</em>. To separate them we stopped
+    evolving entirely: instantiate the discovered recipe — transport sea + particle-absorber
+    + hole-absorber at separation N/2 — directly at N = 15, 31, 63, 127, 255, 511 (both
+    chiralities), and measure P(correct | initial majority excess Δ, N). Large lattices run
+    on a numpy stepper verified bit-exact against the compiled Morpho pipeline at N ≤ 63;
+    2,000 ICs per (N, Δ) cell.
+  </p>
+  <p>Three exact-looking regularities and one honest limitation:</p>
+  <table>
+    <tr><th>N</th><th>Δ/N = 0.06</th><th>0.2</th><th>0.33</th><th>0.5</th><th>0.65</th><th>0.8</th></tr>
+    <tr><td>15</td><td>0.65</td><td>0.79</td><td>0.88</td><td>0.94</td><td>0.97</td><td>0.98</td></tr>
+    <tr><td>31</td><td>0.56</td><td>0.73</td><td>0.82</td><td>0.92</td><td>0.96</td><td>0.99</td></tr>
+    <tr><td>63</td><td>0.49</td><td>0.72</td><td>0.82</td><td>0.91</td><td>0.97</td><td>0.97</td></tr>
+    <tr><td>127</td><td>0.47</td><td>0.69</td><td>0.82</td><td>0.91</td><td>0.95</td><td>0.98</td></tr>
+    <tr><td>255</td><td>0.43</td><td>0.69</td><td>0.81</td><td>0.91</td><td>0.96</td><td>0.97</td></tr>
+    <tr><td>511</td><td>0.42</td><td>0.67</td><td>0.81</td><td><b>0.91</b></td><td><b>0.95</b></td><td><b>0.98</b></td></tr>
+  </table>
+  <p class="cap">P(correct) at T=8N vs relative majority excess Δ/N, sea 226 (linear
+  interpolation between measured Δ). The mirror law's numbers agree within sampling noise
+  at every cell.</p>
+  <p>
+    First, the law transfers: the same three-rule recipe classifies at N=511 — a lattice
+    34× larger than anything evolution saw — with no re-tuning. For relative excess
+    Δ/N ≥ 1/3, accuracy is essentially independent of N. The two-defect architecture is an
+    approximately <b>scale-invariant relative-density classifier</b>.
+  </p>
+  <p>
+    Second, T=2N and T=8N results are identical at every size and margin — convergence
+    speed scales linearly with N and extra time never rescues a hung case, now confirmed
+    from N=15 to 511.
+  </p>
+  <p>
+    Third, the two chiralities agree at every (N, Δ) cell, extending the exact N=15
+    equivalence to all sizes tested.
+  </p>
+  <p>
+    The limitation: at fixed <em>absolute</em> excess, accuracy decays — at Δ=1 it falls
+    from 0.65 (N=15) to 0.21 (N=511), roughly ∝ N<sup>−1/3</sup>. Two defects absorbing a
+    fixed excess must wait for transport to deliver it, while a near-balanced background
+    coarsens around them; the required excess for any target accuracy grows ∝ N. Deriving
+    that exponent from the particle/hole dynamics — and why near-balanced configurations
+    funnel into the handful of period-2 hung states — is the open analytic question.
+  </p>
+
+  <h2>Demonstrated vs. not demonstrated</h2>
+  <p><b>Demonstrated:</b> convergence of independent searches onto the traffic-rule motif
+  (24/24 at N=15, 11/12 at N=31); causal necessity and algebraic minimality of the two
+  defects (unique optima among all 256 rules, one bit from the sea); translation invariance
+  and separation-dependence of placement; exact basin structure at N=15; D(N)=2 among
+  successful evolved solutions at N=15/31/63; and transfer of the frozen law to N=511 with
+  approximately scale-invariant accuracy in relative excess Δ/N.</p>
+  <p><b>Not demonstrated:</b> novelty relative to the full non-uniform-CA literature (a
+  broader search is owed before claiming it); any statement about <em>evolved</em> solutions
+  at N&nbsp;&gt;&nbsp;63; search-success scaling — the N=63 success rate (3/8) is confounded
+  by the fixed evolutionary budget; and an analytic account of the N<sup>−1/3</sup> fixed-Δ
+  decay and the period-2 hung basins (currently empirical).</p>
+  <p>
+    General caveats: radius-1 non-uniform CAs are approximate classifiers; nothing here is
+    an exact solution, and none of these numbers are directly comparable to historical
+    density benchmarks (different lattice sizes, IC distributions and convergence criteria).
+    All experiments are elementary (radius-1, binary, synchronous) — deliberately the
+    simplest possible substrate.
+  </p>
+
+  <h2>What's next</h2>
+  <p>
+    Experiment 1: temporal computation under external forcing (delayed recall, temporal
+    parity, copy-after-delay) with evolvable topology + LUTs over synchronous Boolean
+    networks — registers break every cycle by construction. Then the question the platform
+    was built for: replace direct genomes with recursive <em>developmental</em> Morpho
+    genomes, train at small N and short horizons, and test unchanged programs at scales
+    never seen during evolution.
+  </p>
+
+  <p class="foot">
+    Code: <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">PedalCore/morpho@dynamic-systems</a>
+    (<code>tiny_morpho_seq.py</code>, <code>evolve/</code>). Upstream: Google's
+    <a href="https://github.com/paradigms-of-intelligence/morpho">paradigms-of-intelligence/morpho</a>
+    (Apache 2.0). References: Fukś, <a href="https://arxiv.org/abs/comp-gas/9703001">Solution of the
+    density classification problem with two cellular automata rules</a>; Sipper, cellular
+    programming; Das, Mitchell &amp; Crutchfield, particle-based analyses of evolved CA.
+    All reported numbers are on held-out ICs disjoint from training.
+  </p>
+</article>
+</body>
+</html>
