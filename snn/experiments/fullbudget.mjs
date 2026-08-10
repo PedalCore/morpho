@@ -45,20 +45,24 @@ console.log(
 );
 const t0 = Date.now();
 const startPos = 0; // same corpus region autoreg used
-const out = {};
+// resumable per arm: background runs get reaped around the hour mark, and
+// arms are expensive — reload finished arms, save after each
+const outPath = new URL(`./results/fullbudget-seed${SEED}.json`, import.meta.url);
+const out = existsSync(outPath) ? JSON.parse(rf(outPath, 'utf8')).out : {};
 for (const [name, genome] of arms) {
+  if (out[name]) {
+    console.log(`${name.padEnd(22)} acc=${(out[name].acc * 100).toFixed(1)}%  (checkpointed)`);
+    continue;
+  }
   const { acc, metrics } = evaluate(genome, N, SEED ^ (N * 2654435761), ids, V, {
     ...CFG, startPos,
   });
   out[name] = { acc, metrics };
+  writeFileSync(outPath, JSON.stringify({ SEED, N, CFG, startPos, out }, null, 1));
   console.log(
     `${name.padEnd(22)} acc=${(acc * 100).toFixed(1)}%  syn/n=${metrics.synPerNeuron} ` +
     `spikes/char=${metrics.spikesPerChar} dead=${(metrics.deadFrac * 100).toFixed(0)}% ` +
     `(${((Date.now() - t0) / 60000).toFixed(1)}m)`
   );
 }
-writeFileSync(
-  new URL(`./results/fullbudget-seed${SEED}.json`, import.meta.url),
-  JSON.stringify({ SEED, N, CFG, startPos, out }, null, 1)
-);
 console.log(`\nsaved to experiments/results/fullbudget-seed${SEED}.json`);

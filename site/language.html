@@ -231,6 +231,15 @@
     by hand. (Accuracies here use a smaller frozen readout budget than Result 5's 39.1% —
     compare within the table only.)
   </div>
+  <div class="verdict pos">
+    <b>New best 42.5% — the ladder falls.</b> Giving the best small-scale-selected genome
+    the <em>full</em> Result-5 readout budget at 120k: 42.5% vs the prior 39.1%, at 44%
+    fewer synapses — and all three selected genomes tested beat 39.1% (39.8%, 40.4%,
+    42.5%). The hand-designed law's control run on the same build seed <em>seized</em>
+    (~100&nbsp;Hz, 36.1%): its published best rode a favorable build, while the selected
+    laws calibrate stably — and, being sparse and quiet, simulate ~40× faster. Still
+    backprop-free end to end. Caveat: single build seed per arm.
+  </div>
   <div class="verdict">
     <b>Honest null:</b> accuracy-wise, 12 generations of evolution ≈ random search — the
     gen-0 winner transfers as well as the evolved one. What evolution demonstrably bought is

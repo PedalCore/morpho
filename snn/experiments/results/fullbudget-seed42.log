@@ -1,3 +1,13 @@
 full-budget ladder eval · N=120000 · taps 1024 · fit 40000 · seed 42
 reference: v12 published best 39.1% (same budget class) · bigram 28.8% · transformer ≈58%
 
+v12-hand (control)     acc=36.1%  syn/n=19.88 spikes/char=120282.4 dead=5% (67.8m)
+full-budget ladder eval · N=120000 · taps 1024 · fit 40000 · seed 42
+reference: v12 published best 39.1% (same budget class) · bigram 28.8% · transformer ≈58%
+
+v12-hand (control)     acc=36.1%  (checkpointed)
+gen0-best seed42       acc=42.5%  syn/n=11.16 spikes/char=1877.5 dead=24% (0.9m)
+evolved-best seed42    acc=39.8%  syn/n=10.63 spikes/char=1637.8 dead=37% (1.5m)
+gen0-best seed99       acc=40.4%  syn/n=12.88 spikes/char=387.7 dead=52% (1.7m)
+
+saved to experiments/results/fullbudget-seed42.json

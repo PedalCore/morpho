@@ -1,0 +1,73 @@
+{
+ "SEED": 42,
+ "N": 120000,
+ "CFG": {
+  "taps": 1024,
+  "calibChars": 5000,
+  "fitChars": 40000,
+  "testChars": 3000
+ },
+ "startPos": 0,
+ "out": {
+  "v12-hand (control)": {
+   "acc": 0.361,
+   "metrics": {
+    "synPerNeuron": 19.88,
+    "spikesPerChar": 120282.4,
+    "deadFrac": 0.05,
+    "recoveredFromLog": true
+   }
+  },
+  "gen0-best seed42": {
+   "acc": 0.42533333333333334,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1339413,
+    "synPerNeuron": 11.16,
+    "inhibFrac": 0.263,
+    "recFrac": 0.438,
+    "longFrac": 0.314,
+    "spikesPerChar": 1877.5,
+    "hz": 1.56,
+    "deadFrac": 0.241,
+    "taps": 1016,
+    "buildMs": 115,
+    "simMs": 51522
+   }
+  },
+  "evolved-best seed42": {
+   "acc": 0.3983333333333333,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1275051,
+    "synPerNeuron": 10.63,
+    "inhibFrac": 0.35,
+    "recFrac": 0.556,
+    "longFrac": 0.352,
+    "spikesPerChar": 1637.8,
+    "hz": 1.36,
+    "deadFrac": 0.367,
+    "taps": 1016,
+    "buildMs": 87,
+    "simMs": 37289
+   }
+  },
+  "gen0-best seed99": {
+   "acc": 0.4043333333333333,
+   "metrics": {
+    "neurons": 120000,
+    "synapses": 1545453,
+    "synPerNeuron": 12.88,
+    "inhibFrac": 0.329,
+    "recFrac": 0.517,
+    "longFrac": 0.209,
+    "spikesPerChar": 387.7,
+    "hz": 0.32,
+    "deadFrac": 0.516,
+    "taps": 1016,
+    "buildMs": 97,
+    "simMs": 12218
+   }
+  }
+ }
+}

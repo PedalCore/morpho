@@ -550,3 +550,31 @@ constraints removed —
    3 independent seeds; 120k held out behind --120k as before.
 
 3 new tests (56 total); smoke-validated. Results below when runs complete.
+
+### v14 results, part 1 — the ladder falls: 42.5% (full-budget eval)
+
+The three best v13-selected genomes at 120k under the FULL v12 readout
+budget (1024 taps, 40k fit, same corpus windows as v12; build seed differs):
+
+```
+v12-hand (control)   36.1%   syn/n 19.9   SEIZED (120k spikes/char ≈ 100 Hz)
+gen0-best seed42     42.5%   syn/n 11.2   ← NEW BEST (prior best 39.1%)
+evolved-best seed42  39.8%   syn/n 10.6
+gen0-best seed99     40.4%   syn/n 12.9
+```
+
+- **All three selected genomes beat the prior 39.1% best**, at 40–70%
+  fewer synapses; the winner by +3.4pp is the seed-42 gen-0 genome
+  (inhibition-rich, ff_fan 7, skip-heavy, w_exc low). Backprop-free
+  throughout, as ever.
+- The v12 hand law's control run SEIZED on this build seed (100 Hz,
+  36.1%) — its published 39.1% rode a favorable build. Third independent
+  line of evidence (after v13 transfer + v13 final report) that the
+  selected developmental laws are more physiologically robust than the
+  hand design, not just sparser.
+- The stable sparse phenotypes also evaluated ~40× faster than the
+  seizing control (1–2 min/arm vs 68 min): spikes × synapses is the
+  simulation cost, and evolution minimized both.
+- Caveat: one build seed per arm (the protocol's deterministic seed);
+  v13's transfer data says selected genomes vary less across builds than
+  the hand law, but 42.5% carries single-build uncertainty.
