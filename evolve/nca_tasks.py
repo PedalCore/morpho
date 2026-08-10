@@ -24,6 +24,14 @@ def checkerboard(ny, nx):
     yy, xx = np.mgrid[:ny, :nx]
     return (((yy + xx) - (ny // 2 + nx // 2)) % 2 == 0).astype(np.int16)
 
+def rings(ny, nx):
+    """Concentric-square-rings target, phase anchored at the boundary
+    (outermost ring active). Defined at every size, including odd."""
+    yy, xx = np.mgrid[:ny, :nx]
+    bdist = np.minimum(np.minimum(yy, ny - 1 - yy),
+                       np.minimum(xx, nx - 1 - xx))
+    return (bdist % 2 == 0).astype(np.int16)
+
 
 def damage_random(s, frac, rng):
     """Clear all channels of a random `frac` of cells."""
