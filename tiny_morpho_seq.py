@@ -264,11 +264,14 @@ class SequentialCircuit:
             return tuple(vals[np.asarray(o)].copy() for o in out)
         return vals[np.asarray(out)].copy()
 
-    def run(self, step_n, *streams, state0=None, samples=None):
+    def run(self, step_n, *streams, state0=None, samples=None,
+            return_state=False):
         """Simulate step_n steps. Each input stream has shape (width, step_n)
         or (width, step_n, samples). Returns output arrays shaped
         (width, step_n[, samples]); the samples axis is dropped when it is 1.
-        state0 optionally overrides register init, shape (n_regs[, samples])."""
+        state0 optionally overrides register init, shape (n_regs[, samples]).
+        With return_state=True, returns (outputs, final register state) —
+        the state after the last synchronous commit."""
         widths = [len(inp) for inp in self.c.inputs]
         if len(streams) != len(widths):
             raise ValueError(f"expected {len(widths)} input streams, got {len(streams)}")
@@ -302,8 +305,12 @@ class SequentialCircuit:
             out = np.stack(frames, axis=1)
             return out[..., 0] if samples == 1 else out
         if isinstance(self.c.outputs, tuple):
-            return tuple(stack(k) for k in range(len(self.c.outputs)))
-        return stack()
+            result = tuple(stack(k) for k in range(len(self.c.outputs)))
+        else:
+            result = stack()
+        if return_state:
+            return result, vals[self.reg_idx].copy()
+        return result
 
     def metrics(self):
         """Static phenotype descriptors, usable as fitness terms or
