@@ -43,10 +43,64 @@ keeps its full voice, the rest quiet down — and attention feeds survival, so
 what you attend to is what develops. Measured against the plain duet:
 **+12% answer relatedness at 85% fewer spikes.**
 
-**Docs & findings:** [`snn/README.md`](snn/README.md) (how to run and test) ·
-[`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) (hypothesis, controlled learning
-experiments, honest findings) · the research brief and parallel C++/JUCE
-plugin briefs live in [`snn/docs/`](snn/docs/).
+## The research
+
+Every claim below comes from a headless, seeded experiment in
+[`snn/experiments/`](snn/experiments/) (run as
+`cd snn && npm run experiment:<name>`), logged chronologically in
+[`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) and written up in prose at
+[soundlark.studio/research.html](https://soundlark.studio/research.html)
+(music) and
+[soundlark.studio/language.html](https://soundlark.studio/language.html)
+(language). Null results are reported next to the positive ones — they are
+half the point.
+
+### Music track — what the substrate learns, and what it can't
+
+- **Suppress-only attention works** (adapted gradient-free from
+  [MA-SNN](https://arxiv.org/abs/2209.13929)): +12% answer relatedness at
+  85% fewer spikes; boosting instead of suppressing destabilizes.
+- **Activity-driven development is itself a morphogen**: coverage of a played
+  idiom rises even without attention; the attention energy trickle adds a
+  modest sharpening on top.
+- **Pitch style is learnable, rhythm is not (yet)**: after training on a
+  score, pitch style leans toward the trained organism (0.81 vs 0.76 twin);
+  rhythm style is null — the anatomy has no place for order to live, which
+  the R-STDP and motif-sequence probes confirmed independently (both null
+  under controls).
+- **Organisms are fully persistent**: deterministic snapshots restore
+  spike-for-spike identical continuations.
+
+### Language track — the organism as a backprop-free reservoir
+
+A sideline that became a ladder: tiny shakespeare next-char prediction with
+the spiking organism as a liquid state machine and a closed-form ridge
+readout — no backprop anywhere.
+
+| Step | Next-char accuracy |
+|---|---|
+| exact bigram baseline | 28.8% |
+| fresh reservoir | 29.2% |
+| + developmental exposure (dev+STDP while "listening") | 31.7% |
+| + error-driven growth (grows only while wrong, self-limits) | 33.3% |
+| 120k-neuron deep SoA brain (4 layers, 15% inhibition) | 33.0% |
+| + previous-char readout context | 34.2% |
+| + more fit data + 2nd previous char | **39.1%** |
+| char transformer reference (with backprop) | ≈58% |
+
+Findings along the way: the ~33% ceiling was the linear readout, not
+organism capacity (an 834-neuron grown organism ties a 120k-neuron brain);
+role-aware pruning takes 120k → 50k neurons with accuracy intact, while
+naive pruning kills inhibition first and the network seizes; a
+Mamba-style input-dependent state write transfers directionally to the
+gradient-free substrate; and the honest negatives — shallow Forward-Forward
+heads underperform ridge three times running, belief feedback is null, and
+free-running generation is still gibberish (exposure bias made vivid).
+
+**Docs:** [`snn/README.md`](snn/README.md) (how to run and test) ·
+[`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) (hypothesis, protocol, findings,
+v1–v12) · the research brief and parallel C++/JUCE plugin briefs live in
+[`snn/docs/`](snn/docs/).
 
 Everything is deterministic per seed (same seed = same organism, same spikes,
 same harmonic journey), tested headlessly (`cd snn && npm test`), and deployed

@@ -48,11 +48,38 @@ no metronome — you are the environment the brain develops in. STDP
 strengthens what you play, development grows around it, **✚ reinforce**
 rewards responses you like, and MIDI out lets it play your gear.
 
+`attention.html` is the duet plus attention-modulated spiking (suppress-only,
+adapted gradient-free from [MA-SNN](https://arxiv.org/abs/2209.13929)) and
+STSA-inspired temporal mixing — the measured result: +12% answer relatedness
+at 85% fewer spikes.
+
 ## Test it
 
 ```bash
-cd snn && npm test   # 25 headless tests, node >= 20
+cd snn && npm test   # 48 headless tests, node >= 20
 ```
+
+## Experiments
+
+Every research claim in [`EXPERIMENT.md`](EXPERIMENT.md) is backed by a
+seeded headless script in [`experiments/`](experiments/):
+
+```bash
+npm run experiment:learning        # does the dialogue metric improve with STDP?
+npm run experiment:specialization  # idiom specialization (null, with controls)
+npm run experiment:morphogen       # attention-as-morphogen coverage
+npm run experiment:rstdp           # reward-modulated STDP sequence probe (null)
+npm run experiment:style           # pitch/rhythm style capture vs untrained twin
+npm run experiment:language        # tiny shakespeare reservoir baseline ladder
+npm run experiment:growth          # error-driven growth (grow only while wrong)
+npm run experiment:bigbrain        # 120k-neuron SoA brain + role-aware pruning
+npm run experiment:readout2        # prev-char context + Mamba-style state
+npm run experiment:autoreg         # 39.1% best; belief feedback + generation
+```
+
+The language experiments fetch and cache tiny shakespeare on first run.
+Prose write-ups: [soundlark.studio/research.html](https://soundlark.studio/research.html)
+and [soundlark.studio/language.html](https://soundlark.studio/language.html).
 
 ## Layout
 
@@ -63,6 +90,7 @@ js/morpho/                "morpho-lite" recursive grammar + development controll
 js/sim/lab.js             headless experiment harness (used by tests AND the UI)
 js/ui/                    canvas renderer + WebAudio sonification
 index.html, js/main.js    the lab page
+experiments/              headless research scripts (npm run experiment:*)
 EXPERIMENT.md             hypothesis, protocol, findings, next experiments
 ```
 
