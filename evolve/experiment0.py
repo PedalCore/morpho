@@ -25,7 +25,8 @@ from . import metrics as dyn
 
 
 def evolve(task='density', cell_n=15, pop_n=32, gen_n=150, step_n=30,
-           case_n=100, elite_n=4, tourney_n=3, seed=0, log_path=None):
+           case_n=100, elite_n=4, tourney_n=3, seed=0, log_path=None,
+           quiet=False):
     make_ics, score = TASKS[task]
     rng = np.random.default_rng(seed)
     pop = [random_genome(rng, cell_n) for _ in range(pop_n)]
@@ -40,7 +41,7 @@ def evolve(task='density', cell_n=15, pop_n=32, gen_n=150, step_n=30,
         log.log({'gen': gen, 'best': best, 'mean': mean,
                  'best_genome': [int(r) for r in ranked[0]]},
                 genome=ranked[0], fitness=best)
-        if gen % 10 == 0 or gen == gen_n - 1:
+        if not quiet and (gen % 10 == 0 or gen == gen_n - 1):
             print(f"gen {gen:4d}  best {best:.4f}  mean {mean:.4f}")
 
         children = []
