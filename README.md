@@ -87,6 +87,16 @@ trace = compile_seq(make_eca(110, 64)).run(32, state0=seed)  # (width, T) spacet
 
 The same relational structure can live in space or in time: `serial_adder` is the ripple-carry chain rotated into the time dimension — one full adder plus one register handles any operand width. Run `python3 tiny_morpho_seq.py` for the test suite (verified against numpy oracles and the combinational adders) and a Rule 110 demo.
 
+Every compiled `SequentialCircuit` also exposes `metrics()` (gates, registers, LUT kinds, edges, feedback edges, SCC statistics, logic depth) and `graph()` (JSON-ready netlist including feedback edges) for use as fitness terms and behavioural descriptors.
+
+### Evolutionary research layer (`evolve/`)
+
+The `evolve/` package treats Morpho programs as genotypes. The pipeline under test is always `genome → Morpho cell → compile_seq → phenotype → simulate → fitness`, with test cases vectorized through the simulator's samples axis and all randomness threaded through a single seeded generator. It currently contains a typed rule-vector genome over non-uniform CAs (`genome.py`, `mutate.py`), density-classification and synchronization tasks (`tasks.py`), a full-pipeline evaluator with numpy oracle cross-check (`evaluate.py`), behavioural dynamics metrics — activity, entropy, attractor transient/period, damage spreading (`metrics.py`) — and JSONL run logging (`archive.py`). Experiment 0 (cellular-programming-style rule evolution):
+
+```bash
+python3 -m evolve.experiment0 --task density --generations 300 --log runs/exp0.jsonl
+```
+
 ---
 
 ## 📁 Repository Structure

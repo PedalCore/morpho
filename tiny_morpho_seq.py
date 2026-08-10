@@ -305,6 +305,34 @@ class SequentialCircuit:
             return tuple(stack(k) for k in range(len(self.c.outputs)))
         return stack()
 
+    def metrics(self):
+        """Static phenotype descriptors, usable as fitness terms or
+        behavioural coordinates. logic_depth is per-cycle combinational depth
+        (approximate inside async cycles)."""
+        ops = self.c.ops
+        gates = [op for op in ops if op.type == 'GATE']
+        return {
+            'gates': len(gates),
+            'registers': int(len(self.reg_idx)),
+            'lut_kinds': len({(len(op.args), int(op.lut)) for op in gates}),
+            'edges': int(sum(len(op.args) for op in ops if op.args)),
+            'feedback_edges': int(len(self.reg_idx)
+                                  + sum(op.type == 'FWD' for op in ops)),
+            'async_scc_count': len(self.async_blocks),
+            'largest_async_scc': max(map(len, self.async_blocks), default=0),
+            'logic_depth': int(self.c.depths.max()) if len(self.c.depths) else 0,
+        }
+
+    def graph(self):
+        """JSON-ready netlist: node dicts and [src, dst] edges, including the
+        backward driver edges of REG/FWD ops (the feedback structure)."""
+        nodes = [{'id': i, 'type': op.type, 'name': op.name,
+                  'lut': None if op.lut is None else int(op.lut)}
+                 for i, op in enumerate(self.c.ops)]
+        edges = [[int(a), i] for i, op in enumerate(self.c.ops) if op.args
+                 for a in op.args]
+        return {'nodes': nodes, 'edges': edges}
+
     def report(self):
         self.c.report()
         cycle_ops = sum(len(b) for b in self.async_blocks)
@@ -487,6 +515,15 @@ def test_dce():
     assert len(sim.reg_idx) == 0 and len(sim.c.ops) == 4
     print("DCE strips dead registers and keeps live drivers!")
 
+def test_metrics():
+    sim = compile_seq(make_eca(110, 16))
+    m = sim.metrics()
+    assert m['gates'] == 16 and m['registers'] == 16
+    assert m['feedback_edges'] == 16 and m['async_scc_count'] == 0
+    g = sim.graph()
+    assert len(g['nodes']) == len(sim.c.ops) and len(g['edges']) == m['edges']
+    print("Phenotype metrics and graph export are consistent!")
+
 def show_rule110(width=64, step_n=32):
     state0 = np.zeros((width, 1), dtype=np.int32)
     state0[width // 2] = 1
@@ -503,6 +540,7 @@ if __name__ == "__main__":
     test_sr_latch()
     test_guards()
     test_dce()
+    test_metrics()
     print("All sequential tests passed!")
 
     show_rule110()
