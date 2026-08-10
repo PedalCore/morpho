@@ -521,3 +521,32 @@ Findings, in order of confidence:
 Reproduce: `npm run experiment:evolve [seed]`, then
 `npm run experiment:evolve -- transfer results/evolve-seed<S>.json --120k`.
 Full per-phenotype metrics in `experiments/results/evolve-seed{42,7,99}.json`.
+
+## v14 — structural evolution + the ladder attempt — design pre-registered
+
+Two pushes to move v13's results higher, protocols fixed before results:
+
+**Full-budget ladder eval** (`experiment:fullbudget`): v13's accuracies used
+a deliberately small frozen readout (256 taps, 8k fit) — fair, but not
+ladder-comparable. The best small-scale-selected genomes (seed-42 gen-0,
+seed-42 evolved, seed-99 gen-0) are instantiated at 120k under the FULL v12
+budget (1024 taps, 40k fit, 3k test, 5k calib, cur/prev/prev2), v12 hand
+genome as same-window control. Ladder reference to beat: 39.1%.
+
+**v14 evolution** (`experiment:evolve2`): v13 with its three identified
+constraints removed —
+1. wider bounds on every gene v13 pinned (inhib_frac hi 0.35→0.55,
+   delay_scale lo 0.3→0.15, inh_fan lo 4→2, skip hi 8→12, w_exc, w_inh,
+   rec_gain widened);
+2. first STRUCTURAL gene: n_layers ∈ {2..6} enters the genome — depth is
+   no longer the designer's choice;
+3. a fair fight for the optimizer vs v13's evolution≈random-search null:
+   pop 24 (was 16), 20 generations (was 12), 3k test chars (was 1.5k —
+   halves per-scale eval noise to ~0.9pp). Same boring (μ+λ), same fitness,
+   same frozen readout/physiology. Transfer-mode calibration fixed at 5000
+   chars (v13's 1500 under-adapted at ≥32k — all arms share the fix).
+   Final-report arms include v13's winning genome re-encoded in the v14
+   gene space, so v14-vs-v13 progress is measured on a shared window.
+   3 independent seeds; 120k held out behind --120k as before.
+
+3 new tests (56 total); smoke-validated. Results below when runs complete.

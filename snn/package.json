@@ -18,6 +18,8 @@
     "experiment:readout2": "node experiments/readout2.mjs",
     "experiment:autoreg": "node experiments/autoreg.mjs",
     "experiment:evolve": "node experiments/evolve.mjs",
+    "experiment:evolve2": "node experiments/evolve2.mjs",
+    "experiment:fullbudget": "node experiments/fullbudget.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
