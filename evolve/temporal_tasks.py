@@ -39,7 +39,7 @@ def parity_ref(d):
             'step': lambda r, b: ((r << 1) | b) & ((1 << d) - 1),
             'out': lambda r, b: (bin(r).count('1') + b) & 1}
 
-def copy_case(rng, w, case_n, step_n):
+def copy_case(rng, w, case_n, step_n, emission_mask=False):
     """Copy-after-delay, streaming semantics with exact reference dynamics.
 
     Two inputs: data d and cue c. A W-bit window continuously shifts d in.
@@ -47,6 +47,11 @@ def copy_case(rng, w, case_n, step_n):
     latched and emitted in presentation order over the next W steps; output
     is 0 when idle. A new cue re-latches and restarts emission. Size
     parameter = word length W; retention emerges from cue sparsity.
+
+    With emission_mask=True the returned mask is the (step, case) boolean
+    array of REFERENCE emission steps (phase > 0) — derived from the task
+    generator's own state, never from any candidate circuit. Targets are
+    identical in both modes.
     """
     mask_w = (1 << w) - 1
     d = rng.integers(2, size=(step_n, case_n), dtype=np.int64)
@@ -55,13 +60,15 @@ def copy_case(rng, w, case_n, step_n):
     buf = np.zeros(case_n, dtype=np.int64)
     ph = np.zeros(case_n, dtype=np.int64)
     target = np.zeros((step_n, case_n), dtype=np.int32)
+    emit = np.zeros((step_n, case_n), dtype=bool)
     for t in range(step_n):
         target[t] = np.where(ph > 0, (buf >> np.maximum(ph - 1, 0)) & 1, 0)
+        emit[t] = ph > 0
         buf = np.where(c[t] == 1, win, buf)
         ph = np.where(c[t] == 1, w, np.maximum(ph - 1, 0))
         win = ((win << 1) | d[t]) & mask_w
     x = np.stack([d, c]).astype(np.int32)
-    return x, target, np.arange(step_n) >= w
+    return x, target, emit if emission_mask else np.arange(step_n) >= w
 
 def copy_ref(w):
     """Reference FSM. State int = window | buffer << W | phase << 2W.
