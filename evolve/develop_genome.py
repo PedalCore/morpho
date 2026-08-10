@@ -113,6 +113,89 @@ def instantiate_dev(g, k):
     return net
 
 
+#@MARK: generic grammar family (interface width P as a variable)
+# The P=2 / x_n=1 definitions above are FROZEN — the Experiment 1/2 record
+# depends on them. The builders below generate the same grammar family with
+# interface width p (anonymous signals crossing every cell boundary) and
+# x_n external input wires. make_dev_grammar(2, 1) reproduces the frozen
+# grammar exactly (asserted in the Experiment 3 selftest).
+
+def make_dev_grammar(p=2, x_n=1):
+    base_sigs = 2 + p + 2                     # consts + interface + 2 regs
+    rec0 = 2 + p
+    spec = [
+        ('b_arity', (4,), 'arity'), ('b_lut', (4,), 'lut'),
+        ('b_refs', (4, 3), _col(4, base_sigs)),
+        ('b_drives', (2,), base_sigs + 4), ('b_outs', (p,), base_sigs + 4),
+        ('a_in', (p,), rec0), ('b_in', (p,), rec0 + p),
+        ('r_arity', (4,), 'arity'), ('r_lut', (4,), 'lut'),
+        ('r_refs', (4, 3), _col(4, rec0 + 2 * p)),
+        ('r_outs', (p,), rec0 + 2 * p + 4),
+        ('t_in', (p,), 2 + x_n),
+        ('t_arity', (2,), 'arity'), ('t_lut', (2,), 'lut'),
+        ('t_refs', (2, 3), _col(2, 2 + x_n + p)),
+        ('t_out', (1,), 2 + x_n + p + 2),
+    ]
+
+    def instantiate(g, k):
+        @morpho
+        def net(x):
+            xs = [x[i:i + 1] for i in range(x_n)]
+
+            def cell(us, size):
+                if size == 1:
+                    state = REG(np.zeros(2, dtype=np.int32))
+                    sigs = [ZERO, ONE] + us + [state[0:1], state[1:2]]
+                    _nodes(sigs, g['b_arity'], g['b_lut'], g['b_refs'], 'B')
+                    DRIVE(state, CAT(sigs[int(g['b_drives'][0]) % len(sigs)],
+                                     sigs[int(g['b_drives'][1]) % len(sigs)]))
+                    return [sigs[int(r) % len(sigs)] for r in g['b_outs']]
+                avail = [ZERO, ONE] + us
+                a = cell([avail[int(r) % len(avail)] for r in g['a_in']],
+                         size // 2)
+                avail += a
+                b = cell([avail[int(r) % len(avail)] for r in g['b_in']],
+                         size - size // 2)
+                sigs = avail + b
+                _nodes(sigs, g['r_arity'], g['r_lut'], g['r_refs'], 'R')
+                return [sigs[int(r) % len(sigs)] for r in g['r_outs']]
+
+            tavail = [ZERO, ONE] + xs
+            vs = cell([tavail[int(r) % len(tavail)] for r in g['t_in']], k)
+            rsigs = [ZERO, ONE] + xs + vs
+            _nodes(rsigs, g['t_arity'], g['t_lut'], g['t_refs'], 'T')
+            return rsigs[int(g['t_out'][0]) % len(rsigs)]
+        return net
+
+    return {'name': f'dev_p{p}', 'spec': spec, 'instantiate': instantiate,
+            'p': p, 'x_n': x_n}
+
+MUX = 0b1100_1010   # (b, a, sel) -> sel ? a : b
+
+def hand_dev_copy(grammar):
+    """Hand copy-after-delay law; requires p=3, x_n=2. Interface:
+    v0 = window chain, v1 = buffer chain, v2 unused; cue rides the third
+    input selection to every subtree.
+    base: r_w <- u0; r_b <- MUX(u1, r_w, u2); v = (r_w, r_b, u2)
+    rec:  A on (u0, u1, u2); B on (A.v0, A.v1, u2); v = (B.v0, B.v1, u2)
+    top:  cell(x_data, 0, x_cue); y = v1"""
+    assert grammar['p'] == 3 and grammar['x_n'] == 2
+    g = spec_random(np.random.default_rng(0), grammar['spec'])
+    # base sigs: [c0, c1, u0, u1, u2, r0, r1] -> node at 7
+    g['b_arity'][0], g['b_lut'][0] = 3, MUX
+    g['b_refs'][0][:] = [3, 5, 4]             # MUX(u1, r0, u2)
+    g['b_drives'][:] = [2, 7]                 # r0 <- u0, r1 <- mux node
+    g['b_outs'][:] = [5, 6, 4]                # (r0, r1, u2)
+    # rec avail: [c0, c1, u0, u1, u2] -> +A(5,6,7) -> +B(8,9,10)
+    g['a_in'][:] = [2, 3, 4]
+    g['b_in'][:] = [5, 6, 4]
+    g['r_outs'][:] = [8, 9, 4]
+    # top avail: [c0, c1, x0, x1]; readout sigs: [c0, c1, x0, x1, v0, v1, v2]
+    g['t_in'][:] = [2, 0, 3]
+    g['t_out'][0] = 5                         # y = v1
+    return g
+
+
 def hand_dev(task='parity'):
     """The human-written developmental law, expressed in the grammar.
     Interface: v0 = input delayed by size, v1 = parity of the delayed window.
