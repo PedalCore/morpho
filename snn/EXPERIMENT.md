@@ -807,3 +807,30 @@ memory, which none of the readout-side or local-plasticity levers touch.
 Next lever with a mechanism behind it: memory-REWARDING task families
 (v15 plan) so evolution stops deleting recurrence — select the substrate
 for memory, then read language out of it.
+
+## v17 — memory-selected substrates (`experiment:evolve3`) — design pre-registered
+
+v13/v14 evolution deleted recurrence because next-char prediction never
+rewards memory; every v16 null pointed at long-context memory as the real
+gap. v17 makes memory the fitness. Three tasks, readout = TAPS + BIAS ONLY
+(no char one-hots — the reservoir is the only channel, so the tasks are
+unsolvable without it): recall-2 and recall-4 (8-symbol streams, report
+the symbol from 2/4 chars ago; 4 chars = 40 sim-ms, beyond fast-trace
+decay) and parity-3 (XOR of last 3 bits). Fitness = mean skill score
+(acc−chance)/(1−chance) over tasks × scales {2k, 8k} − α·std − β·syn/n.
+Genome and ES identical to v14 (13 genes incl n_layers). Baselines:
+v12-hand, v14-winner (the language champion), gen-0 best. Transfer:
+held-out memory scales 16k/32k + LANGUAGE next-char at 120k under the
+v14 protocol for winner vs v14-winner vs v12-hand.
+
+Pre-registered predictions:
+- P1 memory fitness RETAINS recurrence (rec_fan / delay structure > 0),
+  reversing the v13/v14 deletion.
+- P2 memory-selected substrates far exceed prediction-selected ones on
+  recall-4 (v14-winner should sit near chance).
+- P3 language transfer is genuinely open: a null (memory skill without
+  language gain) would itself be informative — 3-char-context next-char
+  may simply not pay for 4-char memory. Either outcome resolves whether
+  substrate memory is the binding constraint on the 47.2% → 58% gap.
+
+3 seeds, sequential; 3 new tests (61 total); smoke-validated.
