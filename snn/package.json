@@ -23,6 +23,7 @@
     "experiment:genbench": "node experiments/genbench.mjs",
     "experiment:scaling": "node experiments/scaling.mjs",
     "experiment:readout3": "node experiments/readout3.mjs",
+    "experiment:ff2": "node experiments/ff2.mjs",
     "serve": "python3 -m http.server 8765"
   }
 }
