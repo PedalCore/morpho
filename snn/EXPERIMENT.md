@@ -870,3 +870,72 @@ LANGUAGE @120k:  evolved 38.4/40.8/40.8 vs v14-winner 41.5/42.8/41.6
    dynamic-systems track's FSM-exact registers mark how reliable, and a
    hybrid (spiking medium + exact state) or wider context one-hots are
    the mechanism-backed next levers.
+
+## v18 — reframing: claims taxonomy, attribution, and the generation criterion
+
+External review (2026-08-11) accepted: the ladder's rising accuracy was
+becoming a misleading headline. Corrections adopted, all published:
+
+**Claims taxonomy** (prevents "forward-only" over-reading):
+```
+STDP / development       local, online, forward-time learning
+ridge readout            GLOBAL supervised closed-form optimization
+genome evolution         GLOBAL black-box optimization
+Forward-Forward arms     layer-local contrastive learning
+full system              backprop-free HYBRID — not "forward-only learning"
+```
+The demonstrated claim is "a developmental spiking reservoir provides
+useful features for next-char prediction under a supervised closed-form
+readout" — NOT "an SNN learns language end-to-end forward-only."
+
+**Wording correction:** "gibberish verdict corrected" over-claimed.
+Accurate: corrected decoding revealed non-random local English structure
+(4.38 evaluator-bpc), but generation remained incoherent and operationally
+unusable. Teacher-forced accuracy and usable generation remain unbridged;
+the honest summary of the whole campaign is that local prediction rewarded
+ever-stronger readouts while memory tasks shaped the substrate, and
+NEITHER produced reliable free-running language — sequence stability, not
+teacher-forced accuracy, is the unresolved problem.
+
+**Split hygiene:** no untouched test split exists to date — evolution's
+rotating windows ranged over the full corpus, so all prior numbers carry
+researcher-overfitting risk (test rows never directly fitted, but designs
+iterated on the same stream). POLICY from now on: the final 10% of the
+corpus (chars ≥1,003,854) is RESERVED for one-shot final evaluations;
+prior window exposure of that region is disclosed, not hidden.
+
+### v18a — matched feature-source ablation (pre-registered)
+
+Under the frozen A0 budget (ladder genome @120k, 1024 taps, 40k fit),
+5 build seeds per arm, mean ± sd:
+```
+ctx-only     cur/prev/prev2 one-hots + bias (no reservoir)
+real         ctx + correctly aligned spike traces
+shuffled     ctx + trace vectors permuted ACROSS samples (alignment killed,
+             marginals kept)
+timeshift    ctx + each tap's trace column circularly shifted by a random
+             offset (per-tap dynamics kept, cross-tap/sample alignment killed)
+delayline    ctx + equally sized neuron-free temporal feature bank (random
+             leaky integrations of raw char indicators at random lags)
+rate-esn     ctx + NON-spiking rate reservoir with the IDENTICAL topology
+             and weights (same CSR, tanh leaky dynamics), same taps
+```
+Question: does the SNN supply sequence information, or a generic random
+nonlinear expansion of explicit context? PREDICTION: honest uncertainty —
+the multi-τ null and v17's language null make "real ≈ delayline ≈
+rate-esn" a live possibility; "real ≫ shuffled" alone is NOT success
+(shuffling also kills within-sample char information carried by traces).
+The decisive comparisons are real vs delayline and real vs rate-esn.
+
+### v18b — causal generation benchmark (pre-registered, primary going forward)
+
+Controlled generative grammars with dependencies at 2/4/8/16 chars
+(bracket matching, symbol echo), NO prev-char one-hots in the readout
+(current input + spike state + bias only). Score free-running rollouts:
+grammatical-validity horizon, repetition rate, recovery after one injected
+wrong character. Arms: v14 prediction-selected organism, v17 delay-loop
+organism, exact delay-line baseline, non-spiking rate reservoir. The
+target metric is "how long does the model stay on-distribution driven by
+its own outputs" — accuracy is demoted to a diagnostic. Shakespeare only
+returns when an organism sustains valid rollouts on the controlled
+grammar.

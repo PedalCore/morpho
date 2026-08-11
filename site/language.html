@@ -267,9 +267,11 @@
   <p>
     <b>Generation, measured (v15).</b> Generated text scored in bits/char under a 1–5 gram
     corpus model (real text 2.52, uniform noise 8.25). First finding: Result 5's
-    "gibberish" verdict was partly a <em>decoder artifact</em> — ridge scores softmaxed at
-    T≈1 sample near-uniformly; decoded properly, the same model writes word-fragment
-    English at <b>4.38 bpc</b>, roughly trigram grade. Closed-form scheduled sampling
+    "gibberish" verdict conflated two things — a <em>decoder artifact</em> (ridge scores
+    softmaxed at T≈1 sample near-uniformly) with genuine incoherence. Decoded properly,
+    generation shows non-random local English structure at <b>4.38 bpc</b> — but it remains
+    incoherent and operationally unusable. Rising teacher-forced accuracy has not produced
+    usable generation. Closed-form scheduled sampling
     (exposure-bias repair without backprop) was null: the teacher-forced ↔ generation gap
     is a <em>memory</em> gap, as pre-registered. Caveat logged: greedy decoding games the
     metric (1.93 bpc by looping "the in the come") — bpc needs a diversity companion.
@@ -352,6 +354,24 @@
     long-range memory, or longer explicit context." The dynamic-systems track's FSM-exact
     registers mark exactly how reliable.
   </div>
+
+  <h2>What is actually claimed — and the reframing</h2>
+  <p>
+    Precision about learning types, so "backprop-free" is not over-read: development/STDP
+    is local forward-time learning; the ridge readout is <em>global supervised</em>
+    closed-form optimization; genome evolution is <em>global black-box</em> optimization;
+    the full system is a <b>backprop-free hybrid</b> — not end-to-end forward-only
+    learning. The demonstrated claim is "a developmental spiking reservoir provides useful
+    features for next-character prediction under a supervised readout," not "an SNN learned
+    language." And the campaign's honest summary: local prediction rewarded ever-stronger
+    readouts while memory tasks shaped the substrate — <em>neither produced reliable
+    free-running language</em>. Sequence stability under self-driven rollouts, not
+    teacher-forced accuracy, is the unresolved problem, and it is now the primary
+    benchmark (controlled generative grammars, validity horizons, error recovery — see
+    <code>EXPERIMENT.md</code> §v18). A matched feature-source ablation (aligned traces vs
+    shuffled vs neuron-free delay-line bank vs identical-topology non-spiking reservoir)
+    is running to establish what the spiking substrate actually contributes.
+  </p>
 
   <h2>Where this sideline goes</h2>
   <p>
