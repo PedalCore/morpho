@@ -168,7 +168,62 @@ COMPONENTS = {
                     init=lambda p, w: None,
                     step=lambda s, i, p: (np.repeat(i[0], W), s),
                     build=lambda p, i: np.repeat(np.atleast_1d(i[0]), W, 0)),
+    # reactive extensions (Experiment C1) — generic hardware concepts only:
+    # external input, set-reset state, edge detection, enable/clear gating,
+    # and 'fbk': the language's own REG+forward-reference idiom, a bindable
+    # register reading any node's previous-tick output (params = (src,),
+    # -1 while unbound; an unbound fbk reads constant 0)
+    'sensor':  dict(ins=(), out=1, params=[()],
+                    init=lambda p, w: None,
+                    step=None,     # handled in _tick (reads external input)
+                    build=None),   # handled in build_morpho (function arg)
+    'fbk':     dict(ins=(), out=1, params=[(-1,)],
+                    init=lambda p, w: np.zeros(1, np.int8),
+                    step=None,     # handled in _tick (previous-tick source)
+                    build=None),   # handled in build_morpho (REG + DRIVE)
+    'srlatch': dict(ins=(1, 1), out=1, params=[()],   # (set, reset), R wins
+                    init=lambda p, w: np.zeros(1, np.int8),
+                    step=lambda s, i, p: (s, (1 - i[1]) * (i[0] | s)),
+                    build=lambda p, i: _b_srlatch(i[0], i[1])),
+    'edge':    dict(ins=(1,), out=1, params=[()],     # rising edge
+                    init=lambda p, w: np.zeros(1, np.int8),
+                    step=lambda s, i, p: (i[0] & (1 - s), i[0]),
+                    build=lambda p, i: _b_edge(i[0])),
+    'ring_en': dict(ins=(1,), out=W, params=[()],     # advances when en=1
+                    init=lambda p, w: np.eye(1, W, 0, np.int8)[0],
+                    step=lambda s, i, p: (s, np.concatenate(
+                        [s[-1:], s[:-1]]) if i[0][0] else s),
+                    build=lambda p, i: _b_ring_en(i[0])),
+    'counter_enr': dict(ins=(1, 1), out=CTR_W, params=[()],  # (en, clear)
+                    init=lambda p, w: np.zeros(CTR_W, np.int8),
+                    step=lambda s, i, p: (s, np.zeros(CTR_W, np.int8)
+                        if i[1][0] else (_ctr_inc(s) if i[0][0] else s)),
+                    build=lambda p, i: _b_counter_enr(i[0], i[1])),
 }
+
+def _b_srlatch(s, r):
+    q = REG(np.zeros(1, np.int32))
+    DRIVE(q, And(Not(r), Or(s, q)))
+    return q
+
+def _b_edge(x):
+    p = REG(np.zeros(1, np.int32))
+    DRIVE(p, x)
+    return And(x, Not(p))
+
+def _b_ring_en(en):
+    q = REG(np.eye(1, W, 0, np.int32)[0])
+    rot = CAT(q[-1:], q[:-1])
+    DRIVE(q, _b_mux(q, rot, en))
+    return q
+
+def _b_counter_enr(en, clr):
+    q = REG(np.zeros(CTR_W, np.int32))
+    one = CAT(ONE, *([ZERO] * (CTR_W - 1)))
+    total, _ = ripple_adder(q, one, ZERO)
+    held = _b_mux(q, total, en)
+    DRIVE(q, And(Not(np.repeat(np.atleast_1d(clr), CTR_W, 0)), held))
+    return q
 
 
 #@MARK: programs
@@ -198,26 +253,43 @@ def _init_states(prog):
     states = []
     for comp, params, ins in prog:
         c = COMPONENTS[comp]
+        if c['init'] is None:
+            states.append(None)
+            continue
         w = out_width(prog, ins[0]) if c['ins'] and c['ins'][0] == 'n' else 0
         states.append(c['init'](params, w))
     return states
 
-def _tick(prog, states):
+def _tick(prog, states, xbit=0):
     outs, nexts = [], []
     for k, (comp, params, ins) in enumerate(prog):
+        if comp == 'sensor':
+            outs.append(np.array([xbit], np.int8))
+            nexts.append(None)
+            continue
+        if comp == 'fbk':
+            outs.append(states[k].copy())
+            nexts.append(states[k])          # bound source filled below
+            continue
         c = COMPONENTS[comp]
         o, ns = c['step'](states[k], [outs[i] for i in ins], params)
         outs.append(np.asarray(o, np.int8).reshape(-1))
         nexts.append(ns)
+    for k, (comp, params, ins) in enumerate(prog):
+        if comp == 'fbk':
+            src = params[0]
+            nexts[k] = (outs[src][:1].astype(np.int8) if src >= 0
+                        else np.zeros(1, np.int8))
     return outs, nexts
 
-def interpret(prog, steps, all_nodes=False):
-    """Trace over `steps` ticks (fast search path). With all_nodes=True,
-    returns a list of per-node traces (for behaviour signatures)."""
+def interpret(prog, steps, all_nodes=False, x=None):
+    """Trace over `steps` ticks (fast search path). x: optional external
+    input bits, shape (steps,), read by every 'sensor' node. With
+    all_nodes=True, returns per-node traces (behaviour signatures)."""
     states = _init_states(prog)
     trace = [[] for _ in prog] if all_nodes else []
-    for _ in range(steps):
-        outs, states = _tick(prog, states)
+    for t in range(steps):
+        outs, states = _tick(prog, states, 0 if x is None else int(x[t]))
         if all_nodes:
             for k, o in enumerate(outs):
                 trace[k].append(o.copy())
@@ -232,19 +304,44 @@ def state_key(states):
     in closed systems)."""
     return tuple(None if s is None else s.tobytes() for s in states)
 
+def n_sensors(prog):
+    return sum(1 for comp, _, _ in prog if comp == 'sensor')
+
 def build_morpho(prog):
+    def body(vals_x):
+        vals, fbk_regs = [], {}
+        for k, (comp, params, ins) in enumerate(prog):
+            if comp == 'sensor':
+                vals.append(vals_x)
+            elif comp == 'fbk':
+                q = REG(np.zeros(1, np.int32))
+                fbk_regs[k] = q
+                vals.append(q)
+            else:
+                c = COMPONENTS[comp]
+                vals.append(np.atleast_1d(c['build'](params,
+                                                     [vals[i] for i in ins])))
+        for k, q in fbk_regs.items():
+            src = prog[k][1][0]
+            DRIVE(q, vals[src][:1] if src >= 0 else ZERO)
+        return vals[-1]
+    if n_sensors(prog):
+        @morpho
+        def net(x):
+            return body(x[0:1])
+        return net
     @morpho
     def net():
-        vals = []
-        for comp, params, ins in prog:
-            c = COMPONENTS[comp]
-            vals.append(np.atleast_1d(c['build'](params,
-                                                 [vals[i] for i in ins])))
-        return vals[-1]
+        return body(None)
     return net
 
-def morpho_trace(prog, steps):
-    tr = compile_seq(build_morpho(prog), ()).run(steps)
+def morpho_trace(prog, steps, x=None):
+    if n_sensors(prog):
+        sim = compile_seq(build_morpho(prog), (1,))
+        xs = np.zeros(steps, np.int32) if x is None else np.asarray(x)
+        tr = sim.run(steps, xs[None, :].astype(np.int32))
+    else:
+        tr = compile_seq(build_morpho(prog), ()).run(steps)
     return np.atleast_2d(tr).T
 
 def pretty(prog):

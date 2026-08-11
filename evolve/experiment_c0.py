@@ -119,9 +119,16 @@ def verify_exact(prog, target):
 
 #@MARK: deterministic typed beam enumeration
 
-def expansions(prog):
+# C0's library is FROZEN to the original 18 autonomous components so its
+# deterministic results stay reproducible after reactive extensions.
+C0_LIBRARY = ('const0', 'const1', 'stripes', 'toggle', 'ring', 'johnson',
+              'lfsr', 'counter', 'not_', 'xor_', 'or_', 'and_', 'mux',
+              'rotate', 'reverse', 'delay', 'select', 'sel_ctr', 'repeat8')
+
+def expansions(prog, library=C0_LIBRARY):
     n = len(prog)
-    for comp, c in COMPONENTS.items():
+    for comp in library:
+        c = COMPONENTS[comp]
         arity = len(c['ins'])
         for ins in itertools.product(range(n), repeat=arity):
             if not type_ok(prog, comp, ins):
@@ -137,8 +144,8 @@ def synthesize(name, max_size=MAX_SIZE, quiet=False):
     target = make_target(name)
     p = len(target)
     gens = [[(comp, params, ())]
-            for comp, c in COMPONENTS.items() if not c['ins']
-            for params in c['params']]
+            for comp in C0_LIBRARY if not COMPONENTS[comp]['ins']
+            for params in COMPONENTS[comp]['params']]
     level = gens
     seen = set()
     evals = 0
@@ -221,7 +228,7 @@ def selftest():
         used.update(c for c, _, _ in prog)
         a, b = interpret(prog, 24), morpho_trace(prog, 24)
         assert a.shape == b.shape and (a == b).all(), pretty(prog)
-    missing = set(COMPONENTS) - used - {'mux', 'select', 'xor_'}
+    missing = set(C0_LIBRARY) - used - {'mux', 'select', 'xor_'}
     assert not missing, f'components not exercised: {missing}'
     print(f"1. interpreter == compiled Morpho, bit-exact, across "
           f"{len(probes)} typed programs covering the library")
