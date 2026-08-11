@@ -759,3 +759,23 @@ climbing. Session arc 39.1 → 47.2, all closed-form. Practical note: ridge
 solve time is now the binding cost (O(d³) — 29 min at d=6263); pushing
 this axis further means streaming accumulation + a better solver, or depth
 (v16c) instead of width.
+
+### v16c results — Forward-Forward: a rigorous negative, the fourth and final
+
+The serious attempt (standardized inputs, 3×512 layers with inter-layer
+L2 normalization, label embedding, ridge-confusable hard negatives, 8
+epochs) against ridge on IDENTICAL standardized features:
+
+```
+ridge control 42.5% · ff-depth1 16.9% · ff-depth3 11.5%
+```
+
+Depth HURT (depth-1 beats depth-3 by 5.4pp), inverting the FF-literature
+expectation, and the gap to ridge is 26pp with every previously-missing
+ingredient present. Caveat: one hyperparameter point (θ=2, embed 4, lr
+0.03) — but the depth inversion plus the margin make tuning unpromising.
+Verdict after 4 attempts (12.1% → 10.1% → casual → 11.5%/16.9% rigorous):
+goodness-based FF classification is mismatched to dense 65-way reservoir
+readout in our hands. The readout-depth lever, if it exists, is stacked
+closed-form fits — not FF. v16d (substrate plasticity) is the remaining
+deep lever.

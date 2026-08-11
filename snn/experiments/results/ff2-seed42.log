@@ -1,0 +1,23 @@
+ff2 · ladder-best genome @120000n · taps 1024 · hidden 512 · θ=2 · seed 42
+features collected (1.6m)
+ridge control (standardized): 42.5%  (2.6m)
+  [ff-depth3] epoch 0: acc 9.5%  (9.4m)
+  [ff-depth3] epoch 1: acc 9.6%  (15.2m)
+  [ff-depth3] epoch 2: acc 9.1%  (20.4m)
+  [ff-depth3] epoch 3: acc 10.1%  (24.7m)
+  [ff-depth3] epoch 4: acc 11.4%  (28.6m)
+  [ff-depth3] epoch 5: acc 11.0%  (32.3m)
+  [ff-depth3] epoch 6: acc 11.6%  (38.4m)
+  [ff-depth3] epoch 7: acc 12.3%  (44.5m)
+ff-depth3: final 11.5%  (ridge control 42.5%)
+  [ff-depth1] epoch 0: acc 18.5%  (53.3m)
+  [ff-depth1] epoch 1: acc 17.5%  (56.2m)
+  [ff-depth1] epoch 2: acc 16.8%  (59.4m)
+  [ff-depth1] epoch 3: acc 16.0%  (62.6m)
+  [ff-depth1] epoch 4: acc 15.5%  (65.9m)
+  [ff-depth1] epoch 5: acc 16.2%  (69.1m)
+  [ff-depth1] epoch 6: acc 16.9%  (72.4m)
+  [ff-depth1] epoch 7: acc 16.2%  (75.7m)
+ff-depth1: final 16.9%  (ridge control 42.5%)
+
+saved to /Users/marycarrigan/coding/morpho-snn/snn/experiments/results/ff2-seed42.json
