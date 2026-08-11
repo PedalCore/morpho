@@ -216,6 +216,22 @@
     </div>
   </div>
 
+  <h2>interlude · a number that is also a clock bank</h2>
+  <div class="demo">
+    <h3>binary counter / clock divider</h3>
+    <div class="teach">registers wrapped around the article's own ripple adder:
+    q ← q + 1. One state machine is simultaneously a number and a bank of
+    divided clocks — each bit toggles at half the rate of the bit below.</div>
+<pre class="morpho"><span class="ln">q = REG(zeros(4))</span><span class="ln" id="cn1">DRIVE(q, ripple_adder(q, one, ZERO)[0])</span><span class="ln">return q</span></pre>
+    <canvas id="cntScope" width="640" height="112"></canvas>
+    <div class="controls">
+      <button id="cntRun">Run</button>
+      <button id="cntStep">Step</button>
+      <button id="cntReset">Reset</button>
+      <span class="readout" id="cntVal"></span>
+    </div>
+  </div>
+
   <h2>3 · autonomous dynamics — the LFSR necklace</h2>
   <div class="demo">
     <h3>pseudo-random from two taps</h3>
@@ -279,8 +295,8 @@
     <h3>SR latch — one bit from nothing but a loop</h3>
     <div class="teach">no REG at all: two cross-coupled NORs hold a bit as a
     fixed point of raw feedback (<code>FORWARD</code>/<code>TIE</code>, the
-    asynchronous corner of the language). Pulse Set and Reset. Then try pulsing
-    both at once — and find the state with no fixed point.</div>
+    asynchronous corner of the language). Pulse Set and Reset. Then pulse both
+    at once and let go — and meet the state the latch cannot decide.</div>
 <pre class="morpho"><span class="ln">q, qn = FORWARD(ONE), FORWARD(ONE)</span><span class="ln" id="sr1">TIE(q,  Nor(r, qn))</span><span class="ln" id="sr2">TIE(qn, Nor(s, q))</span><span class="ln">return q, qn</span></pre>
     <div class="stage">
       <div class="controls" style="margin:0">
@@ -296,16 +312,54 @@
     </div>
   </div>
 
+  <h2>5 · computation acquires a body</h2>
+  <div class="demo">
+    <h3>travelling-wave tentacle</h3>
+    <div class="teach">so far the circuit has moved only in time. But a Morpho
+    node can also describe physical tissue: feed register state into
+    <code>Muscle</code> segments and the logical signal changes the geometry
+    that carries it. A circulating bit becomes a contraction wave —
+    peristalsis from a shift register. Swap the controller and the same body
+    inhales, twitches, or dances Rule 110's gliders.</div>
+<pre class="morpho"><span class="ln">q = REG([1,0,0,…,0])</span><span class="ln" id="tn1">DRIVE(q, CAT(q[-1:], q[:-1]))</span><span class="ln">body = muscle_tube(q)</span><span class="ln">return body</span></pre>
+    <canvas id="tubeCv" width="640" height="150"></canvas>
+    <div class="controls">
+      <button id="tbRun">Run</button>
+      <button id="tbStep">Step</button>
+      <button id="tbReset">Reset</button>
+      <label>controller
+        <select id="tbCtrl" class="selbox">
+          <option>one-hot ring</option>
+          <option>Johnson counter</option>
+          <option>LFSR</option>
+          <option>Rule 90</option>
+          <option>Rule 110</option>
+        </select></label>
+      <label>direction <button id="tbDir">→</button></label>
+      <label>wave width <input type="range" id="tbW" min="1" max="8" value="3">
+        <span class="readout" id="tbWOut">3</span></label>
+      <label>contraction <input type="range" id="tbC" min="20" max="85" value="60">
+        <span class="readout" id="tbCOut">60%</span></label>
+      <label>speed <input type="range" id="tbSpeed" min="2" max="16" value="6"></label>
+    </div>
+    <p style="margin-top:10px; font-size:13.5px; color:var(--muted)">With Rule
+    90 or 110 selected this is an <em>automaton with a body</em>: every cell is
+    simultaneously a bit of computation and a piece of muscle. Change the rule
+    and you rewrite both the information dynamics and the choreography.</p>
+  </div>
+
   <div class="prose">
-  <h2>why these four</h2>
-  <p>They form a progression: <em>remember one signal</em> (delay line) →
+  <h2>why these four, and a body</h2>
+  <p>The demos form a progression: <em>remember one signal</em> (delay line) →
   <em>use memory for computation</em> (serial adder) → <em>create autonomous
   dynamics</em> (LFSR) → <em>create distributed dynamics</em> (cellular
-  automaton). The latch sits apart because it stores a bit a different way —
-  not behind a clock, but as a fixed point of the wires themselves. Everything
-  here is a real program in the sequential extension, verified in the
-  repository against numpy oracles and, for the adders, against arithmetic
-  itself.</p>
+  automaton) → <em>embody those dynamics as motion</em> (the tentacle). The
+  latch sits apart because it stores a bit a different way — not behind a
+  clock, but as a fixed point of the wires themselves. Every controller is a
+  real program in the sequential extension, verified in the repository against
+  numpy oracles and, for the adders, against arithmetic itself; the tube
+  renders the tissue idea from the Morpho muscle work — logical nodes that
+  also set the rest length of the links that carry them.</p>
   </div>
 
   <p class="foot">
@@ -632,6 +686,52 @@ function ticker(period, fn) {                 // returns {toggle, running, set}
   reset(true);
 }
 
+/* ============ binary counter / clock divider ============ */
+{
+  const NB = 4;
+  let q = 0;
+  const hist = Array.from({length: NB}, () => []);
+  const ctx = document.getElementById('cntScope').getContext('2d');
+  function draw() {
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, 640, 112);
+    ctx.font = '10px ui-monospace';
+    for (let k = 0; k < NB; k++) {
+      const y0 = 10 + k * 26;
+      ctx.strokeStyle = k === 0 ? '#9aa1ad' : '#e2a13f';
+      ctx.globalAlpha = 0.55 + 0.45 * (k / (NB - 1));
+      ctx.lineWidth = 2; ctx.beginPath();
+      hist[k].slice(-76).forEach((v, i) => {
+        const x = 34 + i * 8, y = y0 + (v ? 0 : 14);
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        ctx.lineTo(x + 8, y);
+      });
+      ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#9aa1ad';
+      ctx.fillText(`q${k} /${1 << (k + 1)}`, 2, y0 + 10);
+    }
+  }
+  function step() {
+    const prev = q;
+    q = (q + 1) & ((1 << NB) - 1);
+    flash('cn1');
+    for (let k = 0; k < NB; k++) {
+      hist[k].push((q >> k) & 1);
+      if (((prev ^ q) >> k) & 1 && ((q >> k) & 1))
+        Snd.note(scale(k, k > 1 ? 1 : 0), {gain: .7 - k * .12});
+    }
+    document.getElementById('cntVal').textContent = `q = ${q}`;
+    draw();
+  }
+  const t = ticker(300, step);
+  document.getElementById('cntRun').onclick = e => t.toggle(e.target);
+  document.getElementById('cntStep').onclick = step;
+  document.getElementById('cntReset').onclick = () => {
+    q = 0; hist.forEach(h => h.length = 0); draw();
+    document.getElementById('cntVal').textContent = 'q = 0';
+  };
+  draw();
+}
+
 /* ============ LFSR ============ */
 {
   let W = 4, taps = [3, 2], s = [];
@@ -780,6 +880,146 @@ function ticker(period, fn) {                 // returns {toggle, running, set}
   if (!reduced) setRun(true);
 }
 
+/* ============ travelling-wave tentacle (logic becomes motion) ============ */
+{
+  const N = 24;
+  let seg = [], dir = 1, ctrl = 'one-hot ring';
+  let radii = Array(N).fill(1);                 // eased visual state
+  const cv = document.getElementById('tubeCv'), ctx = cv.getContext('2d');
+  const waveW = document.getElementById('tbW'), contr = document.getElementById('tbC');
+
+  const shiftArr = (a, d) => d > 0
+    ? [a[a.length - 1], ...a.slice(0, -1)]
+    : [...a.slice(1), a[0]];
+  const CTRL = {
+    'one-hot ring': {
+      init() { const w = +waveW.value;
+               seg = Array.from({length: N}, (_, i) => i < w ? 1 : 0); },
+      step() { seg = shiftArr(seg, dir); }
+    },
+    'Johnson counter': {
+      init() { seg = Array(N).fill(0); },
+      step() {
+        const head = dir > 0 ? (seg[N - 1] ? 0 : 1) : (seg[0] ? 0 : 1);
+        seg = dir > 0 ? [head, ...seg.slice(0, -1)] : [...seg.slice(1), head];
+      }
+    },
+    'LFSR': {
+      init() { seg = Array(N).fill(0); seg[0] = 1; },
+      step() {
+        const fb = seg[N - 1] ^ seg[N - 2];
+        seg = dir > 0 ? [fb, ...seg.slice(0, -1)] : [...seg.slice(1), fb];
+      }
+    },
+    'Rule 90': {
+      init() { seg = Array(N).fill(0); seg[N >> 1] = 1; },
+      step() { seg = eca(seg, 90); }
+    },
+    'Rule 110': {
+      init() { seg = Array(N).fill(0); seg[N >> 1] = 1; },
+      step() { seg = eca(seg, 110); }
+    }
+  };
+  function eca(s, rule) {
+    return s.map((c, i) => {
+      const l = s[(i - 1 + N) % N], r = s[(i + 1) % N];
+      return (rule >> (4 * l + 2 * c + r)) & 1;
+    });
+  }
+  function draw() {
+    const W = 640, H = 150, sw = W / N, mid = H / 2, R = 46;
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, W, H);
+    const rr = i => R * radii[Math.max(0, Math.min(N - 1, i))];
+    const xs = i => (i + 0.5) * sw;
+    // path along one tube edge, left -> right (no beginPath inside)
+    const edge = sign => {
+      for (let i = 0; i < N - 1; i++) {
+        const xm = (xs(i) + xs(i + 1)) / 2;
+        const ym = mid + sign * (rr(i) + rr(i + 1)) / 2;
+        ctx.quadraticCurveTo(xs(i), mid + sign * rr(i), xm, ym);
+      }
+      ctx.quadraticCurveTo(xs(N - 1), mid + sign * rr(N - 1),
+                           W, mid + sign * rr(N - 1));
+    };
+    const edgeBack = sign => {                  // right -> left
+      for (let i = N - 1; i > 0; i--) {
+        const xm = (xs(i) + xs(i - 1)) / 2;
+        const ym = mid + sign * (rr(i) + rr(i - 1)) / 2;
+        ctx.quadraticCurveTo(xs(i), mid + sign * rr(i), xm, ym);
+      }
+      ctx.quadraticCurveTo(xs(0), mid + sign * rr(0), 0, mid + sign * rr(0));
+    };
+    ctx.fillStyle = '#171b23';
+    ctx.beginPath();
+    ctx.moveTo(0, mid + rr(0)); edge(1);
+    ctx.lineTo(W, mid - rr(N - 1)); edgeBack(-1);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#3a4150'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, mid + rr(0)); edge(1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, mid - rr(0)); edge(-1); ctx.stroke();
+    // contracted segments glow
+    ctx.fillStyle = 'rgba(226,161,63,0.30)';
+    seg.forEach((v, i) => {
+      if (!v) return;
+      const r = rr(i);
+      ctx.fillRect(i * sw, mid - r, sw, 2 * r);
+    });
+    // segment ribs
+    ctx.strokeStyle = '#242a35'; ctx.lineWidth = 1;
+    for (let i = 1; i < N; i++) {
+      const r = (rr(i - 1) + rr(i)) / 2;
+      ctx.beginPath(); ctx.moveTo(i * sw, mid - r);
+      ctx.lineTo(i * sw, mid + r); ctx.stroke();
+    }
+  }
+  function animate() {
+    const c = (+contr.value) / 100;
+    seg.forEach((v, i) => {
+      const target = v ? (1 - c) : 1;
+      radii[i] += (target - radii[i]) * 0.30;
+    });
+    draw();
+    requestAnimationFrame(animate);
+  }
+  function step() {
+    const prev = seg;
+    CTRL[ctrl].step();
+    flash('tn1');
+    const births = [];
+    seg.forEach((v, i) => { if (v && !prev[i]) births.push(i); });
+    births.slice(0, 3).forEach((i, k) =>
+      Snd.note(scale(Math.floor((i / N) * 8)), {gain: .55 / (k + 1), when: k * .02}));
+  }
+  const speed = document.getElementById('tbSpeed');
+  let h = null;
+  function setRun(on) {
+    if (h) { clearInterval(h); h = null; }
+    if (on) h = setInterval(step, 1000 / (+speed.value));
+    document.getElementById('tbRun').textContent = h ? 'Pause' : 'Run';
+  }
+  document.getElementById('tbRun').onclick = () => setRun(!h);
+  speed.oninput = () => { if (h) setRun(true); };
+  document.getElementById('tbStep').onclick = step;
+  document.getElementById('tbReset').onclick = () => {
+    CTRL[ctrl].init();
+    Snd.sweep([null, null, null]);
+  };
+  document.getElementById('tbCtrl').onchange = e => {
+    ctrl = e.target.value; CTRL[ctrl].init();
+  };
+  document.getElementById('tbDir').onclick = e => {
+    dir = -dir; e.target.textContent = dir > 0 ? '→' : '←';
+  };
+  waveW.oninput = () => {
+    document.getElementById('tbWOut').textContent = waveW.value;
+    if (ctrl === 'one-hot ring') CTRL[ctrl].init();
+  };
+  contr.oninput = () =>
+    document.getElementById('tbCOut').textContent = contr.value + '%';
+  CTRL[ctrl].init();
+  animate();
+}
+
 /* ============ SR latch (fixed-point feedback) ============ */
 {
   let q = 0, qn = 0;
@@ -788,7 +1028,10 @@ function ticker(period, fn) {                 // returns {toggle, running, set}
   function settle(s, r) {
     // parallel fixed-point iteration with persisted values — the same
     // semantics as tiny_morpho_seq's relax loop (forward wires copy the
-    // gates' previous values), which is why S+R genuinely oscillates
+    // gates' previous values). Held S=R=1 converges to (0,0): a genuine
+    // fixed point, just not a valid latch state. The failure to settle
+    // happens on simultaneous RELEASE, where the symmetric update has no
+    // way to break the tie — the idealization of metastability.
     for (let i = 0; i < 32; i++) {
       const nq = (r || qn) ? 0 : 1;        // Nor(r, qn)
       const nqn = (s || q) ? 0 : 1;        // Nor(s, q)
@@ -797,26 +1040,36 @@ function ticker(period, fn) {                 // returns {toggle, running, set}
     }
     return false;
   }
-  function render(stable) {
+  function render() {
     lampQ.classList.toggle('on', !!q);
     lampQn.classList.toggle('on', !!qn);
-    warn.textContent = stable ? '' : 'no fixed point — the loop oscillates';
-    if (!stable) {
-      Snd.note(scale(1), {gain: .5, type: 'square', dur: .1});
-      Snd.note(scale(1) + 1, {gain: .5, type: 'square', dur: .1, when: .11});
-    }
   }
   function pulse(s, r) {
     flash('sr1'); setTimeout(() => flash('sr2'), 70);
-    let ok = settle(s, r);                  // inputs held
-    ok = settle(0, 0) && ok;                // inputs released
-    render(ok);
-    if (ok) Snd.note(s ? fifths(1, 1) : fifths(6, 0), {gain: .7});
+    settle(s, r);
+    settle(0, 0);
+    render(); warn.textContent = '';
+    Snd.note(s ? fifths(1, 1) : fifths(6, 0), {gain: .7});
   }
   document.getElementById('srSet').onclick = () => pulse(1, 0);
   document.getElementById('srReset').onclick = () => pulse(0, 1);
-  document.getElementById('srBoth').onclick = () => pulse(1, 1);
-  settle(0, 1); render(true);              // start reset
+  document.getElementById('srBoth').onclick = () => {
+    flash('sr1'); setTimeout(() => flash('sr2'), 70);
+    settle(1, 1); render();
+    warn.textContent = 'held: both outputs forced low — a fixed point, '
+      + 'but not a valid latch state…';
+    setTimeout(() => {
+      const ok = settle(0, 0);
+      render();
+      if (!ok) {
+        warn.textContent = 'released together: the symmetric update never '
+          + 'settles — real silicon breaks the tie with noise (metastability)';
+        Snd.note(scale(1), {gain: .5, type: 'square', dur: .1});
+        Snd.note(scale(1) + 1, {gain: .5, type: 'square', dur: .1, when: .11});
+      }
+    }, 900);
+  };
+  settle(0, 1); render();                  // start reset
 }
 </script>
 </body>
