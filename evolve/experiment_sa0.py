@@ -177,8 +177,8 @@ def grow_round(ref, tests, rng, budget=ROUND_BUDGET, max_size=MAX_SIZE):
 #@MARK: CEGIS driver
 
 def cegis(name, seed, round_budget=ROUND_BUDGET, max_rounds=MAX_ROUNDS,
-          quiet=True):
-    ref = REFS[name]
+          quiet=True, ref=None):
+    ref = ref if ref is not None else REFS[name]
     rng = np.random.default_rng(seed)
     tests, ces, total = [], [], 0
     last_best = (None, None)
