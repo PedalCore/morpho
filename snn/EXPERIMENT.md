@@ -752,3 +752,10 @@ v16a feature arms (matched d where noted):
    readout3 numbers differ by a systematic ~+0.2–0.7pp for identical
    configs (e.g. 44.5 vs 44.7 at 2048×80k) — separate engine
    implementations; comparisons are made within-file only.
+
+**v16a addendum:** char-gate at 4096 taps × 80k fit = **47.2%** (+1.4 over
+45.8; 407k trained params; 28.9m solve). The joint nonlinear axis is still
+climbing. Session arc 39.1 → 47.2, all closed-form. Practical note: ridge
+solve time is now the binding cost (O(d³) — 29 min at d=6263); pushing
+this axis further means streaming accumulation + a better solver, or depth
+(v16c) instead of width.

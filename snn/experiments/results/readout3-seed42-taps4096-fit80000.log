@@ -1,1 +1,4 @@
 readout3 · ladder-best genome @120000n (1.34M syn) · taps 4096 × τ[20,80,320] · fit 80000 · seed 42
+A4-chargate  acc=47.2%  d=6263 trained=407k  (28.9m)
+
+saved to /Users/marycarrigan/coding/morpho-snn/snn/experiments/results/readout3-seed42-taps4096-fit80000.json

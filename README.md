@@ -87,7 +87,7 @@ readout — no backprop anywhere.
 | + previous-char readout context | 34.2% |
 | + more fit data + 2nd previous char | 39.1% |
 | developmental genome selected at 2k–8k, same full budget | 42.5% |
-| + joint readout scaling + char-gated nonlinear features | **45.8%** |
+| + joint readout scaling + char-gated nonlinear features | **47.2%** |
 | char transformer reference (with backprop) | ≈58% |
 
 Findings along the way: the ~33% ceiling was the linear readout, not

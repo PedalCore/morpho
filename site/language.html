@@ -285,12 +285,13 @@
     <tr><th>readout (all on the Result-6 genome @120k)</th><th>trained params</th><th>accuracy</th></tr>
     <tr><td>1024 rate taps, 40k fit (Result 6 ladder best)</td><td>79k</td><td>42.5%</td></tr>
     <tr><td>4096 rate taps, 80k fit</td><td>274k</td><td>45.6%</td></tr>
-    <tr><td>2048 taps + char-gated features, 80k fit</td><td>277k</td><td><b>45.8%</b></td></tr>
+    <tr><td>2048 taps + char-gated features, 80k fit</td><td>277k</td><td>45.8%</td></tr>
+    <tr><td>4096 taps + char-gated features, 80k fit</td><td>407k</td><td><b>47.2%</b></td></tr>
     <tr><td>multi-τ trace banks, fair sample budget</td><td>211k</td><td>42.2% (null)</td></tr>
     <tr><td>char transformer reference (~10.7M params, backprop)</td><td>10,700k</td><td>≈58%</td></tr>
   </table>
   <div class="verdict pos">
-    <b>New best 45.8%</b> — the session arc is 39.1 → 42.5 → 45.8, still backprop-free,
+    <b>New best 47.2%</b> — the session arc is 39.1 → 42.5 → 45.8 → 47.2, still backprop-free,
     still ~39× fewer trained parameters than the transformer reference. The multi-τ null is
     the honest signpost: slow reservoir traces add nothing even with ample data, so the
     remaining gap is long-context memory — which neither more taps nor more data will close.
