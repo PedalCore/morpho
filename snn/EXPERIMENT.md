@@ -939,3 +939,30 @@ target metric is "how long does the model stay on-distribution driven by
 its own outputs" — accuracy is demoted to a diagnostic. Shakespeare only
 returns when an organism sustains valid rollouts on the controlled
 grammar.
+
+### v18a results — the spiking substrate was real
+
+5 build seeds, frozen A0 budget, mean ± sd:
+```
+ctx-only 37.1 · +ALIGNED SPIKING TRACES 42.5±0.5 · +rate-ESN (identical
+topology/weights, tanh) 37.9±0.2 · +neuron-free delay-line bank 37.3±0.2
+· +timeshifted traces 36.0±0.3 · +shuffled traces 35.7±0.3
+```
+1. **Attribution positive, decisively.** Aligned spiking traces add
+   +5.4pp over context alone; the byte-identical topology run as a
+   non-spiking rate reservoir adds only +0.8; a neuron-free temporal
+   bank +0.2. The reservoir's contribution is genuine, spike-borne, and
+   temporally aligned — destroyed alignment is WORSE than no traces
+   (misaligned features are pure noise the ridge must fight).
+2. Caveat: the rate-ESN's leak/gain were not tuned with the effort
+   evolution spent on the spiking side; +0.8 is a floor, not a ceiling.
+   Even so, the gap is 4.6pp with non-overlapping error bars.
+3. Resonance: timing-alignment carrying the value is CTM's thesis
+   (arXiv:2505.05522 — synchronization as representation) measured on
+   our substrate. Together with v17's memory-in-flight, the campaign's
+   physical conclusion is: in this family, information lives in spike
+   TIMING, not rates or weights.
+
+This closes the reservoir-readout campaign. The substrate contributes;
+the architecture around it cannot reach usable generation (v15/v17/v18
+taxonomy). Pivot documented at site/changing-tack.html.

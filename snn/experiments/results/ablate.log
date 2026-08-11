@@ -1,0 +1,41 @@
+  ctx-only   (seed-free)  acc=37.1%
+— build seed 42 —
+  real       seed 42    acc=43.2%  (0.8m)
+  shuffled   seed 42    acc=36.0%  (1.0m)
+  timeshift  seed 42    acc=36.3%  (1.2m)
+  delayline  seed 42    acc=37.1%  (1.5m)
+  rate-esn   seed 42    acc=37.6%  (5.7m)
+— build seed 7 —
+  real       seed 7     acc=42.5%  (6.5m)
+  shuffled   seed 7     acc=35.9%  (6.7m)
+  timeshift  seed 7     acc=35.7%  (6.9m)
+  delayline  seed 7     acc=37.6%  (7.1m)
+  rate-esn   seed 7     acc=38.2%  (11.3m)
+— build seed 99 —
+  real       seed 99    acc=42.1%  (12.1m)
+  shuffled   seed 99    acc=35.3%  (12.3m)
+  timeshift  seed 99    acc=35.9%  (12.4m)
+  delayline  seed 99    acc=37.5%  (12.7m)
+  rate-esn   seed 99    acc=38.0%  (16.9m)
+— build seed 1234 —
+  real       seed 1234  acc=42.6%  (17.5m)
+  shuffled   seed 1234  acc=35.9%  (17.7m)
+  timeshift  seed 1234  acc=35.7%  (17.9m)
+  delayline  seed 1234  acc=37.3%  (18.2m)
+  rate-esn   seed 1234  acc=37.9%  (22.4m)
+— build seed 2024 —
+  real       seed 2024  acc=41.9%  (23.1m)
+  shuffled   seed 2024  acc=35.6%  (23.3m)
+  timeshift  seed 2024  acc=36.4%  (23.5m)
+  delayline  seed 2024  acc=37.1%  (23.7m)
+  rate-esn   seed 2024  acc=37.6%  (27.9m)
+
+— summary (mean ± sd over build seeds) —
+ctx-only   37.1%
+real       42.5 ± 0.5%  (n=5)
+shuffled   35.7 ± 0.3%  (n=5)
+timeshift  36.0 ± 0.3%  (n=5)
+delayline  37.3 ± 0.2%  (n=5)
+rate-esn   37.9 ± 0.2%  (n=5)
+
+saved to /Users/marycarrigan/coding/morpho-snn/snn/experiments/results/ablate.json

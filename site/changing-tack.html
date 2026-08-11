@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — changing tack</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>changing <span>tack</span></h1>
+  <p class="sub">Why the language research is moving from a reservoir-plus-readout to a
+  directly trained spiking language model — what five experiment generations taught us,
+  what survives the pivot, and what we're building next. August 2026.</p>
+
+  <div class="links">
+    <a href="language.html">← the language campaign (Results 1–9)</a>
+    <a href="research.html">← research notes</a>
+    <a href="https://github.com/PedalCore/morpho">code & experiments</a>
+  </div>
+
+  <h2>Where we got to</h2>
+  <p>
+    Over experiment generations v8–v18 the system climbed from bigram-level (28.8%) to
+    47.2% teacher-forced next-character accuracy on tiny Shakespeare — backprop-free
+    throughout, with a genome of eleven numbers growing a 120,000-neuron spiking reservoir
+    and a closed-form readout. Every protocol was pre-registered; every null published with
+    its controls. And then we stopped, for a reason the score can't show: <b>the output was
+    still unusable</b>. Free-running generation remained incoherent at every rung of the
+    accuracy ladder. Chasing decimal improvements to a sub-50% teacher-forced score had
+    stopped being research into language and become research into readouts.
+  </p>
+
+  <h2>What we learned (the validated ledger)</h2>
+  <table>
+    <tr><th>finding</th><th>evidence</th></tr>
+    <tr><td><b>Developmental laws select structure well.</b> An 11-gene wiring law evolved at 2–8k neurons transfers to 120k; evolution chose depth 2 over the designed 4, unanimously, and won at up to 6.8× fewer synapses</td><td>v13–v14, three seeds each, held-out scales</td></tr>
+    <tr><td><b>The spiking dynamics contribute real sequence information.</b> Aligned spike traces add +5.4pp over explicit context; the identical topology run as a non-spiking rate reservoir adds +0.8; generic temporal features +0.2; misaligned traces are harmful</td><td>v18a ablation, 5 build seeds, ±0.5pp</td></tr>
+    <tr><td><b>Information lives in spike timing, in flight.</b> Memory-selected organisms store the past as spikes circulating around delayed inter-layer loops — not recurrent attractors, not weights. Destroying timing alignment destroys the value</td><td>v17 genome census; v18a timeshift arm</td></tr>
+    <tr><td><b>The substrate's memory is real but short and noisy</b> — recall-4 at ~2.8× chance — and noisy memory loses to perfect explicit context, so it never converted to language gains</td><td>v17 language transfer null</td></tr>
+    <tr><td><b>Teacher-forced accuracy diverges from usable generation.</b> Accuracy climbed 8 points while rollouts stayed garbled; greedy decoding even gamed the generation metric by looping</td><td>v15 generation benchmark</td></tr>
+    <tr><td><b>Local-only learning did not produce capability.</b> Forward-Forward lost to a linear solve by 26pp with every recommended ingredient present; reward-modulated plasticity reshaped half the synapses with zero effect. The capability always came from global optimization — the ridge solve and evolution</td><td>v16c/d, controlled</td></tr>
+  </table>
+
+  <h2>Why we're changing tactics</h2>
+  <p>
+    Three of those findings, taken together, decide it. The system's learning was already
+    global — "backprop-free" never meant "forward-only," and we published that taxonomy.
+    The metric that guided the climb doesn't measure the behavior we want — a model that
+    <em>writes</em>. And the ingredients that demonstrably work (temporal spiking dynamics,
+    developmental structure selection, global optimization) are exactly the ingredients of
+    the directly trained spiking language models that now exist at scale:
+    <a href="https://arxiv.org/abs/2302.13939">SpikeGPT</a> (autoregressive spiking RWKV,
+    trained with surrogate gradients), <a href="https://github.com/BICLab">BICLab's
+    spike-driven transformers</a> (whose v3 lesson — relax binary spiking during training,
+    keep spike-driven inference — our substrate taught us three times in miniature), and
+    <a href="https://arxiv.org/abs/2505.05522">Sakana's Continuous Thought Machines</a>
+    (Llion Jones et al.), whose thesis — neural <em>synchronization as representation</em> —
+    is precisely what our ablation just measured: the value of our reservoir is carried by
+    spike timing alignment, and our one synchronization-flavored readout (pairwise trace
+    products) beat rate features at matched size.
+  </p>
+  <div class="verdict">
+    We are not leaving because the spiking substrate failed — the ablation shows it
+    contributes. We are leaving because the <em>architecture around it</em> — frozen
+    substrate, supervised readout, teacher-forced score — cannot reach usable generation,
+    and insisting on forward-only learning was already more label than substance. Build on
+    what works; don't reinvent the wheel.
+  </div>
+
+  <h2>What survives the pivot</h2>
+  <p>
+    <b>The evaluation culture</b> — pre-registration, fixed-prompt rollouts, repetition and
+    degeneration metrics, calibrated evaluator bits-per-char, nulls published with
+    controls. Rollout coherence, not teacher-forced accuracy, is the headline metric from
+    day one. <b>The developmental thesis</b> — Morpho's role sharpens rather than
+    disappears: grow and prune the sparse structure of a directly trained spiking model
+    between training phases, exactly the phase-wise regime our v13/v14 evidence supports.
+    <b>The timing results</b> — delay distributions and synchronization readouts become
+    design features, not curiosities. And <b>the browser organism</b> stays what it always
+    was: the musical, interactive, artistic track at <a href="/snn/">the lab</a>.
+  </p>
+
+  <h2>What we're building</h2>
+  <table>
+    <tr><th>step</th><th>what</th><th>gate</th></tr>
+    <tr><td>0</td><td>Tiny conventional RWKV baseline on TinyStories (~10M params, 4k BPE tokenizer) — calibrates everything</td><td>coherent baseline rollouts</td></tr>
+    <tr><td>1</td><td>Same model, spiking activations + surrogate gradients + firing-rate regularization (SpikeGPT-style)</td><td>rollouts within sight of step 0</td></tr>
+    <tr><td>2</td><td>Integer-spike annealing (BICLab v3 style): train soft, infer sparse</td><td>sparsity without rollout collapse</td></tr>
+    <tr><td>3</td><td>Morpho development of the sparse structure between training phases; CTM-style synchronization features as a research arm</td><td>beats fixed architecture at matched params</td></tr>
+  </table>
+  <p>
+    The first milestone is unglamorous and non-negotiable: a small spiking model whose
+    TinyStories rollouts are <em>recognizably language</em>. Everything else is gated
+    behind it.
+  </p>
+
+  <p class="foot">
+    The full chronological record — including every null and correction — is in
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/snn/EXPERIMENT.md"><code>snn/EXPERIMENT.md</code></a> (v8–v18)
+    and the <a href="language.html">language campaign page</a>. References:
+    <a href="https://arxiv.org/abs/2302.13939">SpikeGPT</a>;
+    <a href="https://github.com/BICLab">BICLab</a> spike-driven transformer series;
+    <a href="https://arxiv.org/abs/2505.05522">Continuous Thought Machines</a>;
+    SpikingBrain conversion report. The reservoir campaign's claims are stated precisely
+    in the claims taxonomy on the language page: the full system was a backprop-free
+    <em>hybrid</em>, and the demonstrated result is "a developmental spiking reservoir
+    provides useful, spike-timing-borne features under a supervised readout."
+  </p>
+</article>
+</body>
+</html>
