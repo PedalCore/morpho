@@ -68,8 +68,8 @@ def type_map(g, ny, nx):
     return tm
 
 
-def step_typed(g, s, tm):
-    """One synchronous step; cell (y, x) runs rule nets[tm[y, x]]."""
+def _step_typed_ref(g, s, tm):
+    """Reference implementation (kept for equivalence testing)."""
     X = perceive(s)
     out = np.zeros_like(s)
     flat_tm = tm.reshape(-1)
@@ -84,6 +84,26 @@ def step_typed(g, s, tm):
         mask = sel.reshape(s.shape[1], s.shape[2])
         out[:, mask] = o[:, mask]
     return out.astype(s.dtype)
+
+def step_typed(g, s, tm):
+    """One synchronous step; cell (y, x) runs rule nets[tm[y, x]].
+    Fast path: each net computes only over its own cells' columns —
+    bit-exact with _step_typed_ref (asserted in the 5B selftest)."""
+    ny, nx = s.shape[1], s.shape[2]
+    X = perceive(s).reshape(IN_N, ny * nx, -1)
+    out = np.zeros((C, ny * nx, X.shape[2]), dtype=np.int16)
+    flat_tm = tm.reshape(-1)
+    for k in range(g['k']):
+        sel = flat_tm == k
+        if not sel.any():
+            continue
+        net = g['nets'][k]
+        Xk = X[:, sel].reshape(IN_N, -1)
+        h = (net['w1'].astype(np.int16) @ Xk + net['b1'][:, None] >= 0
+             ).astype(np.int16)
+        o = (net['w2'].astype(np.int16) @ h + net['b2'][:, None] >= 0)
+        out[:, sel] = o.reshape(C, int(sel.sum()), -1)
+    return out.reshape(s.shape).astype(s.dtype)
 
 def rollout_typed(g, tm, s, steps, record=False):
     frames = [s.copy()]
