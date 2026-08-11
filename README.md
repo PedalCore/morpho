@@ -112,6 +112,13 @@ full readout budget the best selected genome then set the new ladder best:
 **42.5%** at 120k (prior 39.1%), at 44% fewer synapses, while the hand law's
 same-seed control seized.
 
+**Changing tack (2026-08):** the reservoir campaign closed with a positive
+attribution result (aligned spiking traces carry real sequence information —
++5.4pp over context vs +0.8 for a matched non-spiking reservoir) and a
+documented pivot to a directly trained spiking language model in
+[`spikelm/`](spikelm/) — see
+[soundlark.studio/changing-tack.html](https://soundlark.studio/changing-tack.html).
+
 **Docs:** [`snn/README.md`](snn/README.md) (how to run and test) ·
 [`snn/EXPERIMENT.md`](snn/EXPERIMENT.md) (hypothesis, protocol, findings,
 v1–v12) · the research brief and parallel C++/JUCE plugin briefs live in

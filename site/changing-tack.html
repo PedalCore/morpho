@@ -90,11 +90,16 @@
     products) beat rate features at matched size.
   </p>
   <div class="verdict">
-    We are not leaving because the spiking substrate failed — the ablation shows it
-    contributes. We are leaving because the <em>architecture around it</em> — frozen
-    substrate, supervised readout, teacher-forced score — cannot reach usable generation,
-    and insisting on forward-only learning was already more label than substance. Build on
-    what works; don't reinvent the wheel.
+    Morpho's spiking substrate was not empty: controlled ablations (5 build seeds) found
+    genuine timing-borne sequence information — aligned spiking traces 42.5&nbsp;±&nbsp;0.5%
+    vs 37.9&nbsp;±&nbsp;0.2% for the matched non-spiking reservoir, 37.3% for neuron-free
+    delay-line features, 36.0% with temporal alignment destroyed — that disappeared when
+    timing was broken and was not reproduced by matched non-spiking dynamics. But the
+    information was short-range, the supervised readout became the dominant capability, and
+    rising teacher-forced accuracy failed to produce usable text. We therefore retain
+    temporal spikes, developmental structure and rigorous evaluation, and replace the
+    learning architecture with directly trained spiking sequence models. Build on what
+    works; don't reinvent the wheel.
   </div>
 
   <h2>What survives the pivot</h2>
@@ -123,6 +128,11 @@
     TinyStories rollouts are <em>recognizably language</em>. Everything else is gated
     behind it.
   </p>
+  <div class="verdict pos">
+    Forward-only learning was a hypothesis, not an identity. The experiments identified
+    which biological mechanisms carried real signal; the next system keeps those mechanisms
+    and gives them an optimization method capable of producing language.
+  </div>
 
   <p class="foot">
     The full chronological record — including every null and correction — is in
