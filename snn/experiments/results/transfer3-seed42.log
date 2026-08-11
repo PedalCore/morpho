@@ -1,0 +1,11 @@
+v12-hand      memory @16000: recall2=29.9% recall4=20.3% parity3=62.2% (0.0m)
+v12-hand      memory @32000: recall2=13.7% recall4=14.1% parity3=70.4% (0.1m)
+v14-winner    memory @16000: recall2=43.5% recall4=25.4% parity3=73.9% (0.1m)
+v14-winner    memory @32000: recall2=43.7% recall4=27.5% parity3=80.3% (0.2m)
+evolved-best  memory @16000: recall2=22.8% recall4=21.2% parity3=87.7% (0.2m)
+evolved-best  memory @32000: recall2=36.9% recall4=27.4% parity3=95.3% (0.2m)
+v12-hand      LANGUAGE @120k: 41.8% (L=4, syn/n=19.88) (1.8m)
+v14-winner    LANGUAGE @120k: 41.5% (L=2, syn/n=7.72) (2.1m)
+evolved-best  LANGUAGE @120k: 38.4% (L=2, syn/n=12.88) (2.6m)
+
+transfer appended to experiments/results/evolve3-seed42.json

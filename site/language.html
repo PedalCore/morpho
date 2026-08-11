@@ -325,13 +325,41 @@
     families first, then reading language out of what evolution builds.
   </div>
 
+  <h2>Result 9 — memory-selected substrates: stored in flight, and not enough</h2>
+  <p>
+    v17 made memory the fitness itself: delayed recall and temporal parity, with a
+    taps-only readout so the reservoir is the sole channel — the tasks are unsolvable
+    without it. Three seeds, pre-registered predictions, language transfer as the payoff
+    test.
+  </p>
+  <p>
+    <b>Memory is stored in flight.</b> Even when memory is the fitness, evolution still
+    rejects intra-layer recurrence (rec fan 1–2) — all three lineages instead pinned
+    inter-layer <em>feedback loops</em> high with stretched delays: information survives as
+    spikes circulating between layers, not as attractor state. The dynamic-systems track's
+    evolved parity law found the same trick in exact circuits (registers holding sliding
+    partial results). Two substrates, one physical idea: <em>delay-line memory</em>.
+    The winners hold recall-4 at ~2.8× chance and 95% parity at held-out scales — and,
+    for the first time in this whole program, iterated evolution beat gen-0 screening in
+    all three seeds: memory landscapes have gradient where next-char never did.
+  </p>
+  <div class="verdict">
+    <b>The payoff null:</b> memory-selected substrates are <em>worse</em> at language
+    (38.4–40.8% vs 41.5–42.8% for the prediction-selected winner). Noisy 4-char recall
+    cannot beat the readout's perfect explicit 3-char context; useful gains live at ranges
+    one-hots don't reach, which demands memory far more <em>reliable</em> than these
+    substrates offer. So the 47.2% → 58% gap is not "add memory" — it is "add reliable
+    long-range memory, or longer explicit context." The dynamic-systems track's FSM-exact
+    registers mark exactly how reliable.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
-    Memory-rewarding task families (delayed recall, temporal parity — the same tasks the
-    dynamic-systems track uses) as evolution's fitness, with language readout as the
-    transfer test; stacked closed-form fits as the remaining depth idea; word-level
-    targets; and the same error-driven mechanisms pointed back at music: grow when
-    dialogue relatedness drops.
+    The two mechanism-backed levers left: longer explicit context in the readout (wider
+    one-hot windows, closed-form as ever), and hybrid substrates — the spiking medium
+    carrying an exact-state backbone, importing the dynamic-systems track's registers into
+    the organism. Plus stacked closed-form fits, word-level targets, and the same
+    error-driven mechanisms pointed back at music: grow when dialogue relatedness drops.
   </p>
 
   <p class="foot">

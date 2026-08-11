@@ -834,3 +834,39 @@ Pre-registered predictions:
   substrate memory is the binding constraint on the 47.2% → 58% gap.
 
 3 seeds, sequential; 3 new tests (61 total); smoke-validated.
+
+### v17 results — memory is stored in flight, and it doesn't buy language
+
+```
+winner genomes:   L=2/3/2 · rec_fan 1/1/2 · FB_FAN 6/3/5 · delay 1.2-1.5×
+memory @32k held-out (chance: recall 12.5%, parity 50%):
+  evolved-best   recall2 37-44% · recall4 27-35% · parity 74-95%
+  v14-winner     recall2 ~43%   · recall4 26-28% · parity 72-80%
+  v12-hand       recall2 11-21% · recall4 11-20% · parity 56-70%
+LANGUAGE @120k:  evolved 38.4/40.8/40.8 vs v14-winner 41.5/42.8/41.6
+```
+
+1. **P1 refuted in letter, confirmed in spirit.** Memory fitness still
+   rejects intra-layer recurrence — all three lineages instead pinned
+   inter-layer FEEDBACK fans high with stretched delays: memory as
+   time-in-flight around layer loops, not attractor state. The same
+   physical idea as the dynamic-systems track's systolic parity law
+   (registers holding sliding partial results): two independent substrates
+   converging on delay-line memory. rec_fan deletion now looks like a law
+   of this substrate family, not a task artifact.
+2. **P2 confirmed with a wrinkle:** winners hold memory at held-out
+   scales (recall-4 ~2.8× chance, parity 95%), but the prediction-selected
+   v14 winner is a surprisingly capable memory substrate (~43% recall-2)
+   — its feedback fan was already nonzero. Unregistered finding: iterated
+   evolution beat gen-0 screening 3/3 for the first time — the memory
+   landscape has gradient where next-char never did.
+3. **P3: decisive informative null.** Memory-selected substrates are
+   WORSE at language (−1 to −3pp). Substrate memory does not convert
+   because noisy 4-char recall (35%) cannot beat the readout's PERFECT
+   explicit 3-char one-hots; usable gains live at ranges one-hots don't
+   cover (5+ chars), which demands memory far more reliable than skill
+   0.3. Roadmap consequence: the 47.2→58 gap is not "add memory" but
+   "add RELIABLE long-range memory or longer explicit context" — the
+   dynamic-systems track's FSM-exact registers mark how reliable, and a
+   hybrid (spiking medium + exact state) or wider context one-hots are
+   the mechanism-backed next levers.
