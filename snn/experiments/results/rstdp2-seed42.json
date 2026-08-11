@@ -1,0 +1,86 @@
+{
+ "SEED": 42,
+ "N": 120000,
+ "TAPS": 1024,
+ "TRAIN_CHARS": 60000,
+ "ETA": 0.0015,
+ "R_WRONG": -0.2,
+ "arms": {
+  "plastic": {
+   "eta": 0.0015,
+   "ridgeAcc": 0.41533333333333333,
+   "onlineCurve": [
+    {
+     "k": 10000,
+     "acc": 0.311,
+     "spikesPerChar": 2049.9891
+    },
+    {
+     "k": 20000,
+     "acc": 0.3339,
+     "spikesPerChar": 2055.3538
+    },
+    {
+     "k": 30000,
+     "acc": 0.3513,
+     "spikesPerChar": 2061.462
+    },
+    {
+     "k": 40000,
+     "acc": 0.3525,
+     "spikesPerChar": 2053.1476
+    },
+    {
+     "k": 50000,
+     "acc": 0.3542,
+     "spikesPerChar": 2058.5396
+    },
+    {
+     "k": 60000,
+     "acc": 0.3595,
+     "spikesPerChar": 2053.5439
+    }
+   ],
+   "changedSynapses": 669171,
+   "meanRelChange": 0.107
+  },
+  "control": {
+   "eta": 0,
+   "ridgeAcc": 0.41133333333333333,
+   "onlineCurve": [
+    {
+     "k": 10000,
+     "acc": 0.3099,
+     "spikesPerChar": 2041.8107
+    },
+    {
+     "k": 20000,
+     "acc": 0.3397,
+     "spikesPerChar": 2051.4916
+    },
+    {
+     "k": 30000,
+     "acc": 0.3665,
+     "spikesPerChar": 2046.8213
+    },
+    {
+     "k": 40000,
+     "acc": 0.3771,
+     "spikesPerChar": 2047.4755
+    },
+    {
+     "k": 50000,
+     "acc": 0.3802,
+     "spikesPerChar": 2047.6172
+    },
+    {
+     "k": 60000,
+     "acc": 0.3994,
+     "spikesPerChar": 2047.0296
+    }
+   ],
+   "changedSynapses": 0,
+   "meanRelChange": 0
+  }
+ }
+}

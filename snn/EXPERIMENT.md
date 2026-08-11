@@ -779,3 +779,31 @@ goodness-based FF classification is mismatched to dense 65-way reservoir
 readout in our hands. The readout-depth lever, if it exists, is stacked
 closed-form fits — not FF. v16d (substrate plasticity) is the remaining
 deep lever.
+
+### v16d results — three-factor plasticity: a stable null
+
+Reward-modulated STDP (potentiation-only eligibility via pre-trace ×
+post-spike, global correct/wrong scalar, multiplicative sign-preserving
+updates clamped to [0.25×, 2.5×] birth magnitude, η=0.0015, 60k chars)
+vs an identical-stream frozen control:
+
+```
+plastic  ridge 41.5% · 669,171 synapses changed (mean rel Δ 10.7%) · stable
+control  ridge 41.1% · 0 changed
+online during training: plastic 36.0% vs control 39.9% (non-stationarity)
+```
+
+The substrate absorbed reward-gated ~10% perturbation of half its
+synapses with NO readability consequence in either direction — striking
+robustness, zero sculpting. Caveats: one η, within-char eligibility
+horizon, potentiation-only. Consistent with v7's R-STDP sequence null:
+this local rule does not convert reward into better features here.
+
+**v16 program ledger:** features +4.0pp (47.2% best, char-gated bilinear)
+· FF depth: rigorous negative (depth inverts, 26pp behind ridge) ·
+substrate plasticity: null. The reservoir's readable information is what
+development made it; the remaining transformer gap is long-context
+memory, which none of the readout-side or local-plasticity levers touch.
+Next lever with a mechanism behind it: memory-REWARDING task families
+(v15 plan) so evolution stops deleting recurrence — select the substrate
+for memory, then read language out of it.

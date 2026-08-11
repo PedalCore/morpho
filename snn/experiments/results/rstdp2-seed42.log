@@ -1,0 +1,18 @@
+plastic · η=0.0015 · brain rebuilt, CSC indexed (0.0m)
+  [plastic] 10000 chars: online 31.1% · 2050 spikes/char (0.4m)
+  [plastic] 20000 chars: online 33.4% · 2055 spikes/char (0.6m)
+  [plastic] 30000 chars: online 35.1% · 2061 spikes/char (0.9m)
+  [plastic] 40000 chars: online 35.3% · 2053 spikes/char (1.2m)
+  [plastic] 50000 chars: online 35.4% · 2059 spikes/char (1.5m)
+  [plastic] 60000 chars: online 36.0% · 2054 spikes/char (1.7m)
+plastic: ridge 41.5% · 669171 synapses changed (mean rel Δ 0.107) (2.4m)
+control · η=0 · brain rebuilt, CSC indexed (0.0m)
+  [control] 10000 chars: online 31.0% · 2042 spikes/char (0.2m)
+  [control] 20000 chars: online 34.0% · 2051 spikes/char (0.4m)
+  [control] 30000 chars: online 36.6% · 2047 spikes/char (0.5m)
+  [control] 40000 chars: online 37.7% · 2047 spikes/char (0.7m)
+  [control] 50000 chars: online 38.0% · 2048 spikes/char (0.8m)
+  [control] 60000 chars: online 39.9% · 2047 spikes/char (1.0m)
+control: ridge 41.1% · 0 synapses changed (mean rel Δ 0) (1.7m)
+
+saved to /Users/marycarrigan/coding/morpho-snn/snn/experiments/results/rstdp2-seed42.json

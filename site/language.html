@@ -297,14 +297,41 @@
     remaining gap is long-context memory — which neither more taps nor more data will close.
   </div>
 
+  <h2>Result 8 — the deep levers, honestly closed</h2>
+  <p>
+    The two pre-registered deep levers both resolved negative, each with a proper control:
+  </p>
+  <p>
+    <b>Forward-Forward, done properly (v16c).</b> Standardized inputs, three 512-unit
+    layers with inter-layer L2 normalization, label embedding, hard negatives — every
+    ingredient the three earlier casual failures lacked. Result: 11.5% (depth 3), 16.9%
+    (depth 1) vs <b>42.5% for closed-form ridge on identical features</b>. Depth made FF
+    <em>worse</em>. Four attempts, one rigorous: goodness-based FF classification is
+    mismatched to dense 65-way reservoir readout in our hands.
+  </p>
+  <p>
+    <b>Three-factor plasticity (v16d).</b> Reward-modulated STDP (local eligibility ×
+    global correctness, no gradients) reshaped 669k of the substrate's 1.34M synapses by
+    ~10% over 60k characters — perfectly stably — and the frozen readout moved 41.5% vs
+    41.1% control: a null inside noise. The substrate is remarkably robust to reward-gated
+    perturbation, and entirely unsculpted by it.
+  </p>
+  <div class="verdict">
+    The v16 ledger: richer features <b>+4.0pp</b> (the 47.2% best) · FF depth
+    <b>negative</b> · substrate plasticity <b>null</b>. What remains between 47.2% and the
+    transformer's ≈58% is long-context memory — and no readout-side lever touches it. The
+    substrate evolution keeps deleting recurrence because next-char prediction never rewards
+    memory; the mechanism-backed next step is selecting substrates on memory-rewarding task
+    families first, then reading language out of what evolution builds.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
-    The two deep levers, pre-registered as v16c/d: a properly-built Forward-Forward stack
-    (normalization + depth + goodness — readout depth without backprop), and three-factor
-    R-STDP so the substrate's own 1.3M weights become slowly task-shaped (local eligibility
-    × global correctness — the substrate's biology, returned). Then memory-rewarding task
-    families (v15's multi-task plan), word-level targets, and the same error-driven
-    mechanisms pointed back at music: grow when dialogue relatedness drops.
+    Memory-rewarding task families (delayed recall, temporal parity — the same tasks the
+    dynamic-systems track uses) as evolution's fitness, with language readout as the
+    transfer test; stacked closed-form fits as the remaining depth idea; word-level
+    targets; and the same error-driven mechanisms pointed back at music: grow when
+    dialogue relatedness drops.
   </p>
 
   <p class="foot">
