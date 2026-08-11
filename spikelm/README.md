@@ -52,3 +52,22 @@ test_smoke.py          shapes + tiny-overfit sanity (CPU, ~1 min)
 
 Everything deterministic per seed; runs/ holds checkpoints, JSONL logs and
 rollout samples. The browser SNN lab (`../snn/`) is untouched — separate track.
+
+## Design notes from the literature (2026-08-11)
+
+**SpikeDecoder** (Beger et al., TUM — fully-spiking GPT decoder, staged
+"spike degrees"): parameterized LIFs (per-unit learnable thresholds/τ)
+were their largest quality lever (+11pp fully-spiking) → our `SpikeAct`
+now has per-block, per-channel learnable thresholds. Fully-spiking
+residuals were catastrophic (→18–42%) → we keep float residuals through
+milestone 2. Spiking the embedding cost nothing; spiking the mixing is
+what hurts, and fewer/wider mixing channels help. Their gaps — train-set
+accuracy as the metric, no sampling temperature, no degeneration
+measurement — are exactly what our rollout harness covers; keep it.
+
+**PSAC** (Nazari & Amiri, Sci Rep 2025 — STDP + spiking actor-critic):
+their global learning factor is a reward-prediction error from a spiking
+critic (value-baselined), not raw reward. Relevant here if we ever
+fine-tune on non-differentiable rollout metrics (use an RPE baseline),
+and retro-relevant to the reservoir campaign's v16d null (raw ±reward —
+the untested variant is critic-baselined RPE).

@@ -25,12 +25,15 @@ class _SpikeFn(torch.autograd.Function):
 
 
 class SpikeAct(nn.Module):
-    """Drop-in for ChannelMix's nonlinearity: integer spikes, learnable threshold."""
+    """Drop-in for ChannelMix's nonlinearity: integer spikes with PER-CHANNEL
+    learnable thresholds (SpikeDecoder's parameterized-LIF lesson: per-unit
+    learnable spike parameters were their largest quality lever, +11pp)."""
 
-    def __init__(self, levels=4, init_threshold=0.5):
+    def __init__(self, dim, levels=4, init_threshold=0.5):
         super().__init__()
         self.levels = levels
-        self.log_threshold = nn.Parameter(torch.tensor(float(init_threshold)).log())
+        self.log_threshold = nn.Parameter(
+            torch.full((dim,), float(init_threshold)).log())
         self.last_rate = None  # populated each forward, for the rate regularizer
 
     def forward(self, x):

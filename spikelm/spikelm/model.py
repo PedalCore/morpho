@@ -75,9 +75,14 @@ class TimeMix(nn.Module):
 
 
 class ChannelMix(nn.Module):
-    def __init__(self, cfg, layer_id, spike_act=None):
+    def __init__(self, cfg, layer_id, spiking=False):
         super().__init__()
         C = cfg.n_embd
+        spike_act = None
+        if spiking:
+            from .spiking import SpikeAct
+
+            spike_act = SpikeAct(dim=4 * C)  # per-block, per-channel thresholds
         ratio = layer_id / max(1, cfg.n_layer - 1)
         self.mix_k = nn.Parameter(torch.pow(torch.linspace(0, 1, C), 1 - ratio).unsqueeze(0).unsqueeze(0))
         self.mix_r = nn.Parameter(self.mix_k.data.clone())
@@ -98,12 +103,12 @@ class ChannelMix(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, cfg, layer_id, spike_act=None):
+    def __init__(self, cfg, layer_id, spiking=False):
         super().__init__()
         self.ln1 = nn.LayerNorm(cfg.n_embd)
         self.ln2 = nn.LayerNorm(cfg.n_embd)
         self.tm = TimeMix(cfg, layer_id)
-        self.cm = ChannelMix(cfg, layer_id, spike_act)
+        self.cm = ChannelMix(cfg, layer_id, spiking)
 
     def forward(self, x):
         x = x + self.tm(self.ln1(x))
@@ -115,14 +120,9 @@ class RWKVMini(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
-        spike_act = None
-        if cfg.spiking:
-            from .spiking import SpikeAct
-
-            spike_act = SpikeAct()
         self.emb = nn.Embedding(cfg.vocab_size, cfg.n_embd)
         self.ln_in = nn.LayerNorm(cfg.n_embd)
-        self.blocks = nn.ModuleList(Block(cfg, i, spike_act) for i in range(cfg.n_layer))
+        self.blocks = nn.ModuleList(Block(cfg, i, cfg.spiking) for i in range(cfg.n_layer))
         self.ln_out = nn.LayerNorm(cfg.n_embd)
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
         self.head.weight = self.emb.weight  # tied
