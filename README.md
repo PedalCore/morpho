@@ -86,7 +86,8 @@ readout — no backprop anywhere.
 | 120k-neuron deep SoA brain (4 layers, 15% inhibition) | 33.0% |
 | + previous-char readout context | 34.2% |
 | + more fit data + 2nd previous char | 39.1% |
-| developmental genome selected at 2k–8k, same full budget | **42.5%** |
+| developmental genome selected at 2k–8k, same full budget | 42.5% |
+| + joint readout scaling + char-gated nonlinear features | **45.8%** |
 | char transformer reference (with backprop) | ≈58% |
 
 Findings along the way: the ~33% ceiling was the linear readout, not

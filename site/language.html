@@ -249,12 +249,60 @@
     are the next rungs.
   </div>
 
+  <h2>Result 7 — structural evolution, measured generation, and the ceiling that moved</h2>
+  <p>
+    Three campaigns ran on top of Result 6, every protocol pre-registered before results
+    (full logs in <code>EXPERIMENT.md</code> §v14–v16):
+  </p>
+  <p>
+    <b>Structural evolution (v14).</b> Layer count entered the genome (2–6) with widened
+    bounds. All three independent lineages chose <b>depth 2 over the hand-designed 4</b> —
+    and with depth free, Result 6's "inhibition-rich" signature reversed (E/I fell to
+    0.05–0.22): it had been compensation for imposed depth, not a universal law. A caution
+    for reading any evolved genome: signatures are relative to the constraint set. The
+    depth-2 laws win at held-out 120k in all seeds; the sparsest computes at
+    <b>2.9 synapses/neuron</b> (~350k synapses, 6.8× fewer than the hand law) and still
+    beats it.
+  </p>
+  <p>
+    <b>Generation, measured (v15).</b> Generated text scored in bits/char under a 1–5 gram
+    corpus model (real text 2.52, uniform noise 8.25). First finding: Result 5's
+    "gibberish" verdict was partly a <em>decoder artifact</em> — ridge scores softmaxed at
+    T≈1 sample near-uniformly; decoded properly, the same model writes word-fragment
+    English at <b>4.38 bpc</b>, roughly trigram grade. Closed-form scheduled sampling
+    (exposure-bias repair without backprop) was null: the teacher-forced ↔ generation gap
+    is a <em>memory</em> gap, as pre-registered. Caveat logged: greedy decoding games the
+    metric (1.93 bpc by looping "the in the come") — bpc needs a diversity companion.
+  </p>
+  <p>
+    <b>The ceiling moved (v15/v16a).</b> The scaling sweep showed accuracy saturating in
+    fit-data at fixed readout size but <em>re-opening</em> when taps × data grow jointly —
+    the binding constraint was samples-per-parameter, not the linear form. And nonlinear
+    features beat size at matched parameters: char-gated bilinear taps (reservoir traces
+    read differently per current character) are the best mechanism tested.
+  </p>
+  <table>
+    <tr><th>readout (all on the Result-6 genome @120k)</th><th>trained params</th><th>accuracy</th></tr>
+    <tr><td>1024 rate taps, 40k fit (Result 6 ladder best)</td><td>79k</td><td>42.5%</td></tr>
+    <tr><td>4096 rate taps, 80k fit</td><td>274k</td><td>45.6%</td></tr>
+    <tr><td>2048 taps + char-gated features, 80k fit</td><td>277k</td><td><b>45.8%</b></td></tr>
+    <tr><td>multi-τ trace banks, fair sample budget</td><td>211k</td><td>42.2% (null)</td></tr>
+    <tr><td>char transformer reference (~10.7M params, backprop)</td><td>10,700k</td><td>≈58%</td></tr>
+  </table>
+  <div class="verdict pos">
+    <b>New best 45.8%</b> — the session arc is 39.1 → 42.5 → 45.8, still backprop-free,
+    still ~39× fewer trained parameters than the transformer reference. The multi-τ null is
+    the honest signpost: slow reservoir traces add nothing even with ample data, so the
+    remaining gap is long-context memory — which neither more taps nor more data will close.
+  </div>
+
   <h2>Where this sideline goes</h2>
   <p>
-    Structural evolution of the developmental program itself (v14): enabling and disabling
-    growth operators, layer counts, rule composition — Morpho's genotype idea in full. Plus
-    the readout levers (deeper Forward-Forward stack, more taps, longer context),
-    grow-AND-prune in one lifecycle, word-level targets, and the same error-driven
+    The two deep levers, pre-registered as v16c/d: a properly-built Forward-Forward stack
+    (normalization + depth + goodness — readout depth without backprop), and three-factor
+    R-STDP so the substrate's own 1.3M weights become slowly task-shaped (local eligibility
+    × global correctness — the substrate's biology, returned). Then memory-rewarding task
+    families (v15's multi-task plan), word-level targets, and the same error-driven
     mechanisms pointed back at music: grow when dialogue relatedness drops.
   </p>
 

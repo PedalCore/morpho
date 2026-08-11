@@ -326,7 +326,7 @@ for (const [name, arm] of Object.entries(ARMS)) {
     `trained=${((arm.d * V) / 1000).toFixed(0)}k  (${((Date.now() - t0) / 60000).toFixed(1)}m)`
   );
 }
-console.log(`\nsaved to experiments/results/readout3-seed${SEED}.json`);
+console.log(`\nsaved to ${outPath.pathname}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

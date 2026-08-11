@@ -712,3 +712,43 @@ p=0.5  sampled         4.57        36.5%
    the binding constraint; the teacher-forced ↔ generation gap
    (43.2% vs 4.38-bpc trigram-grade text) is a memory gap. The
    pre-registered prediction stands confirmed.
+
+### v15 results, part 2 + v16a — the ceiling was samples-per-parameter
+
+Scaling sweep (ladder-best genome @120k, single axes then joint):
+
+```
+taps  @40k fit:  256→38.2  512→39.8  1024→42.5  2048→43.2   (bending)
+fit  @1024 taps: 10k→30.4  20k→41.0  40k→42.5  80k→42.4     (saturated)
+joint:           2048×80k→44.5   4096×80k→45.6               (re-opened!)
+```
+
+The single-axis "mid-40s plateau" prediction was WRONG in the useful way:
+data saturates only at fixed parameter count. Growing taps × data jointly
+keeps climbing (~+1.1pp per taps doubling at 80k fit). The binding
+constraint all along was samples-per-parameter, not the linear form per
+se — the "networks too small" instinct was right, about the READOUT.
+
+v16a feature arms (matched d where noted):
+
+```
+@1024 taps, 40k fit:  rates 43.2 · pairs 43.9 · ELM 44.5 · CHAR-GATE 44.9
+@2048 taps, 80k fit:  rates 44.7 · CHAR-GATE 45.8  ← NEW BEST
+@1024 taps, 80k fit:  multi-τ 42.2 (fair test, 25 samples/param)
+```
+
+1. **Nonlinearity beats size at matched parameters:** char-gated bilinear
+   taps (traces read differently per current char) add +1.1–1.7pp over
+   rate controls at equal d; ELM +1.3. The pre-registered A4 prediction
+   confirmed. 45.8% = new ladder best (session arc 39.1 → 45.8, all
+   backprop-free, ~277k trained params vs transformer's 10.7M).
+2. **Multi-τ is now a clean null.** 35.8% at 13 samples/param (starved,
+   as pre-flagged) but only 42.2% at 25:1 — slow trace banks add nothing
+   over fast rates even with adequate data. The reservoir's long-τ
+   dynamics carry no additional readable long-context information:
+   independent corroboration of the memory gap, and consistent with
+   evolution deleting recurrence.
+3. Implementation note: evaluate()-based numbers (scaling.mjs) and
+   readout3 numbers differ by a systematic ~+0.2–0.7pp for identical
+   configs (e.g. 44.5 vs 44.7 at 2048×80k) — separate engine
+   implementations; comparisons are made within-file only.
