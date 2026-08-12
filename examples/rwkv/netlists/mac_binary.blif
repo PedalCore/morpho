@@ -1,0 +1,301 @@
+.model mac_binary
+.inputs w_0 w_1 w_2 w_3 w_4 w_5 w_6 w_7 n_0 acc_0 acc_1 acc_2 acc_3 acc_4 acc_5 acc_6 acc_7 acc_8 acc_9 acc_10 acc_11 acc_12 acc_13 acc_14 acc_15 acc_16 acc_17 acc_18 acc_19 acc_20 acc_21 acc_22 acc_23
+.outputs y0_0 y0_1 y0_2 y0_3 y0_4 y0_5 y0_6 y0_7 y0_8 y0_9 y0_10 y0_11 y0_12 y0_13 y0_14 y0_15 y0_16 y0_17 y0_18 y0_19 y0_20 y0_21 y0_22 y0_23
+.names const0
+.names const1
+1
+.names w_0 n_0 w35
+11 1
+.names w_1 n_0 w36
+11 1
+.names w_2 n_0 w37
+11 1
+.names w_3 n_0 w38
+11 1
+.names w_4 n_0 w39
+11 1
+.names w_5 n_0 w40
+11 1
+.names w_6 n_0 w41
+11 1
+.names w_7 n_0 w42
+11 1
+.names acc_0 w35 w43
+10 1
+01 1
+.names acc_0 w35 w44
+11 1
+.names acc_1 w36 w44 w45
+100 1
+010 1
+001 1
+111 1
+.names acc_1 w36 w44 w46
+110 1
+101 1
+011 1
+111 1
+.names acc_2 w37 w46 w47
+100 1
+010 1
+001 1
+111 1
+.names acc_2 w37 w46 w48
+110 1
+101 1
+011 1
+111 1
+.names acc_3 w38 w48 w49
+100 1
+010 1
+001 1
+111 1
+.names acc_3 w38 w48 w50
+110 1
+101 1
+011 1
+111 1
+.names acc_4 w39 w50 w51
+100 1
+010 1
+001 1
+111 1
+.names acc_4 w39 w50 w52
+110 1
+101 1
+011 1
+111 1
+.names acc_5 w40 w52 w53
+100 1
+010 1
+001 1
+111 1
+.names acc_5 w40 w52 w54
+110 1
+101 1
+011 1
+111 1
+.names acc_6 w41 w54 w55
+100 1
+010 1
+001 1
+111 1
+.names acc_6 w41 w54 w56
+110 1
+101 1
+011 1
+111 1
+.names acc_7 w42 w56 w57
+100 1
+010 1
+001 1
+111 1
+.names acc_7 w42 w56 w58
+110 1
+101 1
+011 1
+111 1
+.names acc_8 w42 w58 w59
+100 1
+010 1
+001 1
+111 1
+.names acc_8 w42 w58 w60
+110 1
+101 1
+011 1
+111 1
+.names acc_9 w42 w60 w61
+100 1
+010 1
+001 1
+111 1
+.names acc_9 w42 w60 w62
+110 1
+101 1
+011 1
+111 1
+.names acc_10 w42 w62 w63
+100 1
+010 1
+001 1
+111 1
+.names acc_10 w42 w62 w64
+110 1
+101 1
+011 1
+111 1
+.names acc_11 w42 w64 w65
+100 1
+010 1
+001 1
+111 1
+.names acc_11 w42 w64 w66
+110 1
+101 1
+011 1
+111 1
+.names acc_12 w42 w66 w67
+100 1
+010 1
+001 1
+111 1
+.names acc_12 w42 w66 w68
+110 1
+101 1
+011 1
+111 1
+.names acc_13 w42 w68 w69
+100 1
+010 1
+001 1
+111 1
+.names acc_13 w42 w68 w70
+110 1
+101 1
+011 1
+111 1
+.names acc_14 w42 w70 w71
+100 1
+010 1
+001 1
+111 1
+.names acc_14 w42 w70 w72
+110 1
+101 1
+011 1
+111 1
+.names acc_15 w42 w72 w73
+100 1
+010 1
+001 1
+111 1
+.names acc_15 w42 w72 w74
+110 1
+101 1
+011 1
+111 1
+.names acc_16 w42 w74 w75
+100 1
+010 1
+001 1
+111 1
+.names acc_16 w42 w74 w76
+110 1
+101 1
+011 1
+111 1
+.names acc_17 w42 w76 w77
+100 1
+010 1
+001 1
+111 1
+.names acc_17 w42 w76 w78
+110 1
+101 1
+011 1
+111 1
+.names acc_18 w42 w78 w79
+100 1
+010 1
+001 1
+111 1
+.names acc_18 w42 w78 w80
+110 1
+101 1
+011 1
+111 1
+.names acc_19 w42 w80 w81
+100 1
+010 1
+001 1
+111 1
+.names acc_19 w42 w80 w82
+110 1
+101 1
+011 1
+111 1
+.names acc_20 w42 w82 w83
+100 1
+010 1
+001 1
+111 1
+.names acc_20 w42 w82 w84
+110 1
+101 1
+011 1
+111 1
+.names acc_21 w42 w84 w85
+100 1
+010 1
+001 1
+111 1
+.names acc_21 w42 w84 w86
+110 1
+101 1
+011 1
+111 1
+.names acc_22 w42 w86 w87
+100 1
+010 1
+001 1
+111 1
+.names acc_22 w42 w86 w88
+110 1
+101 1
+011 1
+111 1
+.names acc_23 w42 w88 w89
+100 1
+010 1
+001 1
+111 1
+.names w43 y0_0
+1 1
+.names w45 y0_1
+1 1
+.names w47 y0_2
+1 1
+.names w49 y0_3
+1 1
+.names w51 y0_4
+1 1
+.names w53 y0_5
+1 1
+.names w55 y0_6
+1 1
+.names w57 y0_7
+1 1
+.names w59 y0_8
+1 1
+.names w61 y0_9
+1 1
+.names w63 y0_10
+1 1
+.names w65 y0_11
+1 1
+.names w67 y0_12
+1 1
+.names w69 y0_13
+1 1
+.names w71 y0_14
+1 1
+.names w73 y0_15
+1 1
+.names w75 y0_16
+1 1
+.names w77 y0_17
+1 1
+.names w79 y0_18
+1 1
+.names w81 y0_19
+1 1
+.names w83 y0_20
+1 1
+.names w85 y0_21
+1 1
+.names w87 y0_22
+1 1
+.names w89 y0_23
+1 1
+.end

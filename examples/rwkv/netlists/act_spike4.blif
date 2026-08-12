@@ -1,0 +1,79 @@
+.model act_spike4
+.inputs x_0 x_1 x_2 x_3 x_4 x_5 x_6 x_7 x_8 x_9 x_10 x_11 x_12 x_13 x_14 x_15
+.outputs y0_0 y0_1 y0_2 y0_3 y0_4 y0_5 y0_6 y0_7 y0_8 y0_9 y0_10 y0_11 y0_12 y0_13 y0_14 y0_15
+.names const0
+.names const1
+1
+.names x_9 x_10 w18
+10 1
+01 1
+11 1
+.names x_13 x_14 w19
+10 1
+01 1
+11 1
+.names x_12 w19 w20
+10 1
+01 1
+11 1
+.names x_11 w20 w21
+10 1
+01 1
+11 1
+.names w18 w21 w22
+10 1
+01 1
+11 1
+.names x_15 w23
+0 1
+.names x_7 w23 w24
+11 1
+.names x_15 w25
+0 1
+.names x_8 w25 w26
+11 1
+.names x_15 w27
+0 1
+.names w22 w27 w28
+11 1
+.names w28 w29
+0 1
+.names w24 w29 w30
+11 1
+.names w28 w31
+0 1
+.names w26 w31 w32
+11 1
+.names const0 y0_0
+1 1
+.names const0 y0_1
+1 1
+.names const0 y0_2
+1 1
+.names const0 y0_3
+1 1
+.names const0 y0_4
+1 1
+.names const0 y0_5
+1 1
+.names const0 y0_6
+1 1
+.names w30 y0_7
+1 1
+.names w32 y0_8
+1 1
+.names w28 y0_9
+1 1
+.names const0 y0_10
+1 1
+.names const0 y0_11
+1 1
+.names const0 y0_12
+1 1
+.names const0 y0_13
+1 1
+.names const0 y0_14
+1 1
+.names const0 y0_15
+1 1
+.end
