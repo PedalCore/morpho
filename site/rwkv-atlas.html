@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — rwkv atlas</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+        line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+        border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 12px 0;
+        color: #b9c7bf; }
+  pre .hl { color: var(--amber); }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .tag { font: 11px/1.5 ui-monospace, monospace; color: var(--muted);
+         letter-spacing: .06em; text-transform: uppercase; }
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  input[type=range] { accent-color: var(--amber); }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 6px; }
+  canvas { border: 1px solid var(--line); border-radius: 8px; display: block;
+           background: #0a0d11; max-width: 100%; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .stack { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; }
+  .blockrow { display: flex; gap: 10px; align-items: stretch; cursor: pointer; }
+  .blk { flex: 1; background: var(--panel2); border: 1px solid var(--line);
+         border-radius: 8px; padding: 8px 14px; transition: border-color .15s; }
+  .blk:hover, .blk.open { border-color: var(--amber); }
+  .blk .nm { font-weight: 600; font-size: 14px; }
+  .blk .meta { font: 11.5px ui-monospace, monospace; color: var(--muted); }
+  .blk .meta b { color: var(--green); font-weight: 400; }
+  .io { background: #10161a; border: 1px solid #1d2a26; border-radius: 8px;
+        padding: 8px 14px; text-align: center; font: 13px ui-monospace, monospace;
+        color: var(--green); }
+  .expand { display: none; background: #0f1319; border: 1px dashed var(--line);
+            border-radius: 8px; padding: 10px 16px; margin: 2px 0 4px 24px;
+            font: 12.5px/1.7 ui-monospace, monospace; color: #b9c7bf;
+            overflow-x: auto; }
+  .expand.open { display: block; }
+  .expand .hl { color: var(--amber); }
+  .arrowdown { text-align: center; color: var(--muted); font-size: 13px; line-height: 1; }
+  .cap { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .illus { color: var(--red); }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px;
+          border-top: 1px solid var(--line); padding-top: 16px; max-width: 46em; }
+</style>
+</head>
+<body>
+<article>
+  <h1>rwkv <span>atlas</span></h1>
+  <p class="sub">The whole model, not just the cell: a 6-block RWKV-v4 as one
+  navigable machine — where the state lives, how far back each layer can
+  remember, what the full circuit would cost, and which numbers on this page
+  are measured versus derived. Companion to
+  <a href="/wkv-cell.html">the wkv cell</a>.</p>
+
+  <div class="links">
+    <a href="/wkv-cell.html">← the wkv cell</a>
+    <a href="/found-machines.html">← found machines</a>
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code</a>
+  </div>
+
+  <h2>the stack — click a block</h2>
+  <div class="demo">
+    <div class="teach">Six residual blocks, each a time-mix (the wkv
+    attention) followed by a channel-mix (the feed-forward). All recurrent
+    state in the entire model is per-channel and local: three wkv registers
+    plus one token-shift register per sublayer. Click any block to unfold
+    its circuit.</div>
+    <div class="stack" id="stack"></div>
+  </div>
+
+  <h2>memory horizons — how far back each block sees</h2>
+  <div class="demo">
+    <div class="teach">Each channel's decay w₂ sets a memory half-life of
+    ≈ 1/|w₂| tokens. The raster shows all 384 channels per block, sorted,
+    colored by horizon; the curves compare each block's <em>median</em>
+    channel forgetting a token planted Δt steps ago. Trained facts: w₂ spans
+    −26.5 … −0.0098; medians run from ≈ −1.2 (block 0) to ≈ −0.09 (block 5)
+    — deeper blocks hold memory longer; exactly one channel in 2,304
+    remembers past 100 tokens.</div>
+    <canvas id="spectrum" width="640" height="180"></canvas>
+    <p class="cap"><span class="illus">Illustrative per-channel spread</span> —
+    log-spaced distributions matched to the reported per-block medians, range
+    and the single &gt;100-token tail channel; the exact raster needs the
+    per-channel w₂ export (~40 KB) and this panel is built to accept it.</p>
+    <canvas id="curves" width="640" height="170" style="margin-top:10px"></canvas>
+    <div class="controls">
+      <label>token planted at Δt =
+        <input type="range" id="dt" min="1" max="120" value="12"></label>
+      <span class="readout" id="dtOut"></span>
+    </div>
+  </div>
+
+  <h2>the whole model as hardware</h2>
+  <table>
+    <tr><th>subsystem</th><th>per block</th><th>whole model</th><th>notes</th></tr>
+    <tr><td>wkv state</td><td>3 × 384 registers</td><td><b>6,912 registers</b></td>
+        <td>aa, bb, pp — the model's entire attention memory</td></tr>
+    <tr><td>token-shift state</td><td>2 × 384 registers</td><td>4,608 registers</td>
+        <td>one previous-token vector per sublayer</td></tr>
+    <tr><td>wkv arithmetic</td><td>384 cells × ~12k gates, or time-multiplexed</td>
+        <td>~5% of area</td>
+        <td>one divider serves all channels — only the output path divides</td></tr>
+    <tr><td>matmuls</td><td>R/K/V/O projections + FFN ≈ 1.9M weights</td>
+        <td>≈ 11M weights in the block stack*</td>
+        <td>the real area: multiply-accumulate arrays, not the recurrence</td></tr>
+    <tr><td>nonlinearities</td><td>sigmoid, squared-ReLU</td><td>—</td>
+        <td>same ROM-LUT treatment as the verified 2^(−x) unit</td></tr>
+  </table>
+  <p class="cap">*Architecture-derived estimate (d = 384, 4d FFN, 6 blocks,
+  excluding embeddings) — not a measured count. Everything else in this
+  table follows from the architecture; the measured facts on this page are
+  the decay/bonus statistics, the per-block error growth, and the
+  perplexity verdict.</p>
+  <p>The striking inversion: the part of the model that is <em>recurrent</em>
+  — the part this whole research line exists to build — is tiny. All of
+  RWKV's memory is 6,912 registers, smaller than a single row-pair of its
+  embedding matrix. The expensive part is ordinary linear algebra, which is
+  exactly the part hardware already knows how to build. A full-model Morpho
+  circuit is therefore <b>possible and mostly boring</b>: the interesting,
+  novel silicon — the wkv bank — is already designed, format-validated
+  (perplexity 6.244 in every format tested), and componentwise verified;
+  the matmuls are commodity MAC arrays around it.</p>
+
+  <h2>could the whole model run on this page?</h2>
+  <p>Yes, with one export. A 6-block, d=384 model is ≈ 11M block-stack
+  weights; at int8 that is ~11 MB — heavy for a self-contained page but
+  feasible, and the per-block decay/bonus vectors alone (~40 KB) would make
+  this atlas exact today. The path, in order of effort: (1) per-channel
+  w₂/u export → exact spectrum raster above; (2) single-block weights
+  → one full time-mix running live against the wkv simulator; (3) full
+  int8 export → the whole model generating text in-browser through the
+  same circuit numerics the sweep validated. Each step keeps the property
+  that made the wkv page evidence rather than illustration: everything
+  displayed is either measured or bit-verified.</p>
+
+  <p class="foot">
+    Measured numbers from the trained 6-block model and its quantization
+    sweep: w₂/u ranges and medians, the 1-in-2,304 slow channel, per-block
+    error growth, perplexity 6.244 across all formats. Derived numbers are
+    labeled. The wkv cell's circuit design and its exhaustively-verified
+    2^(−x) unit: <a href="/wkv-cell.html">the wkv cell</a> ·
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems/examples/arithmetic">examples/arithmetic/</a>.
+  </p>
+</article>
+
+<script>
+'use strict';
+/* ---------- the stack ---------- */
+const BLOCKS = [
+  {w2: -1.2,  note: 'fast — reacts, forgets'},
+  {w2: -0.9,  note: 'fast'},
+  {w2: -0.55, note: 'mixing'},
+  {w2: -0.3,  note: 'slower'},
+  {w2: -0.15, note: 'slow'},
+  {w2: -0.09, note: 'slowest — carries context'},
+];
+const stack = document.getElementById('stack');
+function addIO(txt) {
+  const d = document.createElement('div');
+  d.className = 'io'; d.textContent = txt; stack.appendChild(d);
+}
+function addArrow() {
+  const d = document.createElement('div');
+  d.className = 'arrowdown'; d.textContent = '↓'; stack.appendChild(d);
+}
+addIO('token → embedding (d = 384)');
+addArrow();
+BLOCKS.forEach((b, i) => {
+  const row = document.createElement('div');
+  row.className = 'blockrow';
+  const blk = document.createElement('div');
+  blk.className = 'blk';
+  blk.innerHTML = `<div class="nm">block ${i}</div>
+    <div class="meta">median w₂ ≈ <b>${b.w2}</b> · half-life ≈
+    <b>${(1 / Math.abs(b.w2)).toFixed(1)}</b> tokens · ${b.note}</div>`;
+  row.appendChild(blk);
+  stack.appendChild(row);
+  const ex = document.createElement('div');
+  ex.className = 'expand';
+  ex.innerHTML =
+`<span class="hl">time-mix</span>   x ─┬─ token-shift REG ── μ-blend ── R,K,V projections (384×384 each)
+           │                              │
+           │              K,V ──▶ <span class="hl">wkv bank: 384 independent cells</span>
+           │                       each: aa,bb,pp REGs + 2 max + 4·2^(−x)
+           │                       + 6 mul + 1 divide (time-multiplexed)
+           │                              │
+           └──────────── σ(R) ⊙ wkv ── output projection ──(+ residual)
+
+<span class="hl">channel-mix</span>  x ─┬─ token-shift REG ── μ-blend ── K proj (384→1536)
+           │                      squared-ReLU
+           └───── σ(R) ⊙ ──────── V proj (1536→384) ──────(+ residual)`;
+  stack.appendChild(ex);
+  blk.onclick = () => {
+    ex.classList.toggle('open');
+    blk.classList.toggle('open');
+  };
+  addArrow();
+});
+addIO('layernorm → head → next-token logits    ·    perplexity 6.244 in every circuit format tested');
+
+/* ---------- decay spectrum raster (illustrative, export-ready) ---------- */
+const spec = document.getElementById('spectrum').getContext('2d');
+function channelW2s(median) {
+  // log-spaced spread around the block median, clamped to trained range
+  const out = [];
+  for (let i = 0; i < 384; i++) {
+    const z = (i / 383) * 2 - 1;                     // -1 .. 1
+    const w = -Math.exp(Math.log(Math.abs(median)) + z * 1.6);
+    out.push(Math.max(-26.5, Math.min(-0.0098, w)));
+  }
+  return out.sort((a, b) => a - b);
+}
+{
+  const W = 640, H = 180, rowH = H / 6;
+  spec.fillStyle = '#0a0d11'; spec.fillRect(0, 0, W, H);
+  BLOCKS.forEach((b, bi) => {
+    const ws = channelW2s(b.w2);
+    if (bi === 5) ws[383] = -0.0098;                 // the 1-in-2304 tail
+    ws.forEach((w, ci) => {
+      const horizon = 1 / Math.abs(w);               // tokens to half
+      const h01 = Math.min(1, Math.log10(horizon * 10) / 3);  // 0.1..100+
+      const r = Math.round(20 + 206 * h01);
+      const g = Math.round(26 + 135 * h01);
+      spec.fillStyle = `rgb(${r},${g},${Math.round(63 * (1 - h01) + 30)})`;
+      spec.fillRect((ci / 384) * W, bi * rowH + 2, W / 384 + 0.5, rowH - 4);
+    });
+    spec.fillStyle = '#9aa1ad'; spec.font = '10px ui-monospace';
+    spec.fillText(`block ${bi}`, 6, bi * rowH + 13);
+  });
+  spec.fillStyle = '#7bd8a5';
+  spec.fillText('◀ forgets in <1 token          dark → bright = longer memory          remembers 100+ ▶', 130, H - 6);
+}
+
+/* ---------- decay curves ---------- */
+const cur = document.getElementById('curves').getContext('2d');
+function drawCurves() {
+  const W = 640, H = 170, dt = +document.getElementById('dt').value;
+  cur.fillStyle = '#0a0d11'; cur.fillRect(0, 0, W, H);
+  cur.strokeStyle = '#1a212c';
+  for (let g = 1; g < 4; g++) {
+    cur.beginPath(); cur.moveTo(0, (g / 4) * (H - 20));
+    cur.lineTo(W, (g / 4) * (H - 20)); cur.stroke();
+  }
+  const colors = ['#5a6b8c', '#6b7fa3', '#7d94ba', '#98aed0', '#c4cfe0', '#e2a13f'];
+  const maxT = 130;
+  BLOCKS.forEach((b, bi) => {
+    cur.strokeStyle = colors[bi]; cur.lineWidth = bi === 5 ? 2.2 : 1.4;
+    cur.beginPath();
+    for (let t = 0; t <= maxT; t++) {
+      const y = Math.pow(2, b.w2 * t);
+      const py = (H - 20) * (1 - y) + 4;
+      t ? cur.lineTo((t / maxT) * W, py) : cur.moveTo(0, py);
+    }
+    cur.stroke();
+  });
+  // the planted token line + remaining weight per block
+  const x = (dt / maxT) * W;
+  cur.strokeStyle = '#d96c6c'; cur.lineWidth = 1;
+  cur.beginPath(); cur.moveTo(x, 0); cur.lineTo(x, H - 18); cur.stroke();
+  cur.font = '10px ui-monospace';
+  BLOCKS.forEach((b, bi) => {
+    const rem = Math.pow(2, b.w2 * dt);
+    cur.fillStyle = colors[bi];
+    cur.fillText(`b${bi} ${(rem * 100).toFixed(rem > .01 ? 0 : 1)}%`,
+                 W - 74, 14 + bi * 13);
+  });
+  cur.fillStyle = '#9aa1ad';
+  cur.fillText('remaining weight of a token planted Δt ago (median channel per block)', 8, H - 6);
+  document.getElementById('dtOut').textContent =
+    `Δt = ${dt} tokens — block 0 keeps ${(Math.pow(2, BLOCKS[0].w2 * dt) * 100).toFixed(2)}%, ` +
+    `block 5 keeps ${(Math.pow(2, BLOCKS[5].w2 * dt) * 100).toFixed(0)}%`;
+}
+document.getElementById('dt').oninput = drawCurves;
+drawCurves();
+</script>
+</body>
+</html>
