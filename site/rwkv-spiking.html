@@ -261,14 +261,24 @@ measured 7,201-gate wkv cell):</p>
 </table>
 <p>The signed-ternary input lane the fully-spiking variant needs (add or
 subtract the weight, never scale it) measures 96 gates — 3.4× smaller than
-dense. Three honest boundaries hold throughout: this model routes spikes only
+dense. Two honest boundaries hold throughout: this model routes spikes only
 through W<sub>v</sub> — 27% of its MACs — which is why the current saving is
-single-digit; event-driven <em>skipping</em> saves energy and time, never
-area — gates are laid down for the worst case; and weight <em>bandwidth</em>
-is untouched, so on the DRAM-bound builds from the
-<a href="/morpho-silicon.html">silicon page</a> spiking doesn't raise
-tokens/s at all — what it raises is tokens per second <b>per unit area</b>
-and per joule, the currency that matters once weights are on-chip.
+single-digit; and event-driven <em>skipping</em> saves energy and time, never
+area — gates are laid down for the worst case.</p>
+<p><b>A correction, published rather than patched:</b> an earlier version of
+this paragraph claimed weight bandwidth is untouched by spiking, so
+bandwidth-bound builds see no tokens/s gain. That's only true of a build that
+fetches densely. An event-driven build never fetches the W<sub>v</sub> rows
+of silent channels — with weights stored event-major (the same transposed
+layout the kernel race above depends on; flash and silicon share the locality
+requirement), per-token traffic drops from 13.1 MB to ~9.9 MB at the measured
+~10% firing, which is a real ~1.2–1.3× on the bandwidth-bound builds from the
+<a href="/morpho-silicon.html">silicon page</a> (the discount from the clean
+1.32×: fired rows are known only after the layer's spikes are computed, so
+those fetches can't be fully prefetched, and row-granular skipping costs some
+random-access efficiency). The fully-spiking variant would roughly double the
+skippable share. What spiking raises unconditionally remains tokens per
+second <b>per unit area</b> and per joule.
 Reproduce: <code>python3 examples/rwkv/spike_mac.py</code> (lanes) and
 <code>python3 examples/rwkv/count_gates.py</code> (engines and totals).</p>
 
