@@ -2,4 +2,4 @@ __marimo__/
 __pycache__/
 tmp.py
 # local reading copies of papers cited by arXiv id in snn/EXPERIMENT.md
-/*.pdf
+/*.pdfspikelm/export/model-int8.bin
