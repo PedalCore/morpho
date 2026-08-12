@@ -1,0 +1,9 @@
+base-rwkv-d384L6-s42: 13.1M params on mps
+step 0: loss 8.763 · 1477 tok/s
+step 50: loss 6.603 · 2043 tok/s
+step 100: loss 5.255 · 1897 tok/s
+step 150: loss 4.205 · 1684 tok/s
+step 200: loss 3.775 · 1603 tok/s
+step 250: loss 3.579 · 1571 tok/s
+  eval: val_loss 3.4578 ppl 31.75 rep4 0.0141 distinct2 0.8678
+  sample: ' Lily. She loved to play together and play in the park. She was walkinging. One day, she went to the park with her frien'

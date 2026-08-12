@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — a spiking model that speaks</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  h3 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; line-height: 1.45;
+        background: #12151b; border: 1px solid #242a35; border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; margin: 14px 0; color: #c4c9d4; }
+  .quote { border-left: 3px solid #3a4150; padding: 6px 0 6px 14px; margin: 12px 0;
+           color: #c4c9d4; font-size: 15px; }
+  .quote b { color: #9aa1ad; font-weight: 600; display: block; font-size: 12.5px;
+             text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>a spiking model that <span>speaks</span></h1>
+  <p class="sub">Chapter two of the language research. After the reservoir campaign closed, we
+  rebuilt from the other end: a small spiking language model trained directly with
+  surrogate gradients. Milestone 0 — it writes stories. Milestone 1 — at matched budget,
+  replacing its activations with spikes firing 9% of the time costs about 6% perplexity
+  and nothing readable. August 2026.</p>
+
+  <div class="links">
+    <a href="changing-tack.html">← why we changed tack</a>
+    <a href="language.html">← chapter one: the reservoir campaign</a>
+    <a href="https://github.com/PedalCore/morpho/tree/snn-lab/spikelm">code</a>
+  </div>
+
+  <h2>The setup</h2>
+  <p>
+    One model, one flag. A 13.1M-parameter RWKV-style recurrent language model — 6 blocks,
+    width 384, a 4,000-token BPE vocabulary, 256-token context — trained on TinyStories with
+    ordinary next-token cross-entropy and AdamW. The <em>spiking</em> arm is byte-identical
+    except that each block's channel-mix nonlinearity is replaced by integer spike units:
+    the pre-activation is quantized into 0–4 spikes against a learnable threshold in the
+    forward pass, and a rectangular surrogate carries the gradient backward. Thresholds are
+    learnable <em>per channel, per block</em> (9,216 of them), and a regularizer penalizes
+    firing above 10%.
+  </p>
+  <p>
+    Everything else — residual pathways, embeddings, the recurrent state update, the output
+    head — stays floating point, deliberately. Three independent sources say so: BICLab's
+    v3 lesson (train soft, infer sparse), SpikeDecoder's ablation where fully-spiking
+    residuals collapsed the model from 98% to 18–42%, and our own reservoir campaign, which
+    learned the same thing the hard way. This is spiking as an <em>increment</em>, measured
+    one site at a time — not a purity contest.
+  </p>
+
+  <h2>Milestone 0 — does it speak at all?</h2>
+  <p>
+    The conventional baseline is the yardstick everything else is measured against, and it
+    cleared the bar quickly. Perplexity fell 22.0 → 12.6 → 10.6 → 9.9 over the first 2,000
+    steps and reached 6.42 by step 5,500 (~4.5 hours on an M3 laptop, 2,000 tokens/second).
+    But the number is not the point — the rollouts are. Five fixed prompts, generated fresh
+    at every checkpoint with fixed sampling seeds:
+  </p>
+  <div class="quote"><b>step 300</b>
+    Lily. She loved to play together and play in the park. She was walkinging. One day, she
+    went to the park with her friends. She looked at her house and said, "Do you want. But
+    we can fix it?"</div>
+  <div class="quote"><b>step 5,000 — same prompt, same seed</b>
+    the magical coin! He was so happy he had found something even better than an old coin!
+    <br>&lt;|endoftext|&gt;<br>Once upon a time there was an ancient garden. In the garden, a
+    little girl lived on the farm. She…</div>
+  <p>
+    Between those two checkpoints the model stops inventing morphology ("walkinging"),
+    starts closing narrative arcs, and — the detail we enjoyed most — learns that stories
+    <em>end</em>: it emits the document separator and begins a fresh, unrelated story. It
+    learned the shape of the corpus, not just its words.
+  </p>
+
+  <h2>Milestone 1 — what do spikes cost?</h2>
+  <p>
+    The controlled question. Same data, same 13.1M parameters, same learning-rate schedule,
+    same evaluation harness, same sampling seeds — the only difference is the activation
+    function. Both arms run to step 5,500.
+  </p>
+  <table>
+    <tr><th>step</th><th>baseline perplexity</th><th>spiking perplexity</th></tr>
+    <tr><td>500</td><td>21.97</td><td><b>21.47</b></td></tr>
+    <tr><td>1,000</td><td><b>12.61</b></td><td>14.71</td></tr>
+    <tr><td>2,500</td><td>8.87</td><td><b>8.28</b></td></tr>
+    <tr><td>3,000</td><td>9.10</td><td><b>8.27</b></td></tr>
+    <tr><td>4,000</td><td><b>7.29</b></td><td>8.58</td></tr>
+    <tr><td>5,000</td><td><b>6.73</b></td><td>7.32</td></tr>
+    <tr><td>5,500</td><td><b>6.42</b></td><td>6.80</td></tr>
+  </table>
+  <p>
+    The two curves cross three times. The spiking arm leads early, wobbles while its
+    thresholds settle, leads again around step 3,000, and finishes 0.38 perplexity (≈6%)
+    behind. On degeneration — the metric that actually predicts whether generation is usable
+    — the spiking model is <em>better</em>: repeated 4-grams 1.0% vs 1.6%, distinct bigrams
+    0.882 vs 0.872.
+  </p>
+  <p>And read side by side at step 5,500, from the same prompt and seed:</p>
+  <div class="quote"><b>spiking</b>
+    Lily. She loved to play outside in the snow. One day, she went to the park with her mom
+    and saw a very big slide. She wanted to play, so she asked her mom if she could go on
+    the slide, but her mom sa…</div>
+  <div class="quote"><b>baseline</b>
+    Lily. She loved to play outside in the sunshine. One day, she went to the park with her
+    mommy and saw a very big slide. She wanted to go, but she knew she had to be careful.</div>
+  <p>
+    Two models, one with continuous activations and one communicating in integer spikes,
+    writing the same story about the same girl and the same slide.
+  </p>
+
+  <h3>The sparsity actually achieved</h3>
+  <p>
+    Measured on held-out text at step 5,500, the fraction of spike units firing per block:
+  </p>
+  <pre>block   1     2     3     4     5     6      mean
+rate    4%    5%    6%    8%   13%   20%     9.2%</pre>
+  <p>
+    Nine percent. On event-driven hardware, that is the fraction of channel-mix activations
+    that would need to be touched at all — and the gradient of sparsity across depth (dense
+    at the top, sparse at the bottom) emerged on its own from the rate regularizer, not from
+    a schedule we imposed.
+  </p>
+  <div class="verdict pos">
+    <b>Milestone 1 result:</b> at 13.1M parameters on TinyStories, replacing the channel-mix
+    nonlinearity with integer spike units firing ~9% of the time costs ≈6% perplexity, no
+    measurable generation quality, and no training speed (2,158 vs 2,000 tokens/second).
+    Caveats stated plainly: one seed, one budget, and this is an early spike degree — the
+    residuals, embeddings, recurrence and head are all still floating point. The expensive
+    step, spiking the sequence mixing itself, is still ahead.
+  </div>
+
+  <h2>What this is not</h2>
+  <p>
+    It is not an energy result. The commonly quoted 87–93% reductions in this literature are
+    <em>operation counts</em> — spikes turn multiply-accumulates into accumulates, and
+    event-driven silicon skips silent units — and none of that is realized on a laptop GPU,
+    where both of our arms burn identical watts and run at identical speed. Our 9.2% firing
+    rate is the honest input to such an estimate, not the estimate itself. It is also not a
+    parameter-efficiency result: both arms are the same size, and the literature that spikes
+    attention has needed <em>more</em> parameters, not fewer.
+  </p>
+  <p>
+    And the spiking machinery here is deliberately borrowed rather than invented: the RWKV
+    backbone from <a href="https://arxiv.org/abs/2302.13939">SpikeGPT</a>, integer-spike
+    training from <a href="https://github.com/BICLab">BICLab</a>'s spike-firing
+    approximation, per-unit learnable spike parameters from SpikeDecoder's ablations,
+    surrogate gradients from standard practice. The novelty budget is being saved for what
+    comes next.
+  </p>
+
+  <h2>What comes next</h2>
+  <table>
+    <tr><th>milestone</th><th>question</th></tr>
+    <tr><td>2 — binary annealing</td><td>4 integer levels → 2 → 1. Where does quality break as spikes become truly binary? This is where we expect the first real cost.</td></tr>
+    <tr><td>3 — Morpho development</td><td>Grow and prune the sparse structure <em>between</em> training phases, using the developmental laws the reservoir campaign validated. Does a developed architecture beat a fixed one at matched parameters?</td></tr>
+    <tr><td>4 — synchronization</td><td>A <a href="https://arxiv.org/abs/2505.05522">CTM</a>-style readout over pairwise unit synchrony — the mechanism our own ablation independently pointed at when it found the old substrate's value was carried by spike <em>timing</em>.</td></tr>
+  </table>
+  <p>
+    Milestones 3 and 4 are where this stops being a reproduction and starts being research
+    again — and both rest on findings the first chapter paid for.
+  </p>
+
+  <p class="foot">
+    Reproduce: <code>cd spikelm &amp;&amp; python bench.py</code> (throughput on your
+    machine), <code>python -m spikelm.data</code>, then
+    <code>python -m spikelm.train</code> and <code>--spiking</code>. Checkpoints, JSONL logs
+    and every rollout sample land in <code>runs/</code>. All figures above come from those
+    files. Chapter one — the developmental reservoir, its positive attribution result and
+    its ceiling — is <a href="language.html">here</a>, and the reasoning behind the change of
+    direction is <a href="changing-tack.html">here</a>.
+  </p>
+</article>
+</body>
+</html>

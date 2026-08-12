@@ -71,3 +71,19 @@ critic (value-baselined), not raw reward. Relevant here if we ever
 fine-tune on non-differentiable rollout metrics (use an RPE baseline),
 and retro-relevant to the reservoir campaign's v16d null (raw ±reward —
 the untested variant is critic-baselined RPE).
+
+## Results log
+
+**Milestone 0 (baseline, step 5500):** val ppl 6.42, rep4 0.016, distinct2 0.872.
+Coherent on-prompt TinyStories; learned the document separator and starts
+fresh stories after an ending. ~2000 tok/s, 2.9GB, M3/MPS.
+
+**Milestone 1 (spiking, matched 5500 steps):** val ppl 6.80 (+6% vs
+baseline), rep4 0.010 and distinct2 0.882 (both BETTER than baseline),
+firing rates per block 4/5/6/8/13/20% (mean 9.2%), 2158 tok/s. Curves
+crossed 3× during training — the gap is within noise-of-seed territory.
+Caveats: one seed, one budget, spike degree 1–2 (float residuals,
+embeddings, wkv, head). Write-up: soundlark.studio/spikelm.html
+
+**Milestone 2 (in progress):** anneal 4 integer levels → 2 → 1 (binary),
+measuring ppl + rollout quality + firing rate at each level.

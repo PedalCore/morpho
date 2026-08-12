@@ -1,0 +1,70 @@
+downloading TinyStories-train.txt (first 200MB)…
+training 4096-token BPE on 4MB sample…
+  bpe vocab 512
+  bpe vocab 1024
+  bpe vocab 1536
+  bpe vocab 2048
+  bpe vocab 2560
+  bpe vocab 3072
+  bpe vocab 3584
+  bpe vocab 4096
+downloading TinyStories-valid.txt…
+tokenizing train.txt (199MB)…
+  4MB → 1054444 tokens
+  8MB → 2129738 tokens
+  12MB → 3210948 tokens
+  16MB → 4276279 tokens
+  20MB → 5343730 tokens
+  24MB → 6408527 tokens
+  28MB → 7481411 tokens
+  32MB → 8549133 tokens
+  36MB → 9621730 tokens
+  40MB → 10679872 tokens
+  44MB → 11745485 tokens
+  48MB → 12818783 tokens
+  52MB → 13888683 tokens
+  56MB → 14957976 tokens
+  60MB → 16023788 tokens
+  64MB → 17094094 tokens
+  68MB → 18160185 tokens
+  72MB → 19218568 tokens
+  76MB → 20271863 tokens
+  80MB → 21338001 tokens
+  84MB → 22413800 tokens
+  88MB → 23474549 tokens
+  92MB → 24551004 tokens
+  96MB → 25633716 tokens
+  100MB → 26702690 tokens
+  104MB → 27773457 tokens
+  108MB → 28846258 tokens
+  112MB → 29918357 tokens
+  116MB → 30998399 tokens
+  120MB → 32070697 tokens
+  124MB → 33135008 tokens
+  128MB → 34216725 tokens
+  132MB → 35282346 tokens
+  136MB → 36366365 tokens
+  140MB → 37446392 tokens
+  144MB → 38521516 tokens
+  148MB → 39611760 tokens
+  152MB → 40681496 tokens
+  156MB → 41752086 tokens
+  160MB → 42826473 tokens
+  164MB → 43885703 tokens
+  168MB → 44966141 tokens
+  172MB → 46048857 tokens
+  176MB → 47117095 tokens
+  180MB → 48194694 tokens
+  184MB → 49272944 tokens
+  188MB → 50342778 tokens
+  192MB → 51410888 tokens
+  196MB → 52479006 tokens
+  199MB → 53527739 tokens
+  wrote /Users/marycarrigan/coding/morpho-snn/spikelm/spikelm/../data/train.bin: 53527739 tokens
+tokenizing valid.txt (18MB)…
+  4MB → 1057843 tokens
+  8MB → 2118997 tokens
+  12MB → 3184812 tokens
+  16MB → 4267079 tokens
+  18MB → 4939686 tokens
+  wrote /Users/marycarrigan/coding/morpho-snn/spikelm/spikelm/../data/valid.bin: 4939686 tokens
