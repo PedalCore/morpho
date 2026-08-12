@@ -134,12 +134,15 @@ pp′ = p2</pre>
       <span><span class="sw" style="background:#e2a13f"></span>out — circuit</span>
       <span><span class="sw" style="background:#d96c6c"></span>|error| ×32</span>
     </div>
+    <div class="tag" style="margin-top:10px">error accumulation over the
+      recurrence (log scale, 10⁻⁶ … 1) — the stateful question</div>
+    <canvas id="ecv" width="640" height="110"></canvas>
     <div class="controls">
       <button id="run">Pause</button>
       <button id="burst" class="primary">Inject burst ✦</button>
-      <label>decay w <input type="range" id="w" min="-500" max="-2" value="-40">
+      <label>decay w <input type="range" id="w" min="-2650" max="-1" value="-120">
         <span class="readout" id="wOut"></span></label>
-      <label>bonus u <input type="range" id="u" min="-200" max="200" value="60">
+      <label>bonus u <input type="range" id="u" min="-7" max="72" value="30">
         <span class="readout" id="uOut"></span></label>
       <label>format <select id="fmt" class="selbox">
         <option value="8">Q8.8</option><option value="10">Q6.10</option>
@@ -147,9 +150,52 @@ pp′ = p2</pre>
       <label>2^x LUT <select id="lut" class="selbox">
         <option value="32">32 + interp</option><option value="64">64 + interp</option>
         <option value="32n">32, no interp</option></select></label>
+    </div>
+    <div class="controls">
+      <span class="tag">trained-model presets:</span>
+      <button class="pre" data-w="-120" data-u="30">early block (w₂≈−1.2)</button>
+      <button class="pre" data-w="-9" data-u="30">deep block (−0.09)</button>
+      <button class="pre" data-w="-1" data-u="30">slow tail (−0.01)</button>
+      <button class="pre" data-w="-2650" data-u="30">fast flush (−26.5)</button>
+    </div>
+    <div class="controls">
       <span class="readout" id="err"></span>
+      <span class="readout" id="err256"></span>
+    </div>
+    <div class="controls">
+      <span class="readout" id="sat"></span>
     </div>
   </div>
+
+  <h2>evidence, not illustration</h2>
+  <p>The simulator's <code>2^(−x)</code> unit is <b>bit-identical to a compiled
+  MorphoHDL circuit</b>: <code>examples/arithmetic/exp2.py</code> implements it
+  as ROM LUTs + the article's logarithmic shifter + an 11×3 Wallace
+  interpolator (388 gates) and verifies it <b>exhaustively over all 65,536
+  Q8.8 inputs</b> against exactly the semantics running on this page — worst
+  deviation from true 2^(−x) is 6.5×10⁻⁵. The division uses the same
+  restoring-division semantics as the verified Morpho divider
+  (<code>examples/arithmetic/divider.py</code>, 527 gates at 16/8). Registers,
+  maxes, multiplies and adds model the verified components bit-for-bit at
+  these widths. Full-cell bit-exactness — the compiled wkv_cell against this
+  page on shared token streams — is the first deliverable after the format is
+  chosen by measurement.</p>
+  <p><b>Independent validation (trained-model side):</b> a separately-written
+  implementation of the same circuit numerics, run on synthetic keys/values
+  across the full decay range, measured RMS error 2.6×10⁻³ with exact
+  division and 3.5×10⁻³ with the restoring divider — independently
+  reproducing this page's ≈3×10⁻³. More importantly, the stateful question
+  has a measured answer: <b>error is bounded over a 256-step recurrence, not
+  merely small at one step</b> — 1.8×10⁻³ in the first quarter, 2.5×10⁻³ in
+  the last, rising slightly then settling, with zero saturation events at
+  Q8.8. The max-subtraction normalization is doing its job: quantization
+  error does not compound through aa/bb.</p>
+  <p><b>Prediction on record</b> (before the perplexity sweep reports):
+  Q6.10 breaks first on the decay side — pp + w₂ must represent steps down
+  to −26.5 and Q6.10 tops out at ±32, leaving almost no headroom. The
+  eight-arm sweep (LUT 32/64, interpolation on/off, exact-exp, exact-div vs
+  restoring divider, Q6.10/Q10.6) isolates each cause and reports held-out
+  perplexity, saturation counts, and generated text per format.</p>
 
   <h2>unit inventory · per channel per token</h2>
   <table>
@@ -174,14 +220,31 @@ pp′ = p2</pre>
 
   <h2>precision plan</h2>
   <p>The max-subtraction already bounds every exponent, so dynamic range is
-  solved by construction; the open question is fraction width. The simulator
-  above is the intuition pump — Q8.8 vs Q6.10, LUT size, interpolation on/off
-  — but the committing test is measured task quality: quantize the wkv path
-  of a trained model to the exact candidate numerics (base-2 LUT exponential,
-  chosen Q-format, real divider) and read the perplexity. Watch
-  <code>pp</code>'s integer width: trained decays span w ≈ −20 (flushes in a
-  token) to w ≈ −0.007 (persists for hundreds), and the slow channels are the
-  ones that accumulate.</p>
+  solved by construction; the open question is fraction width. The presets
+  above come from a trained 6-block model: w₂ = w·log₂e spans <b>−26.5 to
+  −0.0098</b> (median ≈ −1.2 in early blocks, ≈ −0.09 by block 5 — deeper
+  blocks hold memory longer), u spans −0.07 to 0.72, and slow-decay channels
+  are a genuine but rare tail: <b>exactly 1 channel in 2,304</b> holds memory
+  beyond 100 tokens. That tail is the stress case — it integrates
+  quantization error the longest — but it is a tail risk, not the operating
+  point, which changes how much headroom is worth buying.</p>
+  <p><b>pp width, concretely:</b> pp is a running max of k₂ and pp + w₂, so
+  it tracks recent key magnitudes rather than accumulating without bound.
+  Two constraints size it: no clipping at the top of the k₂ range, and one
+  decay step of −26.5 must be representable without underflow — a 5-bit
+  integer part plus sign as the floor. Q6.10 is therefore expected to fail
+  first on the decay side; the format switch and the saturation counters
+  above let you watch it happen.</p>
+  <p><b>Two architecture notes.</b> Only the output path divides — the state
+  update doesn't — so one divider (or Newton–Raphson reciprocal) can be
+  time-multiplexed across all 384 channels rather than instantiated per
+  channel. And the base-2 export transform is exactly: w₂ = w·log₂e,
+  u₂ = u·log₂e, with k₂ free by scaling the key projection matrix by log₂e
+  at export — mathematically identical, hardware-native.</p>
+  <p>The committing test remains measured task quality: quantize the trained
+  model's wkv path to the exact candidate numerics (this LUT exponential,
+  this divider, candidate Q-formats) and read perplexity and rollout quality
+  per format. This page picks candidates; that measurement commits one.</p>
 
   <p class="foot">
     Recurrence: RWKV-v4 numerically-stable form, base-2 semantics (log₂e
@@ -227,19 +290,28 @@ function buildLut() {
   LUT = Array.from({length: n + 1},
       (_, i) => Math.round(65536 * Math.pow(2, -i / n)));
 }
+const clips = {aa: 0, bb: 0, pp: 0, lut: 0, steps: 0};
 const SAT = x => Math.max(-32768, Math.min(32767, x | 0));
+const SATC = (x, name) => {
+  const y = SAT(x);
+  if (y !== (x | 0)) clips[name]++;
+  return y;
+};
 function exp2neg(xq) {              // xq >= 0 in Q(FRAC) -> Q16 in (0,1]
   if (xq < 0) xq = 0;
   const n = xq >> FRAC;
-  if (n >= 16) return 0;
+  if (n >= 16) { clips.lut++; return 0; }
   const fracBits = FRAC, idxBits = Math.log2(LUTN);
   const shift = fracBits - idxBits;
   const idx = shift >= 0 ? (xq >> shift) & (LUTN - 1)
                          : (xq << -shift) & (LUTN - 1);
   let val = LUT[idx];
   if (INTERP && shift > 0) {
+    // floor semantics: val - ((val - next) * rem >> shift) — bit-identical
+    // to the compiled Morpho unit (examples/arithmetic/exp2.py), which is
+    // exhaustively verified over all 65,536 Q8.8 inputs
     const rem = xq & ((1 << shift) - 1);
-    val = val + (((LUT[idx + 1] - val) * rem) >> shift);
+    val = val - (((val - LUT[idx + 1]) * rem) >> shift);
   }
   return val >> n;
 }
@@ -257,15 +329,16 @@ function divQ(numq, denq) {         // restoring divide, num<<FRAC / den
 }
 const Q = {aa: 0, bb: 0, pp: -32768,
   step(kq, vq, uq, wq) {
+    clips.steps++;
     const ww = SAT(uq + kq), p = Math.max(this.pp, ww);
     const e1 = exp2neg(p - this.pp), e2 = exp2neg(p - ww);
     const num = SAT(mulQ16(this.aa, e1) + mulQ16(vq, e2));
     const den = SAT(mulQ16(this.bb, e1) + (e2 >> (16 - FRAC)) ) + 1;
     const out = SAT(divQ(num, den));
-    const ww2 = SAT(this.pp + wq), q2 = Math.max(ww2, kq);
+    const ww2 = SATC(this.pp + wq, 'pp'), q2 = Math.max(ww2, kq);
     const f1 = exp2neg(q2 - ww2), f2 = exp2neg(q2 - kq);
-    this.aa = SAT(mulQ16(this.aa, f1) + mulQ16(vq, f2));
-    this.bb = SAT(mulQ16(this.bb, f1) + (f2 >> (16 - FRAC)));
+    this.aa = SATC(mulQ16(this.aa, f1) + mulQ16(vq, f2), 'aa');
+    this.bb = SATC(mulQ16(this.bb, f1) + (f2 >> (16 - FRAC)), 'bb');
     this.pp = q2;
     return out;
   },
@@ -273,7 +346,10 @@ const Q = {aa: 0, bb: 0, pp: -32768,
 
 /* ---------- stream + plotting ---------- */
 const histV = [], histF = [], histQ = [], histE = [];
+const histLog = [];                  // full-run |err| for accumulation plot
+let err256 = null;                   // headline: rms error at step 256
 let t = 0, burst = 0, phase = 0, errSum = 0, errN = 0, errMax = 0;
+const ecv = document.getElementById('ecv'), ectx = ecv.getContext('2d');
 function tok() {                    // a wandering token stream
   phase += 0.13 + 0.05 * Math.sin(t * 0.011);
   let k = 0.9 * Math.sin(phase) + 0.4 * Math.sin(t * 0.041 + 1.3);
@@ -293,11 +369,44 @@ function step() {
   errSum += err * err; errN++; errMax = Math.max(errMax, err);
   histV.push(v); histF.push(fo); histQ.push(qo); histE.push(err);
   if (histV.length > COLS) { histV.shift(); histF.shift(); histQ.shift(); histE.shift(); }
+  if (histLog.length < 4096) histLog.push(err);
   t++;
-  document.getElementById('wOut').textContent = w.toFixed(2);
+  if (errN === 256) err256 = Math.sqrt(errSum / errN);
+  document.getElementById('wOut').textContent = w.toFixed(w > -0.1 ? 4 : 2);
   document.getElementById('uOut').textContent = u.toFixed(2);
   document.getElementById('err').textContent =
     `rms err ${Math.sqrt(errSum / errN).toExponential(1)} · max ${errMax.toExponential(1)}`;
+  document.getElementById('err256').textContent = err256 === null
+    ? `after 256 steps: … (${errN}/256)`
+    : `after 256 steps: rms ${err256.toExponential(1)}`;
+  document.getElementById('sat').textContent =
+    `saturations in ${clips.steps} steps — aa: ${clips.aa} · bb: ${clips.bb}` +
+    ` · pp: ${clips.pp} · 2^x underflows: ${clips.lut}`;
+}
+function drawErrLog() {
+  const w = 640, h = 110;
+  ectx.fillStyle = '#0a0d11'; ectx.fillRect(0, 0, w, h);
+  ectx.font = '9px ui-monospace'; ectx.fillStyle = '#3a4150';
+  for (let d = 0; d <= 6; d++) {                 // gridlines 1e0 .. 1e-6
+    const y = (d / 6) * (h - 12) + 6;
+    ectx.fillRect(0, y, w, 1);
+    ectx.fillText(`1e-${d}`, 4, y - 2);
+  }
+  ectx.strokeStyle = '#d96c6c'; ectx.lineWidth = 1.4; ectx.beginPath();
+  const n = histLog.length;
+  const stepx = w / Math.max(n, 256);
+  let started = false;
+  histLog.forEach((e, i) => {
+    const le = Math.log10(Math.max(e, 1e-7));
+    const y = ((-le) / 6) * (h - 12) + 6;
+    if (!started) { ectx.moveTo(i * stepx, Math.min(y, h - 2)); started = true; }
+    else ectx.lineTo(i * stepx, Math.min(y, h - 2));
+  });
+  ectx.stroke();
+  if (n >= 256) {                                // mark the 256-step line
+    ectx.fillStyle = '#7bd8a5';
+    ectx.fillRect(256 * stepx, 0, 1, h);
+  }
 }
 function draw() {
   ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, W, H);
@@ -319,7 +428,7 @@ function draw() {
   ctx.lineWidth = 1;
 }
 let running = true;
-function loop() { if (running) { step(); draw(); } setTimeout(loop, 50); }
+function loop() { if (running) { step(); draw(); drawErrLog(); } setTimeout(loop, 50); }
 document.getElementById('run').onclick = e => {
   running = !running; e.target.textContent = running ? 'Pause' : 'Run';
 };
@@ -330,10 +439,19 @@ function reformat() {
   LUTN = parseInt(lv); INTERP = !lv.endsWith('n');
   buildLut();
   F.reset(); Q.reset();
-  errSum = 0; errN = 0; errMax = 0;
+  errSum = 0; errN = 0; errMax = 0; err256 = null;
+  histLog.length = 0;
+  clips.aa = clips.bb = clips.pp = clips.lut = clips.steps = 0;
 }
 document.getElementById('fmt').onchange = reformat;
 document.getElementById('lut').onchange = reformat;
+document.querySelectorAll('.pre').forEach(btn => btn.onclick = () => {
+  document.getElementById('w').value = btn.dataset.w;
+  document.getElementById('u').value = btn.dataset.u;
+  reformat();
+});
+document.getElementById('w').oninput = reformat;
+document.getElementById('u').oninput = reformat;
 buildLut();
 if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
   running = false; document.getElementById('run').textContent = 'Run';

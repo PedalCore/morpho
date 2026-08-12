@@ -18,3 +18,9 @@ Both are verified against integer arithmetic (`divmod`, `pow(a, e, 2^N)`)
 on thousands of random cases, in dynamic execution and through the
 compiler. Division requires a nonzero divisor, the usual restoring-
 division precondition.
+
+`exp2.py` adds the wkv cell's `2^(−x)` unit: 32-entry ROM (arity-4 LUT
+pairs), 3-bit Wallace interpolation, and the article's logarithmic
+shifter — 388 gates, verified **exhaustively bit-exact over all 65,536
+Q8.8 inputs** against the wkv-cell page's reference semantics; worst
+deviation from true 2^(−x) is 6.5×10⁻⁵.
