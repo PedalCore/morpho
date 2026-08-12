@@ -41,6 +41,20 @@ python3 examples/hardware/export_units.py
 | `exp2neg` — wkv's 2^(−x), ROM+interp+shift | 345 | 47.1 MHz | exhaustively bit-exact before export |
 | `divider` 16/8 combinational | 416 | 14.7 MHz | 16 cascaded ripple subtractors — depth is the price of one-cycle division |
 | `serial_divider` streaming | **29** | **163.3 MHz** | the space→time rotation: same long division, 14× fewer cells, 11× the clock |
+| `wkv_cell` — the full RWKV channel | **5,648 (73% of HX8K)** | 9.8 MHz | one token per clock, whole step combinational; bit-exact vs the wkv-cell page's own JavaScript |
+
+The wkv row means the complete recurrence — two exponentials, four
+multipliers, saturating adds, restoring division, three state registers —
+fits a $10 FPGA with room to spare, single-cycle-per-token at ~10 MHz.
+That clock is the price of doing exp→multiply→divide in one combinational
+pass; pipelining the step (registers between the exp, multiply, and divide
+stages) trades latency for the fabric's real clock rate, and is a design
+choice, not a language problem. One formal-verification honesty note:
+yosys equivalence for the wkv Verilog-vs-BLIF pair is bounded at 300 s and
+does not complete — SAT equivalence over multiplier cones is the classic
+exponential case — so that pair rests on the text round-trip (bit-exact on
+120 channels × 32 ticks); the three smaller units, built by the same
+emitter, are formally proven.
 
 The last row is the article's rotation made physical: threading the
 remainder through a register instead of through space turns a deep slow

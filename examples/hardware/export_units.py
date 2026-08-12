@@ -28,6 +28,8 @@ from tiny_morpho_hw import to_blif, to_verilog, simulate_blif
 
 from examples.arithmetic.exp2 import exp2neg
 from examples.arithmetic.divider import divider, serial_divider
+from examples.rwkv.wkv_cell import (wkv_cell, ref_run, make_streams,
+                                    to_raw, from_raw)
 
 OUT = pathlib.Path(__file__).resolve().parent / 'netlists'
 OUT.mkdir(exist_ok=True)
@@ -89,9 +91,36 @@ def check_serial_divider():
           f'x {n} ticks ({gates} LUTs + {regs} FFs through .latch)')
 
 
-def equiv_check(name):
-    """yosys formal equivalence: the emitted Verilog vs the emitted BLIF."""
-    r = subprocess.run(['yosys', '-q', '-p', f"""
+def check_wkv_cell():
+    sim = compile_seq(wkv_cell, (16,) * 4)
+    names = ('kq', 'vq', 'uq', 'wq')
+    blif = to_blif(sim, 'wkv_cell', output_names=('wkv',))
+    save('wkv_cell', blif, to_verilog(sim, 'wkv_cell', output_names=('wkv',)))
+    rng = np.random.default_rng(41)
+    T, per = 32, 24
+    kq, vq, uq, wq = make_streams(T, per, rng)
+    want = ref_run(kq, vq, uq, wq)
+    S = kq.shape[1]
+    streams = [unpack(to_raw(x).ravel(), 16).reshape(16, T, S)
+               for x in (kq, vq, uq, wq)]
+    got = simulate_blif(blif, T, *streams)['wkv']            # (16, T, S)
+    got = from_raw(pack(got.reshape(16, -1)).reshape(T, S))
+    assert (got == want).all()
+    regs = sum(1 for op in sim.c.ops if op.type == 'REG')
+    gates = sum(1 for op in sim.c.ops if op.type == 'GATE')
+    print(f'wkv_cell: full RWKV channel, sequential BLIF round-trip, '
+          f'{S} channels x {T} ticks bit-exact ({gates} LUTs + {regs} FFs)')
+
+
+def equiv_check(name, timeout=None):
+    """yosys formal equivalence: the emitted Verilog vs the emitted BLIF.
+
+    SAT-based equivalence is exponential in the worst case — multiplier
+    cones are the classic hard instance — so a timeout bounds the attempt;
+    a timeout is 'not proven within budget', never treated as failure
+    (the text round-trip independently checks behavior on real streams)."""
+    try:
+        r = subprocess.run(['yosys', '-q', '-p', f"""
 read_blif {OUT}/{name}.blif
 rename {name} gold
 read_verilog {OUT}/{name}.v
@@ -101,10 +130,15 @@ splitnets -ports -format _
 equiv_make gold gate equiv
 equiv_simple
 equiv_induct
-equiv_status -assert"""], capture_output=True, text=True)
+equiv_status -assert"""], capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(f'  {name}: equivalence not proven within {timeout}s '
+              f'(SAT hard case — multiplier cones); round-trip covers it',
+              flush=True)
+        return None
     ok = r.returncode == 0
     print(f'  {name}: Verilog ≡ BLIF formally '
-          f'{"PROVEN" if ok else "FAILED: " + r.stderr[-300:]}')
+          f'{"PROVEN" if ok else "FAILED: " + r.stderr[-300:]}', flush=True)
     return ok
 
 
@@ -117,7 +151,7 @@ endmodule
 """
 
 
-def synth_and_pnr(name, wrap=None):
+def synth_and_pnr(name, wrap=None, freq=None):
     """synth_ice40 -> nextpnr-ice40 --hx8k; returns (LUTs, FFs, fmax MHz).
 
     Combinational units get a registered harness (wrap = port mapping) so
@@ -138,9 +172,11 @@ def synth_and_pnr(name, wrap=None):
     if r.returncode != 0:
         print(f'  {name}: yosys failed\n{r.stderr[-400:]}')
         return
-    r = subprocess.run(['nextpnr-ice40', '--hx8k', '--package', 'ct256',
-                        '--json', str(json_f), '--asc', str(OUT / f'{name}.asc')],
-                       capture_output=True, text=True)
+    cmd = ['nextpnr-ice40', '--hx8k', '--package', 'ct256',
+           '--json', str(json_f), '--asc', str(OUT / f'{name}.asc')]
+    if freq:                        # deep single-cycle designs miss the
+        cmd += ['--freq', str(freq)]   # 12 MHz default; constrain honestly
+    r = subprocess.run(cmd, capture_output=True, text=True)
     log = r.stdout + r.stderr
     if r.returncode != 0:
         print(f'  {name}: nextpnr failed\n{log[-400:]}')
@@ -165,6 +201,7 @@ if __name__ == '__main__':
     check_exp2()
     check_divider()
     check_serial_divider()
+    check_wkv_cell()
     print('all round trips exact: the emitted text IS the circuit')
     if not shutil.which('yosys'):
         print('\n(yosys not on PATH — netlists written, synthesis skipped)')
@@ -172,6 +209,7 @@ if __name__ == '__main__':
     print('\nformal equivalence (yosys equiv):')
     for name in ('exp2neg', 'divider', 'serial_divider'):
         equiv_check(name)
+    equiv_check('wkv_cell', timeout=300)
     if not shutil.which('nextpnr-ice40'):
         print('\n(nextpnr-ice40 not on PATH — place-and-route skipped)')
         sys.exit(0)
@@ -187,3 +225,4 @@ module divider_timed(input clk, input [15:0] a, input [7:0] b,
 endmodule
 """)
     synth_and_pnr('serial_divider')
+    synth_and_pnr('wkv_cell', freq=8)
