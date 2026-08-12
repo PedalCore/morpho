@@ -1,0 +1,154 @@
+.model serial_divider
+.inputs clk a_bit_0 b_0 b_1 b_2 b_3 b_4 b_5 b_6 b_7
+.outputs q_0
+.names const0
+.names const1
+1
+.latch w44 r11 re clk 0
+.latch w45 r12 re clk 0
+.latch w46 r13 re clk 0
+.latch w47 r14 re clk 0
+.latch w48 r15 re clk 0
+.latch w49 r16 re clk 0
+.latch w50 r17 re clk 0
+.latch w51 r18 re clk 0
+.names b_0 w19
+0 1
+.names b_1 w20
+0 1
+.names b_2 w21
+0 1
+.names b_3 w22
+0 1
+.names b_4 w23
+0 1
+.names b_5 w24
+0 1
+.names b_6 w25
+0 1
+.names b_7 w26
+0 1
+.names a_bit_0 w19 w27
+00 1
+11 1
+.names a_bit_0 w19 w28
+10 1
+01 1
+11 1
+.names r11 w20 w28 w29
+100 1
+010 1
+001 1
+111 1
+.names r11 w20 w28 w30
+110 1
+101 1
+011 1
+111 1
+.names r12 w21 w30 w31
+100 1
+010 1
+001 1
+111 1
+.names r12 w21 w30 w32
+110 1
+101 1
+011 1
+111 1
+.names r13 w22 w32 w33
+100 1
+010 1
+001 1
+111 1
+.names r13 w22 w32 w34
+110 1
+101 1
+011 1
+111 1
+.names r14 w23 w34 w35
+100 1
+010 1
+001 1
+111 1
+.names r14 w23 w34 w36
+110 1
+101 1
+011 1
+111 1
+.names r15 w24 w36 w37
+100 1
+010 1
+001 1
+111 1
+.names r15 w24 w36 w38
+110 1
+101 1
+011 1
+111 1
+.names r16 w25 w38 w39
+100 1
+010 1
+001 1
+111 1
+.names r16 w25 w38 w40
+110 1
+101 1
+011 1
+111 1
+.names r17 w26 w40 w41
+100 1
+010 1
+001 1
+111 1
+.names r17 w26 w40 w42
+110 1
+101 1
+011 1
+111 1
+.names r18 w42 w43
+10 1
+01 1
+11 1
+.names a_bit_0 w27 w43 w44
+100 1
+110 1
+011 1
+111 1
+.names r11 w29 w43 w45
+100 1
+110 1
+011 1
+111 1
+.names r12 w31 w43 w46
+100 1
+110 1
+011 1
+111 1
+.names r13 w33 w43 w47
+100 1
+110 1
+011 1
+111 1
+.names r14 w35 w43 w48
+100 1
+110 1
+011 1
+111 1
+.names r15 w37 w43 w49
+100 1
+110 1
+011 1
+111 1
+.names r16 w39 w43 w50
+100 1
+110 1
+011 1
+111 1
+.names r17 w41 w43 w51
+100 1
+110 1
+011 1
+111 1
+.names w43 q_0
+1 1
+.end
