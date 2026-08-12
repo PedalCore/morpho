@@ -158,6 +158,65 @@ rate    4%    5%    6%    8%   13%   20%     9.2%</pre>
     step, spiking the sequence mixing itself, is still ahead.
   </div>
 
+  <h2>Milestone 2 — how little can a spike say?</h2>
+  <p>
+    Our spike units emit an integer count against a learnable threshold — 0 to 4, roughly
+    2.3 bits per unit per token. Milestone 2 squeezes that alphabet down a rung at a time,
+    fine-tuning 500 steps at each level: 4 → 2 → <b>1, a true binary event</b>. Fired, or
+    didn't. One bit. This matters because the energy argument that motivates spiking is
+    cleanest when a spike is an event rather than a number, and because the recipe we
+    borrowed — train with soft multi-level spikes, anneal toward binary — is an assumption
+    we adopted on the literature's authority rather than our own evidence.
+  </p>
+  <table>
+    <tr><th>model</th><th>perplexity</th><th>mean firing rate</th><th>rep4</th><th>distinct2</th></tr>
+    <tr><td>float baseline</td><td><b>6.42</b></td><td>—</td><td>0.016</td><td>0.872</td></tr>
+    <tr><td>spikes, 4 levels</td><td>6.80</td><td>9.2%</td><td><b>0.010</b></td><td>0.882</td></tr>
+    <tr><td>spikes, 2 levels</td><td><b>6.42</b></td><td>9.8%</td><td>0.015</td><td><b>0.918</b></td></tr>
+    <tr><td><b>binary spikes (1 bit)</b></td><td><b>6.62</b></td><td>10.0%</td><td>0.014</td><td>0.895</td></tr>
+  </table>
+  <p>
+    Quality survived the squeeze. A model whose channel-mix units communicate in single-bit
+    events sits 3% behind the float baseline in perplexity and writes the same kind of story:
+  </p>
+  <div class="quote"><b>binary spikes, 10% firing</b>
+    Lily. She loved to play outside in the sunshine. One day, she felt a little bit dizzy, so
+    she went to find some water to drink in the water. / As she walked, she saw a big, strong
+    bird in the water.</div>
+  <p>
+    The second number matters as much as the first. A binarized model can hide lost amplitude
+    by simply firing more often — same information, worse sparsity, and the deployment story
+    quietly evaporates. It didn't happen: mean firing rate moved only from 9.2% to 10.0%
+    across the whole ladder. The sparsity is real and it held.
+  </p>
+  <div class="verdict pos">
+    <b>Milestone 2 result:</b> annealing to genuinely binary spikes cost ~3% perplexity and
+    no visible generation quality, at ~10% firing. That is a mild disagreement with the
+    expectation that full binarization is where quality collapses. Caveats: single seed;
+    each rung had 500 fine-tuning steps, so the level-2 and level-1 models have marginally
+    more total training than the arms they are compared against; and this is
+    <em>annealed</em> binary, not binary-from-scratch — the natural control, and the next
+    thing to run.
+  </div>
+
+  <h3>What that would mean on the right hardware</h3>
+  <p>
+    Nothing yet on ours, and it is worth being exact about why. Our spikes live in ordinary
+    float tensors that happen to contain mostly zeros, and the matmuls are still dense: a GPU
+    does not skip a multiply because an operand is 0.0, and unstructured 10%-density sparsity
+    is slower than dense arithmetic on these kernels, not faster. Both arms measure ~2,000
+    tokens/second and 2.9GB. Binarizing activations also does not shrink the 52MB of weights.
+  </p>
+  <p>
+    What it earns in principle: the projection that consumes the spike vector stops being
+    multiply-accumulate and becomes pure accumulation over the ~10% of inputs that fired.
+    For this architecture that projection is about a third of each block's matrix work, so
+    the honest operation-count estimate is roughly <b>30% off a block's arithmetic energy</b>
+    — not the 87–93% this literature usually quotes, because we have spiked one projection,
+    not the whole model. On event-driven silicon the silent 90% would cost nothing at all.
+    Every number in this paragraph is an operation-count proxy; none of it is measured watts.
+  </p>
+
   <h2>What this is not</h2>
   <p>
     It is not an energy result. The commonly quoted 87–93% reductions in this literature are
@@ -180,7 +239,7 @@ rate    4%    5%    6%    8%   13%   20%     9.2%</pre>
   <h2>What comes next</h2>
   <table>
     <tr><th>milestone</th><th>question</th></tr>
-    <tr><td>2 — binary annealing</td><td>4 integer levels → 2 → 1. Where does quality break as spikes become truly binary? This is where we expect the first real cost.</td></tr>
+    <tr><td><s>2 — binary annealing</s> ✓</td><td>Done, above: binary costs ~3% perplexity at 10% firing. Remaining control: binary trained from scratch, rather than annealed.</td></tr>
     <tr><td>3 — Morpho development</td><td>Grow and prune the sparse structure <em>between</em> training phases, using the developmental laws the reservoir campaign validated. Does a developed architecture beat a fixed one at matched parameters?</td></tr>
     <tr><td>4 — synchronization</td><td>A <a href="https://arxiv.org/abs/2505.05522">CTM</a>-style readout over pairwise unit synchrony — the mechanism our own ablation independently pointed at when it found the old substrate's value was carried by spike <em>timing</em>.</td></tr>
   </table>

@@ -87,3 +87,11 @@ embeddings, wkv, head). Write-up: soundlark.studio/spikelm.html
 
 **Milestone 2 (in progress):** anneal 4 integer levels → 2 → 1 (binary),
 measuring ppl + rollout quality + firing rate at each level.
+
+**Milestone 2 (annealing ladder, 500 fine-tune steps per rung):**
+4 levels ppl 6.80 @9.2% firing · 2 levels 6.42 @9.8% · BINARY 6.62 @10.0%.
+Quality survived binarization (~3% behind float baseline) and firing rate
+did NOT inflate to compensate. Op-count proxy: ~30% of a block's matrix
+energy, no wall-clock or memory gain on GPU/MPS (dense kernels, float
+storage). Caveats: single seed, extra fine-tune steps vs comparison arms,
+annealed-not-from-scratch.
