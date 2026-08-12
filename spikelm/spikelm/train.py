@@ -17,6 +17,7 @@ import torch
 from .data import get_tokenizer, load_split, get_batch, prepare
 from .evaluate import evaluate_rollouts
 from .model import Config, RWKVMini
+from .mamba import MambaConfig, MambaMini
 
 
 def pick_device():
@@ -29,6 +30,7 @@ def pick_device():
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--arch", default="rwkv", choices=["rwkv", "mamba"])
     ap.add_argument("--spiking", action="store_true")
     ap.add_argument("--steps", type=int, default=20000)
     ap.add_argument("--batch", type=int, default=16)
@@ -58,9 +60,13 @@ def main():
     train_data = load_split("train")
     valid_data = load_split("valid")
 
-    cfg = Config(vocab_size=tok.vocab_size, spiking=args.spiking, nlm=args.nlm,
-                 sync=args.sync, spike_in=args.spike_in, chanlif=args.chanlif)
-    model = RWKVMini(cfg).to(device)
+    if args.arch == "mamba":
+        cfg = MambaConfig(vocab_size=tok.vocab_size)
+        model = MambaMini(cfg).to(device)
+    else:
+        cfg = Config(vocab_size=tok.vocab_size, spiking=args.spiking, nlm=args.nlm,
+                     sync=args.sync, spike_in=args.spike_in, chanlif=args.chanlif)
+        model = RWKVMini(cfg).to(device)
     if args.spiking and args.levels != 4:
         from .spiking import SpikeAct
 
@@ -72,7 +78,8 @@ def main():
     lvl += "-sync" if args.sync else ""
     lvl += "-spikein" if args.spike_in else ""
     lvl += "-chanlif" if args.chanlif else ""
-    name = f"{'spike' if args.spiking else 'base'}{lvl}-rwkv-d{cfg.n_embd}L{cfg.n_layer}-s{args.seed}"
+    name = (f"mamba-d{cfg.n_embd}L{cfg.n_layer}-s{args.seed}" if args.arch == "mamba"
+            else f"{'spike' if args.spiking else 'base'}{lvl}-rwkv-d{cfg.n_embd}L{cfg.n_layer}-s{args.seed}")
     run_dir = os.path.join(os.path.dirname(__file__), "..", "runs", name)
     os.makedirs(run_dir, exist_ok=True)
     ckpt_path = os.path.join(run_dir, "ckpt.pt")
