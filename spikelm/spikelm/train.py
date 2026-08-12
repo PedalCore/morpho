@@ -38,6 +38,8 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     # milestone 2: spike-level annealing (4 integer levels -> 2 -> 1 binary)
     ap.add_argument("--levels", type=int, default=4)
+    ap.add_argument("--sync", action="store_true",
+                    help="CTM-style synchronization readout (pairwise co-activation traces)")
     ap.add_argument("--nlm", action="store_true",
                     help="CTM-style neuron-level temporal models (per-unit history weights)")
     ap.add_argument("--init-from", type=str, default=None,
@@ -52,7 +54,8 @@ def main():
     train_data = load_split("train")
     valid_data = load_split("valid")
 
-    cfg = Config(vocab_size=tok.vocab_size, spiking=args.spiking, nlm=args.nlm)
+    cfg = Config(vocab_size=tok.vocab_size, spiking=args.spiking, nlm=args.nlm,
+                 sync=args.sync)
     model = RWKVMini(cfg).to(device)
     if args.spiking and args.levels != 4:
         from .spiking import SpikeAct
@@ -62,6 +65,7 @@ def main():
                 m.set_levels(args.levels)
     lvl = f"-L{args.levels}" if (args.spiking and args.levels != 4) else ""
     lvl += "-nlm" if args.nlm else ""
+    lvl += "-sync" if args.sync else ""
     name = f"{'spike' if args.spiking else 'base'}{lvl}-rwkv-d{cfg.n_embd}L{cfg.n_layer}-s{args.seed}"
     run_dir = os.path.join(os.path.dirname(__file__), "..", "runs", name)
     os.makedirs(run_dir, exist_ok=True)

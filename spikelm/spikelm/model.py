@@ -25,6 +25,9 @@ class Config:
     spiking: bool = False  # milestone 1
     nlm: bool = False      # milestone 4a: CTM-style neuron-level temporal models
     nlm_k: int = 4         # history window each unit sees
+    sync: bool = False     # milestone 4b: CTM-style synchronization representation
+    sync_pairs: int = 512  # how many unit pairs are watched
+    sync_k: int = 32       # temporal window of the synchrony trace
 
 
 def token_shift(x):
@@ -128,6 +131,43 @@ class ChannelMix(nn.Module):
         return r * self.value(k)
 
 
+class SyncReadout(nn.Module):
+    """CTM idea #2: SYNCHRONIZATION as representation. Instead of reading the
+    model's state off individual unit activations, watch whether pairs of
+    units are active TOGETHER, and how persistently. For a random fixed set
+    of unit pairs we track an exponentially-decaying trace of their product
+    — a streaming co-activation measure, causal by construction — and add a
+    projection of those traces to the representation the output head sees.
+
+    Our own reservoir ablation pointed here independently: destroying the
+    temporal ALIGNMENT of spike traces cost more than removing them, and
+    pairwise trace products beat per-unit rates at matched parameter count.
+
+    The output projection is zero-initialized, so at step 0 the model is
+    exactly the model without it: any gain must be learned.
+    """
+
+    def __init__(self, C, n_pairs=512, k=32, seed=1234):
+        super().__init__()
+        g = torch.Generator().manual_seed(seed)
+        self.register_buffer("ia", torch.randint(0, C, (n_pairs,), generator=g))
+        self.register_buffer("ib", torch.randint(0, C, (n_pairs,), generator=g))
+        # spread initial persistence: some pairs watch the last token, some ~30
+        self.decay_raw = nn.Parameter(torch.linspace(-2.0, 3.0, n_pairs))
+        self.k = k
+        self.proj = nn.Linear(n_pairs, C, bias=False)
+        nn.init.zeros_(self.proj.weight)
+
+    def forward(self, x):                      # (B, T, C), already normalized
+        pair = x[..., self.ia] * x[..., self.ib]           # (B, T, P) co-activation
+        lam = torch.sigmoid(self.decay_raw).clamp(0.05, 0.995)
+        j = torch.arange(self.k - 1, -1, -1, device=x.device, dtype=x.dtype)
+        kern = lam.unsqueeze(1) ** j                        # (P, k), newest tap last
+        y = F.pad(pair.transpose(1, 2), (self.k - 1, 0))
+        s = F.conv1d(y, kern.unsqueeze(1), groups=kern.size(0)).transpose(1, 2)
+        return self.proj(s)
+
+
 class Block(nn.Module):
     def __init__(self, cfg, layer_id, spiking=False):
         super().__init__()
@@ -150,9 +190,14 @@ class RWKVMini(nn.Module):
         self.ln_in = nn.LayerNorm(cfg.n_embd)
         self.blocks = nn.ModuleList(Block(cfg, i, cfg.spiking) for i in range(cfg.n_layer))
         self.ln_out = nn.LayerNorm(cfg.n_embd)
+        self.sync = SyncReadout(cfg.n_embd, cfg.sync_pairs, cfg.sync_k) if cfg.sync else None
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
         self.head.weight = self.emb.weight  # tied
         self.apply(self._init)
+        if self.sync is not None:
+            # AFTER apply(): the generic Linear init would otherwise overwrite
+            # the zeros, and the sync path must start as an exact no-op
+            nn.init.zeros_(self.sync.proj.weight)
 
     def _init(self, m):
         if isinstance(m, nn.Linear):
@@ -164,7 +209,10 @@ class RWKVMini(nn.Module):
         x = self.ln_in(self.emb(idx))
         for b in self.blocks:
             x = b(x)
-        logits = self.head(self.ln_out(x))
+        x = self.ln_out(x)
+        if self.sync is not None:
+            x = x + self.sync(x)
+        logits = self.head(x)
         if targets is None:
             return logits, None
         loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), targets.reshape(-1))
