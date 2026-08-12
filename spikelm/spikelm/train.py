@@ -36,6 +36,10 @@ def main():
     ap.add_argument("--eval-every", type=int, default=500)
     ap.add_argument("--rate-lambda", type=float, default=0.1)
     ap.add_argument("--seed", type=int, default=42)
+    # milestone 2: spike-level annealing (4 integer levels -> 2 -> 1 binary)
+    ap.add_argument("--levels", type=int, default=4)
+    ap.add_argument("--init-from", type=str, default=None,
+                    help="load model weights from another checkpoint (fresh optimizer/steps)")
     args = ap.parse_args()
 
     torch.manual_seed(args.seed)
@@ -48,7 +52,14 @@ def main():
 
     cfg = Config(vocab_size=tok.vocab_size, spiking=args.spiking)
     model = RWKVMini(cfg).to(device)
-    name = f"{'spike' if args.spiking else 'base'}-rwkv-d{cfg.n_embd}L{cfg.n_layer}-s{args.seed}"
+    if args.spiking and args.levels != 4:
+        from .spiking import SpikeAct
+
+        for m in model.modules():
+            if isinstance(m, SpikeAct):
+                m.set_levels(args.levels)
+    lvl = f"-L{args.levels}" if (args.spiking and args.levels != 4) else ""
+    name = f"{'spike' if args.spiking else 'base'}{lvl}-rwkv-d{cfg.n_embd}L{cfg.n_layer}-s{args.seed}"
     run_dir = os.path.join(os.path.dirname(__file__), "..", "runs", name)
     os.makedirs(run_dir, exist_ok=True)
     ckpt_path = os.path.join(run_dir, "ckpt.pt")
@@ -57,6 +68,11 @@ def main():
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.99), weight_decay=0.01)
     start_step = 0
+    if not os.path.exists(ckpt_path) and args.init_from:
+        src = torch.load(args.init_from, map_location=device)
+        model.load_state_dict(src["model"])
+        print(f"initialized weights from {args.init_from} (step {src['step']}), "
+              f"annealing to {args.levels} spike levels")
     if os.path.exists(ckpt_path):
         ck = torch.load(ckpt_path, map_location=device)
         model.load_state_dict(ck["model"])
