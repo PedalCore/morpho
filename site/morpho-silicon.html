@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — to silicon</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c; --blue: #6fa8dc;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+        line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+        border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 12px 0;
+        color: #b9c7bf; }
+  pre .hl { color: var(--amber); }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  td i { color: var(--red); font-style: normal; }
+  td, th { font-variant-numeric: tabular-nums; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { margin-top: 0; }
+  .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button.on { border-color: var(--amber); color: var(--amber); }
+  input[type=range] { accent-color: var(--amber); width: 220px; }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 8px; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  /* the chain */
+  .chain { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch;
+           margin: 18px 0; }
+  .stage { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 9px; padding: 10px 13px; flex: 1 1 150px;
+           min-width: 148px; position: relative; }
+  .stage .t { font-weight: 600; font-size: 13.5px; }
+  .stage .d { color: var(--muted); font-size: 12px; line-height: 1.45;
+              margin-top: 3px; }
+  .stage .v { font: 11px ui-monospace, monospace; color: var(--green);
+              margin-top: 6px; }
+  .arrow { align-self: center; color: var(--amber); font-size: 17px; flex: 0; }
+  /* throughput bars */
+  .bars { margin-top: 14px; }
+  .barrow { display: grid; grid-template-columns: 11.5em 1fr 7.5em;
+            gap: 10px; align-items: center; margin: 7px 0; font-size: 13px; }
+  .barlabel { color: var(--muted); text-align: right; }
+  .bartrack { height: 16px; background: #0a0d11; border: 1px solid var(--line);
+              border-radius: 5px; position: relative; overflow: hidden; }
+  .barfill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
+  .barval { font: 12.5px ui-monospace, monospace; color: var(--text); }
+  .verdict { margin-top: 12px; padding: 10px 14px; background: var(--panel2);
+             border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0;
+             font-size: 14px; color: #c4c9d4; }
+  .note { border-left: 3px solid var(--amber); padding: 2px 0 2px 14px;
+          color: var(--muted); font-size: 14px; margin: 14px 0; }
+  .marker { position: absolute; top: -3px; bottom: -3px; width: 2px;
+            background: var(--blue); }
+</style>
+</head>
+<body>
+<article>
+<h1>to <span>silicon</span></h1>
+<p class="sub">A trained language model became a placed-and-routed FPGA netlist,
+and every link in the chain is verified — most of them bit-exactly. This page
+is the record of that chain: what was built, what was measured, what the
+honest throughput predictions are, and where the ceilings actually sit.</p>
+
+<div class="links">
+  <a href="/wkv-cell.html">← the wkv cell</a>
+  <a href="/rwkv-atlas.html">← the model atlas</a>
+  <a href="/rwkv-live.html">← run the model live</a>
+  <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code</a>
+</div>
+
+<h2>the chain</h2>
+<p>Each stage below exists as running code, and each handoff was checked
+against the stage before it — no stage trusts the previous one's claims.</p>
+
+<div class="chain">
+  <div class="stage"><div class="t">trained RWKV</div>
+    <div class="d">6 blocks × d=384, TinyStories. Perplexity 6.4224.</div>
+    <div class="v">the ground truth</div></div>
+  <div class="arrow">→</div>
+  <div class="stage"><div class="t">int8 export</div>
+    <div class="d">14.9 MB, per-row scales. Held-out perplexity 6.4215.</div>
+    <div class="v">−0.01% vs float32</div></div>
+  <div class="arrow">→</div>
+  <div class="stage"><div class="t">circuit numerics</div>
+    <div class="d">Q8.8, base-2, LUT + shift, restoring divide.</div>
+    <div class="v">8-arm sweep: perplexity identical to float64</div></div>
+  <div class="arrow">→</div>
+  <div class="stage"><div class="t">compiled circuit</div>
+    <div class="d">the whole wkv channel as one Morpho netlist: 7,201 gates + 48 FFs.</div>
+    <div class="v">0 mismatches vs this site's own simulator, 2,000 steps</div></div>
+  <div class="arrow">→</div>
+  <div class="stage"><div class="t">BLIF / Verilog</div>
+    <div class="d">mechanical export; re-parsed and re-simulated from the text.</div>
+    <div class="v">round-trip bit-exact</div></div>
+  <div class="arrow">→</div>
+  <div class="stage"><div class="t">placed &amp; routed</div>
+    <div class="d">yosys → nextpnr, iCE40 HX8K.</div>
+    <div class="v">5,648 LCs, 9.8 MHz, real static timing</div></div>
+</div>
+
+<h2>why this was a transcription, not a port</h2>
+<p>What Morpho's compiler emits is already a hardware netlist: k-input LUTs
+with explicit integer truth tables, registers, two constants, wires, one
+implicit clock. An FPGA is a fabric of exactly those primitives, so the
+exporter (<code>tiny_morpho_hw.py</code>) maps one-to-one and adds nothing:</p>
+<pre>GATE(lut, args)      →  a physical LUT with that exact truth table
+REG(init)            →  a flip-flop  (.latch in BLIF, always @(posedge clk) in Verilog)
+synchronous commit   →  the clock edge</pre>
+<p>The synthesizable subset is the REG-only discipline — every feedback loop
+broken by a register. The FORWARD/TIE fixed-point corner (the SR latch) is
+deliberately rejected: it sits outside what synchronous tools guarantee
+anything about.</p>
+
+<h2>verification, three layers</h2>
+<p><b>1 — the text is the circuit.</b> An independent simulator re-parses the
+<em>emitted BLIF text</em> (never the compiler's data structures) and re-runs
+it against the compiled circuit: exhaustive for the 2^(−x) unit (all 65,536
+Q8.8 inputs), thousands of random cases for the dividers, 120 channels ×
+32 ticks for the full wkv cell. All bit-exact.</p>
+<p><b>2 — the two formats agree.</b> yosys formally proves the emitted
+Verilog ≡ the emitted BLIF (registers included) for the three smaller units.
+For the wkv cell the SAT solver hits the classic exponential case —
+equivalence over multiplier cones — so that check is time-bounded and
+reported as <i>not proven within budget</i>, never as success; the text
+round-trip covers its behavior.</p>
+<p><b>3 — a real tool placed and timed it.</b> f_max below is nextpnr's
+static timing on a routed design, not our <code>logic_depth</code>
+estimate.</p>
+
+<h2>measured results — iCE40 HX8K</h2>
+<table>
+<tr><th>unit</th><th>logic cells</th><th>f_max</th><th>note</th></tr>
+<tr><td>2^(−x) (ROM + interp + shift)</td><td>345</td><td>47.1 MHz</td>
+    <td>exhaustively bit-exact before export</td></tr>
+<tr><td>divider 16/8, combinational</td><td>416</td><td>14.7 MHz</td>
+    <td>16 cascaded subtractors — depth is the price of one-cycle division</td></tr>
+<tr><td>serial divider, streaming</td><td><b>29</b></td><td><b>163.3 MHz</b></td>
+    <td>the space→time rotation: 14× fewer cells, 11× the clock</td></tr>
+<tr><td><b>wkv cell — the full channel</b></td><td><b>5,648 (73%)</b></td><td>9.8 MHz</td>
+    <td>one token per clock, whole step combinational</td></tr>
+</table>
+<p>The serial-divider row is the article's space→time rotation measured by a
+real place-and-route tool: threading the remainder through a register instead
+of through space turns a deep, slow circuit into a tiny, fast one.</p>
+<p>The wkv row is the headline: the novel part of RWKV — the recurrence that
+doesn't exist in any commodity accelerator — fits in 73% of a $10 FPGA. Its
+9.8 MHz is the honest cost of doing exp → multiply → divide in one
+combinational pass; pipelining that path is a design knob, not a research
+question. Its state is three 16-bit registers per channel: the entire
+model's recurrent memory is 6,912 bits.</p>
+
+<h2>so what does it generate — predicted tokens per second</h2>
+<p>The per-token invoice is fixed by the model's own manifest:
+<b>13.1 million int8 multiply-accumulates</b> — and since int8 is one byte
+per weight, batch-1 generation must also stream <b>13.1 MB of weights per
+token</b>. The wkv work is 2,304 channel-steps (6 × 384). Three ceilings
+follow, and the lowest one wins:</p>
+<pre>bandwidth ceiling   tok/s = bytes/s ÷ 13.1 MB      <span class="hl">rule of thumb: MB/s ÷ 13</span>
+compute ceiling     tok/s = MAC/s   ÷ 13.1 M
+wkv ceiling         tok/s = cells × f_max ÷ 2,304   (measured: 9.8 MHz ⇒ 4,250/cell)</pre>
+
+<div class="demo">
+  <h3>the throughput predictor</h3>
+  <p class="teach">Pick a build or move the sliders. Bars show each ceiling on
+  a log scale; the binding one is amber. The blue line is the in-browser
+  JavaScript runner's measured 35 tok/s on this same model — the number a
+  $30 board has to beat.</p>
+  <div class="controls">
+    <button class="on" data-p="0">iCE40 + SPI flash</button>
+    <button data-p="1">ECP5-85 + DDR3</button>
+    <button data-p="2">Zynq-7020</button>
+    <button data-p="3">big FPGA, weights on-chip</button>
+  </div>
+  <div class="controls">
+    <label>weight bandwidth <input type="range" id="bw" min="0" max="700" value="170">
+      <span class="readout" id="bwv"></span></label>
+    <label>int8 compute <input type="range" id="mac" min="0" max="400" value="100">
+      <span class="readout" id="macv"></span></label>
+    <label>wkv cells <input type="range" id="cells" min="1" max="6" value="1" style="width:90px">
+      <span class="readout" id="cellsv"></span></label>
+  </div>
+  <div class="bars" id="bars"></div>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<table>
+<tr><th>build</th><th>weight store</th><th>predicted tok/s</th><th>binds on</th></tr>
+<tr><td>iCE40 HX8K + quad-SPI flash</td><td>~50 MB/s</td><td>~4</td><td>bandwidth</td></tr>
+<tr><td>ECP5-85 + 16-bit DDR3</td><td>~1.6 GB/s</td><td><b>~120</b></td><td>bandwidth (compute headroom ~1,800)</td></tr>
+<tr><td>Zynq-7020 + 32-bit DDR3</td><td>~4 GB/s eff.</td><td>~300</td><td>bandwidth</td></tr>
+<tr><td>large FPGA, weights in URAM</td><td>on-chip</td><td>5,000–20,000+</td><td>compute</td></tr>
+<tr><td style="color:var(--muted)">browser JS runner (measured)</td><td>DRAM</td><td>35</td><td>JavaScript, not hardware</td></tr>
+</table>
+
+<p>The shape of this table is the finding. <b>The novel silicon never
+binds</b>: one wkv cell at its measured worst-case clock already covers
+4,250 tokens/s, two orders of magnitude above any realistic build's
+bottleneck — which is the same weight-bandwidth wall every GPU and CPU
+hits. RWKV's contribution to the hardware problem is that everything
+<em>outside</em> the matmuls became three registers and a small fixed-point
+pipeline; the matmuls themselves are commodity MACs and a memory system,
+solved problems bought by the gigabyte.</p>
+
+<h2>honest edges</h2>
+<p>These predictions are ceilings from accounting, not measurements — a real
+build loses some fraction to DRAM row misses and scheduling, so treat the
+table as "within 2×" until a board runs. Prefill is a different, faster
+regime: the matmuls batch over the whole prompt while only the cheap wkv
+scan stays sequential. Timing closure numbers are nextpnr's default corner.
+Large ROMs and the matmuls should map to BRAM/DSP macros rather than
+gate-level LUTs — an exporter feature, not a language problem. And the last
+two steps to a blinking dev board are <code>icepack</code> (the routed
+<code>.asc</code> already exists) and owning the $10 part.</p>
+
+<p class="note">Everything here is reproducible from the repository:
+<code>python3 examples/rwkv/wkv_cell.py</code> re-proves the bit-exactness,
+<code>python3 examples/hardware/export_units.py</code> re-runs the export,
+round-trips, equivalence checks, and place-and-route
+(<code>brew install yosys nextpnr-ice40 icestorm</code>).</p>
+
+<script>
+'use strict';
+const MB = 1e6, GB = 1e9;
+const BYTES_TOK = 13.07e6, MACS_TOK = 13.07e6, WKV_STEPS = 2304;
+const WKV_HZ = 9.8e6;                 // measured, single cell, worst case
+const JS_REF = 35;                    // measured browser tok/s
+
+/* sliders are log-scale: value 0..400 -> 10^(v/100) MB/s and M MAC/s */
+const bw = document.getElementById('bw'), mac = document.getElementById('mac'),
+      cells = document.getElementById('cells');
+const PRESETS = [                     // [MB/s, GMAC/s, cells]
+  [50, 0.4, 1], [1600, 23.4, 1], [4000, 55, 2], [2000000, 300, 6]];
+
+const fmt = x => x >= 1e9 ? (x / 1e9).toFixed(1) + ' G' :
+               x >= 1e6 ? (x / 1e6).toFixed(1) + ' M' :
+               x >= 1e3 ? (x / 1e3).toFixed(1) + ' k' : x.toFixed(1) + ' ';
+const fmtTok = x => x >= 1e4 ? Math.round(x / 1e3) + ',000' :
+                 x >= 100 ? Math.round(x).toLocaleString('en-US') :
+                 x >= 10 ? x.toFixed(0) : x.toFixed(1);
+
+function bwVal() { return Math.pow(10, bw.value / 100) * MB; }       // bytes/s
+function macVal() { return Math.pow(10, mac.value / 100) * 1e6 * 100; } // MAC/s: 10^(v/100) * 1e8
+
+function render() {
+  const B = bwVal(), M = macVal(), C = +cells.value;
+  document.getElementById('bwv').textContent = fmt(B) + 'B/s';
+  document.getElementById('macv').textContent = fmt(M) + 'MAC/s';
+  document.getElementById('cellsv').textContent = C + '×';
+  const tBW = B / BYTES_TOK, tMAC = M / MACS_TOK,
+        tWKV = C * WKV_HZ / WKV_STEPS;
+  const rows = [['weight bandwidth', tBW], ['int8 compute', tMAC],
+                ['wkv cells (measured)', tWKV]];
+  const lo = Math.log10(0.5), hi = Math.log10(1e6);
+  const pct = v => Math.max(0, Math.min(100,
+      100 * (Math.log10(Math.max(v, 0.5)) - lo) / (hi - lo)));
+  const minV = Math.min(tBW, tMAC, tWKV);
+  const el = document.getElementById('bars');
+  el.innerHTML = rows.map(([n, v]) => `
+    <div class="barrow">
+      <div class="barlabel">${n}</div>
+      <div class="bartrack">
+        <div class="barfill" style="width:${pct(v)}%;background:${
+          v === minV ? 'var(--amber)' : '#2e3644'}"></div>
+        <div class="marker" style="left:${pct(JS_REF)}%"></div>
+      </div>
+      <div class="barval">${fmtTok(v)} tok/s</div>
+    </div>`).join('');
+  const which = minV === tBW ? 'weight bandwidth' :
+                minV === tMAC ? 'int8 compute' : 'the wkv cells';
+  const vsjs = minV / JS_REF;
+  document.getElementById('verdict').innerHTML =
+    `predicted <b style="color:var(--green)">${fmtTok(minV)} tokens/s</b>, ` +
+    `bound by <b style="color:var(--amber)">${which}</b> — ` +
+    (vsjs >= 1 ? `${vsjs < 10 ? vsjs.toFixed(1) : Math.round(vsjs)}× the browser runner`
+               : `${(1 / vsjs).toFixed(1)}× slower than the browser runner`) +
+    (minV === tWKV ? ' (a build bound by the wkv cells would be remarkable — nothing realistic gets here)' : '');
+}
+
+document.querySelectorAll('button[data-p]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('button[data-p]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  const [mbs, gmac, c] = PRESETS[+b.dataset.p];
+  bw.value = Math.round(100 * Math.log10(mbs));
+  mac.value = Math.round(100 * Math.log10(gmac * 10));   // GMAC -> 1e8 units
+  cells.value = c;
+  render();
+});
+bw.oninput = mac.oninput = cells.oninput = () => {
+  document.querySelectorAll('button[data-p]').forEach(x => x.classList.remove('on'));
+  render();
+};
+document.querySelector('button[data-p="0"]').click();
+</script>
+</article>
+</body>
+</html>

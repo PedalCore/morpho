@@ -70,3 +70,19 @@ Caveats kept honest: timing closure is nextpnr's static analysis at the
 default corner; large ROMs/matmuls should map to BRAM/DSP macros (an
 exporter feature, not a language problem); the SR-latch/FORWARD corner is
 deliberately outside this flow.
+
+## Predicted throughput
+
+The per-token invoice is fixed by the model manifest: 13.1M int8 MACs,
+which at one byte per weight is also 13.1 MB of weights streamed per
+generated token. Three ceilings, lowest wins:
+
+    bandwidth:  tok/s = bytes/s ÷ 13.1 MB     (rule of thumb: MB/s ÷ 13)
+    compute:    tok/s = MAC/s   ÷ 13.1 M
+    wkv:        tok/s = cells × f_max ÷ 2,304 (measured: 4,250/cell at 9.8 MHz)
+
+The wkv hardware never binds — one measured cell covers 4,250 tok/s, two
+orders of magnitude above realistic bottlenecks. Generation is
+weight-bandwidth bound (as everywhere): ~4 tok/s from SPI flash, ~120 on
+an ECP5 with 16-bit DDR3, ~300 on a Zynq, thousands with weights on-chip.
+Interactive predictor + full argument: site/morpho-silicon.html.
