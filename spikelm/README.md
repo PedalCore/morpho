@@ -119,3 +119,19 @@ wkv-output RMS error. Published on soundlark.studio/wkv-cell.html.
 site/rwkv-export/model-int8.bin (14.9MB, committed; validated 6.4224 ->
 6.4215, -0.01%), also mirrored as release spikelm-v0.1. Runs live in the
 browser at soundlark.studio/rwkv-live.html.
+
+**Threshold bug (found 2026-08-13 during export):** SpikeAct's per-channel
+log_threshold never trained — _SpikeFn.backward returns None for the
+threshold argument, so AdamW skipped the parameter and all 9,216 sit at
+their init value 0.5. Every milestone-1/2 result was produced with FIXED
+thresholds; SpikeDecoder's parameterized-LIF lever was never actually
+engaged. Wiring the gradient is a queued experiment with a prediction
+attached. Silver lining for hardware: constant threshold means the spike
+vector takes 5 values {0,.5,1,1.5,2}, so the consuming matmul is integer
+accumulation (acc += n*w, n in 0..4), not a general multiply.
+
+**Browser exports:** site/rwkv-export/{spiking,binary}/ — milestone-1
+spiking (levels 4, step 5500, ppl 6.768 float / 6.767 int8, firing 9.8%)
+and the binary variant (levels 1, annealed, ppl 6.387 / 6.390 int8, firing
+11.0%). Threshold tensors shipped so a page can ASSERT they are 0.5 rather
+than assume it.

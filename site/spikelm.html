@@ -65,9 +65,9 @@
     ordinary next-token cross-entropy and AdamW. The <em>spiking</em> arm is byte-identical
     except that each block's channel-mix nonlinearity is replaced by integer spike units:
     the pre-activation is quantized into 0–4 spikes against a learnable threshold in the
-    forward pass, and a rectangular surrogate carries the gradient backward. Thresholds are
-    learnable <em>per channel, per block</em> (9,216 of them), and a regularizer penalizes
-    firing above 10%.
+    forward pass, and a rectangular surrogate carries the gradient backward. A regularizer
+    penalizes firing above 10%. Thresholds are stored per channel, per block (9,216 of
+    them) — but see the correction below: they never trained.
   </p>
   <p>
     Everything else — residual pathways, embeddings, the recurrent state update, the output
@@ -198,6 +198,27 @@ rate    4%    5%    6%    8%   13%   20%     9.2%</pre>
     <em>annealed</em> binary, not binary-from-scratch — the natural control, and the next
     thing to run.
   </div>
+
+  <h3>Correction: the thresholds never trained</h3>
+  <p>
+    This page originally described the spike thresholds as learnable per channel and per
+    block, citing SpikeDecoder's finding that per-unit spike parameters were their single
+    largest quality lever (+11pp). Exporting the checkpoint for the browser demo revealed
+    that all 9,216 of them are exactly their initial value, 0.5: our surrogate-gradient
+    function returns no gradient for the threshold argument, so the optimizer skipped the
+    parameter entirely. Every result on this page was produced with <em>fixed</em>
+    thresholds.
+  </p>
+  <p>
+    That makes the correction more interesting than a typo. The lever we believed we had
+    adopted was never engaged — so the 6.80-versus-6.42 gap has an untested explanation
+    sitting in it, and wiring the gradient up is now a specific experiment with a
+    prediction attached rather than a vague "tune it more". It also simplifies the
+    hardware story in the meantime: with a single constant threshold, the spike vector
+    takes only five values (0, 0.5, 1, 1.5, 2), so a spike-consuming matmul is an
+    integer-weighted accumulation — <code>acc += n · w</code> with n ∈ 0..4 — rather than
+    a general multiply.
+  </p>
 
   <h3>What that would mean on the right hardware</h3>
   <p>

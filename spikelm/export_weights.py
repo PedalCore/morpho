@@ -121,12 +121,27 @@ def perplexity(model, data, batches=6, B=8, T=256, seed=7):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", default="runs/base-rwkv-d384L6-s42/ckpt.pt")
+    ap.add_argument("--out", default=None, help="subdirectory under export/")
+    ap.add_argument("--levels", type=int, default=4, help="spike levels (1 = binary)")
+    ap.add_argument("--note", default="")
     args = ap.parse_args()
+    global OUT
+    if args.out:
+        OUT = os.path.join(OUT, args.out)
     os.makedirs(OUT, exist_ok=True)
     tok = get_tokenizer()
-    cfg = Config(vocab_size=tok.vocab_size)
     sd = torch.load(args.ckpt, map_location="cpu")["model"]
-    model = RWKVMini(cfg); model.load_state_dict(sd); model.eval()
+    spiking = any("spike_act.log_threshold" in k for k in sd)
+    cfg = Config(vocab_size=tok.vocab_size, spiking=spiking)
+    model = RWKVMini(cfg)
+    if spiking and args.levels != 4:
+        from spikelm.spiking import SpikeAct
+
+        for mod in model.modules():
+            if isinstance(mod, SpikeAct):
+                mod.set_levels(args.levels)
+    model.load_state_dict(sd); model.eval()
+    print(f"{'SPIKING' if spiking else 'float'} model, levels={args.levels if spiking else '-'}")
     data = load_split("valid")
 
     # 1. the atlas
@@ -143,13 +158,42 @@ def main():
     # 2. int8 model + validation
     blob, manifest = quantize_int8(sd)
     manifest["config"] = {"n_layer": cfg.n_layer, "n_embd": cfg.n_embd,
-                          "ctx": cfg.ctx, "vocab_size": cfg.vocab_size}
+                          "ctx": cfg.ctx, "vocab_size": cfg.vocab_size,
+                          "spiking": spiking, "levels": args.levels if spiking else 0}
+    if spiking:
+        thr = torch.exp(sd["blocks.0.cm.spike_act.log_threshold"])
+        manifest["spike"] = {
+            "threshold_uniform": bool(float(thr.min()) == float(thr.max())),
+            "threshold": round(float(thr.mean()), 6),
+            "rule": ("z = min(floor(x/thr), levels) * thr  (negatives -> 0); "
+                     "thresholds did NOT train - grad is not routed to them - "
+                     "so all 9216 are exactly their init value"),
+            "consumer_matmul": "blocks.{L}.cm.value.weight (1536 -> 384)",
+        }
+    if args.note:
+        manifest["note"] = args.note
     pb = os.path.join(OUT, "model-int8.bin")
     open(pb, "wb").write(blob)
     pm = os.path.join(OUT, "model-manifest.json")
     json.dump(manifest, open(pm, "w"), indent=1)
     # tokenizer travels with it
     tok.save(os.path.join(OUT, "tokenizer.json"))
+
+    if spiking:
+        from spikelm.spiking import SpikeAct
+
+        rng = np.random.default_rng(11)
+        ix = rng.integers(0, len(data) - cfg.ctx - 1, size=4)
+        xb = torch.from_numpy(np.stack([data[i:i + cfg.ctx] for i in ix]).astype(np.int64))
+        with torch.no_grad():
+            model(xb)
+        rates = [round(float(m.last_rate), 4) for m in model.modules()
+                 if isinstance(m, SpikeAct)]
+        manifest["spike"]["firing_rate_per_block"] = rates
+        manifest["spike"]["firing_rate_mean"] = round(sum(rates) / len(rates), 4)
+        json.dump(manifest, open(pm, "w"), indent=1)
+        print(f"firing rates per block: {[f'{r*100:.0f}%' for r in rates]}  "
+              f"mean {100*sum(rates)/len(rates):.1f}%")
 
     ppl_f = perplexity(model, data)
     model.load_state_dict(dequantized_state(sd, blob, manifest))
