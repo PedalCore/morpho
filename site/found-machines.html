@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — found machines</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .demo .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .prov { display: inline-flex; gap: 14px; flex-wrap: wrap; font: 11.5px/1.6 ui-monospace, monospace;
+          color: var(--green); background: #10161a; border: 1px solid #1d2a26;
+          border-radius: 7px; padding: 5px 12px; margin: 4px 0 12px; }
+  pre.morpho { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+       line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+       border-radius: 8px; padding: 10px 14px; overflow-x: auto; margin: 10px 0;
+       color: #b9c7bf; }
+  .row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .bit { width: 24px; height: 24px; border: 1px solid var(--line);
+         border-radius: 6px; background: var(--panel2);
+         font: 11px/22px ui-monospace, monospace; text-align: center;
+         color: var(--muted); transition: background .1s; user-select: none; }
+  .bit.on { background: var(--amber); color: #14100a; border-color: var(--amber);
+            box-shadow: 0 0 8px #e2a13f66; }
+  .bit.reg { border-bottom: 3px solid #3a4150; }
+  .bit.defect { outline: 2px solid var(--green); outline-offset: 1px; }
+  .bit.click { cursor: pointer; }
+  .tag { font: 11px/1 ui-monospace, monospace; color: var(--muted);
+         letter-spacing: .06em; text-transform: uppercase; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+  button.primary { border-color: var(--amber); color: var(--amber); }
+  input[type=range] { accent-color: var(--amber); }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 6px; }
+  canvas { border: 1px solid var(--line); border-radius: 8px; display: block;
+           background: #0a0d11; max-width: 100%; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .verdict-bad { color: var(--red); }
+  .stage { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+  .stagerow { display: flex; gap: 10px; align-items: center; }
+  .stagerow .tag { width: 110px; flex: none; text-align: right; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px;
+          border-top: 1px solid var(--line); padding-top: 16px; max-width: 46em; }
+  .soundbar { position: sticky; top: 10px; z-index: 5; display: flex; gap: 10px;
+      align-items: center; flex-wrap: wrap; background: #12151bee;
+      border: 1px solid var(--line); border-radius: 9px; padding: 8px 14px;
+      width: fit-content; backdrop-filter: blur(4px); }
+  .selbox { background: var(--panel2); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
+      font: 13px inherit; }
+</style>
+</head>
+<body>
+<article>
+  <h1>found <span>machines</span></h1>
+  <p class="sub">A gallery of designs nobody drew. Every machine on this page was
+  discovered — by compositional search, by counterexamples, or by evolution — and
+  then proven exact. They are shown here running live, with their real rule numbers,
+  weights, and wiring, in increasing order of how much was found rather than built.
+  Sound on: the data is still the score.</p>
+
+  <div class="links">
+    <a href="/circuits-that-move.html">← circuits that move</a>
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code &amp; experiments</a>
+    <a href="/research.html">← research notes</a>
+  </div>
+
+  <div class="soundbar">
+    <button id="soundToggle" class="primary" aria-pressed="false">♪ sound off</button>
+    <label>volume <input type="range" id="masterVol" min="0" max="100" value="35"></label>
+    <label>key <select id="keySel" class="selbox"></select></label>
+    <label>scale <select id="scaleSel" class="selbox"></select></label>
+  </div>
+
+  <h2>I · the controller that search drew twice</h2>
+  <div class="demo">
+    <h3>bounce</h3>
+    <div class="prov"><span>found by: typed beam search</span>
+      <span>14,078 evaluations</span><span>5 components</span>
+      <span>FSM-exact</span></div>
+    <div class="teach">Given only a target waveform — a wave that travels right,
+    then left — search assembled this from a typed component library. It is,
+    component for component, the architecture a human engineer would draw:
+    a counter bit switches a mux between a ring and its reflection.</div>
+<pre class="morpho">n0 = counter()
+n1 = sel_ctr(n0, 2)
+n2 = ring()
+n3 = reverse(n2)
+out = mux(n2, n3, n1)</pre>
+    <div class="stage">
+      <div class="stagerow"><span class="tag">counter bit 2</span>
+        <div class="bit" id="bDir">0</div></div>
+      <div class="stagerow"><span class="tag">actuators</span>
+        <div class="row" id="bOut"></div></div>
+    </div>
+    <div class="controls">
+      <button id="bRun">Run</button><button id="bStep">Step</button>
+    </div>
+  </div>
+
+  <h2>II · the mechanism no one proposed</h2>
+  <div class="demo">
+    <h3>gait by interference</h3>
+    <div class="prov"><span>found by: typed beam search</span>
+      <span>11,416 evaluations</span><span>5 components</span>
+      <span>FSM-exact</span></div>
+    <div class="teach">The target was a blinking checkerboard. The human design
+    uses a toggle and a stripe mask. Search found something else: XOR a
+    travelling wave against its own delayed and rotated copies, and the
+    checkerboard emerges as an interference pattern. Watch it build, stage by
+    stage.</div>
+<pre class="morpho">n0 = ring()
+n1 = delay(n0, 2)
+n2 = xor(n0, n1)
+n3 = rotate(n2, 4)
+out = xor(n2, n3)</pre>
+    <div class="stage" id="gStages"></div>
+    <div class="controls">
+      <button id="gRun">Run</button><button id="gStep">Step</button>
+    </div>
+  </div>
+
+  <h2>III · the law that beat its designer</h2>
+  <div class="demo">
+    <h3>systolic parity, any width</h3>
+    <div class="prov"><span>found by: evolved 63-int developmental genome</span>
+      <span>trained at k=1,2,4 · shown at widths it never saw</span>
+      <span>logic depth 1 at every width</span><span>FSM-exact at all k</span></div>
+    <div class="teach">The task: output the parity of the last k+1 input bits.
+    The hand-designed law builds an XOR tree — depth log k. Evolution's law
+    pipelines <em>partial parities through time</em>: each register holds the
+    parity of a sliding window one longer than its neighbour, so the answer is
+    always one gate away. Grown here at your chosen width from the same frozen
+    genome.</div>
+<pre class="morpho">r₁ ← x        rᵢ ← x ⊕ rᵢ₋₁        y = x ⊕ r_k</pre>
+    <div class="stage">
+      <div class="stagerow"><span class="tag">input x</span>
+        <div class="bit click" id="pIn" title="click to pulse">0</div></div>
+      <div class="stagerow"><span class="tag">registers</span>
+        <div class="row" id="pRegs"></div></div>
+      <div class="stagerow"><span class="tag">parity out</span>
+        <div class="bit" id="pOut">0</div>
+        <span class="readout" id="pCheck" style="margin-left:10px"></span></div>
+    </div>
+    <div class="controls">
+      <button id="pRun">Run</button><button id="pStep">Step</button>
+      <label>width k <input type="range" id="pK" min="3" max="14" value="8">
+        <span class="readout" id="pKOut">8</span></label>
+      <label>input
+        <select id="pMode" class="selbox">
+          <option value="random">random stream</option>
+          <option value="manual">manual (click x)</option>
+        </select></label>
+    </div>
+  </div>
+
+  <h2>IV · the classifier that is a traffic jam</h2>
+  <div class="demo">
+    <h3>majority vote by physics</h3>
+    <div class="prov"><span>found by: evolution over cellular automata</span>
+      <span>24/24 independent runs converged to this motif</span>
+      <span>3 rules: one transport medium + two one-bit defects</span></div>
+    <div class="teach">Paint an initial row of cells (or roll a random density).
+    Every cell runs traffic rule 226 — cars drive left, conserving their number —
+    except two <b>defect cells</b> (green): one absorbs surplus cars, one absorbs
+    surplus gaps. Each is exactly one bit away from the traffic rule. The row
+    relaxes to all-on if 1s held the majority, all-off otherwise: a distributed
+    election decided by particle physics. The same three rules work at any width.</div>
+    <div class="row" id="tIC" style="margin-bottom:8px"></div>
+    <canvas id="tCanvas" width="640" height="200"></canvas>
+    <div class="controls">
+      <button id="tRun" class="primary">Run the election</button>
+      <button id="tRand">Random density</button>
+      <button id="tClear">Clear</button>
+      <label>width <select id="tW" class="selbox">
+        <option>15</option><option selected>31</option><option>63</option>
+      </select></label>
+      <span class="readout" id="tVerdict"></span>
+    </div>
+  </div>
+
+  <h2>V · the tissue that grows from nothing</h2>
+  <div class="demo">
+    <h3>self-healing checkerboard — 8 weights</h3>
+    <div class="prov"><span>found by: evolution over neural cellular automata</span>
+      <span>genome: 450 ints, 8 nonzero ternary weights</span>
+      <span>trained on 8–16 grids · shown at sizes it never saw</span>
+      <span>grows from an EMPTY grid · repairs any wound · exact</span></div>
+    <div class="teach">Every cell runs the same 8-weight threshold rule (the
+    actual evolved genome is embedded in this page). It needs no seed: the rule
+    floods its latent channels, then uses <em>the edge of the world</em> as a
+    phase reference and lets anti-alignment relax inward. <b>Drag on the canvas
+    to wound it</b> — all six channels are erased under your brush — and watch
+    the pattern knit itself back, exactly. This is the capstone: computation,
+    morphogenesis, and repair from one local law.</div>
+    <canvas id="nCanvas" width="640" height="400" style="cursor:crosshair"></canvas>
+    <div class="controls">
+      <button id="nRun">Pause</button>
+      <button id="nReset">Reset to empty</button>
+      <label>size <select id="nN" class="selbox">
+        <option>24</option><option selected>32</option><option>48</option>
+      </select></label>
+      <label>brush <input type="range" id="nBrush" min="2" max="8" value="4"></label>
+      <span class="readout" id="nStatus"></span>
+    </div>
+  </div>
+
+  <p class="foot">
+    Provenance: I–II synthesized by typed compositional search (Experiment C0);
+    III is the frozen winner of the developmental-genome experiment
+    (Experiment 2), shown at unseen widths; IV is the frozen law from the
+    density-classification study (Experiment 0/0.5), defects 224 and 234 on a
+    226 sea; V is the strongest winner of the neural-CA experiment
+    (Experiment 4A), its full genome embedded verbatim. Every claim of
+    exactness was verified in the repository — product-FSM equivalence for
+    I–III, exact census and scale-transfer for IV, exact growth/persistence/
+    repair for V. Companion pages:
+    <a href="/circuits-that-move.html">circuits that move</a> ·
+    <a href="/morpho-defects.html">sparse defects</a> ·
+    <a href="/morpho-laws.html">laws that grow machines</a> ·
+    <a href="/morpho-nca.html">a neural law that grows, holds, and heals</a>.
+  </p>
+</article>
+
+<script>
+'use strict';
+/* ============ audio (as on circuits-that-move) ============ */
+const Snd = {
+  ctx: null, master: null, on: false,
+  ensure() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.35 * 0.5;
+      this.master.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  note(midi, {dur = 0.16, gain = 1, type = 'sine', when = 0} = {}) {
+    if (!this.on) return;
+    this.ensure();
+    const t = this.ctx.currentTime + when;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type;
+    o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.28 * gain, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+};
+const SCALES = {
+  'pentatonic': [0, 2, 4, 7, 9], 'minor pentatonic': [0, 3, 5, 7, 10],
+  'major': [0, 2, 4, 5, 7, 9, 11], 'natural minor': [0, 2, 3, 5, 7, 8, 10],
+  'dorian': [0, 2, 3, 5, 7, 9, 10], 'whole tone': [0, 2, 4, 6, 8, 10],
+};
+const KEYS = {A: 57, 'A♯': 58, B: 59, C: 60, 'C♯': 61, D: 62, 'D♯': 63,
+              E: 64, F: 53, 'F♯': 54, G: 55, 'G♯': 56};
+let CUR_SCALE = SCALES['pentatonic'], CUR_ROOT = 57;
+function scale(deg, oct = 0) {
+  const n = CUR_SCALE.length, d = ((deg % n) + n) % n;
+  return CUR_ROOT + 12 * (oct + Math.floor(deg / n)) + CUR_SCALE[d];
+}
+function snapPC(pc) {
+  let best = CUR_SCALE[0], dist = 99;
+  for (const s of CUR_SCALE) {
+    const d = Math.min((pc - s + 12) % 12, (s - pc + 12) % 12);
+    if (d < dist) { dist = d; best = s; }
+  }
+  return best;
+}
+function fifths(k, oct = 0) {
+  return (CUR_ROOT - 12) + snapPC((k * 7) % 12) + 12 * oct;
+}
+{
+  const kSel = document.getElementById('keySel'),
+        sSel = document.getElementById('scaleSel');
+  for (const k of Object.keys(KEYS)) kSel.add(new Option(k, k));
+  for (const s of Object.keys(SCALES)) sSel.add(new Option(s, s));
+  kSel.onchange = () => { CUR_ROOT = KEYS[kSel.value]; Snd.note(scale(0), {gain: .6}); };
+  sSel.onchange = () => { CUR_SCALE = SCALES[sSel.value];
+    [0, 1, 2].forEach(d => Snd.note(scale(d), {gain: .5, when: d * .1})); };
+  const sb = document.getElementById('soundToggle');
+  sb.onclick = () => {
+    Snd.on = !Snd.on;
+    if (Snd.on) { Snd.ensure(); Snd.note(scale(0, 1)); }
+    sb.textContent = Snd.on ? '♪ sound on' : '♪ sound off';
+    sb.setAttribute('aria-pressed', Snd.on);
+  };
+  document.getElementById('masterVol').oninput = e => {
+    if (Snd.master) Snd.master.gain.value = (e.target.value / 100) * 0.5;
+  };
+}
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mkBits(el, n, cls = 'bit') {
+  el.innerHTML = '';
+  return Array.from({length: n}, () => {
+    const d = document.createElement('div');
+    d.className = cls; d.textContent = '0'; el.appendChild(d); return d;
+  });
+}
+const setBit = (el, v) => { el.classList.toggle('on', !!v); el.textContent = v ? 1 : 0; };
+function ticker(ms, fn) {
+  let h = null;
+  return { toggle(btn) {
+      if (h) { clearInterval(h); h = null; btn.textContent = 'Run'; }
+      else { h = setInterval(fn, ms); btn.textContent = 'Pause'; } },
+    running: () => !!h };
+}
+
+/* ============ I. bounce ============ */
+{
+  const W = 8;
+  let cnt = 0, ring = 0;
+  const out = mkBits(document.getElementById('bOut'), W, 'bit reg');
+  const dirEl = document.getElementById('bDir');
+  function render() {
+    const dir = (cnt >> 2) & 1;
+    setBit(dirEl, dir);
+    const pos = dir ? (W - 1 - ring) : ring;
+    out.forEach((c, i) => setBit(c, i === pos));
+    return pos;
+  }
+  function step() {
+    cnt = (cnt + 1) & 7; ring = (ring + 1) % W;
+    const pos = render();
+    Snd.note(fifths(pos, ((cnt >> 2) & 1)), {gain: .55});
+  }
+  const t = ticker(230, step);
+  document.getElementById('bRun').onclick = e => t.toggle(e.target);
+  document.getElementById('bStep').onclick = step;
+  render();
+}
+
+/* ============ II. gait by interference ============ */
+{
+  const W = 8;
+  let ring = 0, d1 = 0, d2 = 0;          // ring position + 2-stage delay of bus
+  let ringBus = oneHot(0), del = [zeros(), zeros()];
+  function zeros() { return Array(W).fill(0); }
+  function oneHot(p) { const a = zeros(); a[p] = 1; return a; }
+  const names = ['ring', 'delay₂(ring)', 'xor → n2', 'rotate₄(n2)', 'out = n2⊕n3'];
+  const box = document.getElementById('gStages');
+  const rows = names.map(nm => {
+    const r = document.createElement('div'); r.className = 'stagerow';
+    const t = document.createElement('span'); t.className = 'tag'; t.textContent = nm;
+    const rr = document.createElement('div'); rr.className = 'row';
+    r.appendChild(t); r.appendChild(rr); box.appendChild(r);
+    return mkBits(rr, W, nm.includes('ring') && !nm.includes('rotate') ? 'bit reg' : 'bit');
+  });
+  function render() {
+    const n2 = ringBus.map((v, i) => v ^ del[1][i]);
+    const n3 = n2.map((_, i) => n2[(i - 4 + W) % W]);
+    const out = n2.map((v, i) => v ^ n3[i]);
+    [ringBus, del[1], n2, n3, out].forEach((bus, k) =>
+      rows[k].forEach((c, i) => setBit(c, bus[i])));
+    return out;
+  }
+  function step() {
+    del = [ringBus.slice(), del[0]];
+    ring = (ring + 1) % W; ringBus = oneHot(ring);
+    const out = render();
+    const on = out.reduce((a, b) => a + b, 0);
+    Snd.note(scale(on ? 2 : 0, on ? 1 : 0), {gain: .4});
+  }
+  const t = ticker(300, step);
+  document.getElementById('gRun').onclick = e => t.toggle(e.target);
+  document.getElementById('gStep').onclick = step;
+  render();
+}
+
+/* ============ III. systolic parity ============ */
+{
+  let K = 8, regs = [], hist = [], manualX = 0;
+  const regBox = document.getElementById('pRegs');
+  const inEl = document.getElementById('pIn'), outEl = document.getElementById('pOut');
+  const check = document.getElementById('pCheck');
+  let cells = [];
+  function build() { regs = Array(K).fill(0); hist = []; cells = mkBits(regBox, K, 'bit reg'); render(0, 0); }
+  function render(x, y) {
+    setBit(inEl, x); if (!x) inEl.textContent = 'x';
+    cells.forEach((c, i) => setBit(c, regs[i]));
+    setBit(outEl, y);
+  }
+  function step() {
+    const mode = document.getElementById('pMode').value;
+    const x = mode === 'random' ? (Math.random() < .5 ? 1 : 0) : manualX;
+    manualX = 0;
+    const y = x ^ regs[K - 1];
+    // commit: r1 <- x ; ri <- x ^ r(i-1)
+    const next = regs.map((_, i) => i === 0 ? x : (x ^ regs[i - 1]));
+    hist.push(x); if (hist.length > K + 1) hist.shift();
+    const truth = hist.reduce((a, b) => a ^ b, 0);
+    check.textContent = hist.length > K ?
+      (y === truth ? `= parity of last ${K + 1} bits ✓` : 'MISMATCH ✗') : 'filling…';
+    check.classList.toggle('verdict-bad', hist.length > K && y !== truth);
+    regs = next;
+    render(x, y);
+    if (y) Snd.note(scale(3, 1), {gain: .6});
+    else if (x) Snd.note(scale(0), {gain: .4});
+  }
+  inEl.onclick = () => { manualX = 1; setBit(inEl, 1); };
+  const t = ticker(260, step);
+  document.getElementById('pRun').onclick = e => t.toggle(e.target);
+  document.getElementById('pStep').onclick = step;
+  document.getElementById('pK').oninput = e => {
+    K = +e.target.value; document.getElementById('pKOut').textContent = K; build();
+  };
+  build();
+}
+
+/* ============ IV. traffic-jam classifier ============ */
+{
+  let N = 31, ic = [], cells = [];
+  const icBox = document.getElementById('tIC');
+  const cv = document.getElementById('tCanvas'), ctx = cv.getContext('2d');
+  const verdict = document.getElementById('tVerdict');
+  const rules = () => {
+    const r = Array(N).fill(226);
+    r[0] = 224;                    // particle absorber (one bit from 226)
+    r[N >> 1] = 234;               // hole absorber (one bit from 226)
+    return r;
+  };
+  function build() {
+    ic = Array(N).fill(0);
+    cells = mkBits(icBox, N, 'bit click');
+    cells.forEach((c, i) => {
+      c.style.width = c.style.height = N > 40 ? '14px' : '20px';
+      c.style.lineHeight = N > 40 ? '12px' : '18px';
+      if (i === 0 || i === (N >> 1)) c.classList.add('defect');
+      c.onclick = () => { ic[i] ^= 1; paint(); };
+    });
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, 640, 200);
+    verdict.textContent = '';
+    paint();
+  }
+  const paint = () => cells.forEach((c, i) => setBit(c, ic[i]));
+  function runElection() {
+    const R = rules(), T = 4 * N;
+    let s = ic.slice();
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, 640, 200);
+    const px = 640 / N, rows = Math.min(T, 100), rh = 200 / rows;
+    let t0 = 0;
+    const timer = setInterval(() => {
+      for (let rep = 0; rep < Math.ceil(T / rows); rep++) {
+        if (t0 >= T) break;
+        s = s.map((c, i) => {
+          const l = s[(i - 1 + N) % N], r2 = s[(i + 1) % N];
+          return (R[i] >> (4 * l + 2 * c + r2)) & 1;
+        });
+        // defect events: annihilations are notes
+        t0++;
+      }
+      const y = (t0 / T) * 200 - rh;
+      for (let i = 0; i < N; i++) {
+        ctx.fillStyle = s[i] ? '#e2a13f' : '#0a0d11';
+        ctx.fillRect(i * px, y, Math.ceil(px), rh + 1);
+      }
+      Snd.note(fifths(s.reduce((a, b) => a + b, 0) % 12), {gain: .3});
+      if (t0 >= T) {
+        clearInterval(timer);
+        const ones = ic.reduce((a, b) => a + b, 0);
+        const truth = ones > N / 2;
+        const all1 = s.every(v => v === 1), all0 = s.every(v => v === 0);
+        const said = all1 ? 'MAJORITY ONES' : all0 ? 'MAJORITY ZEROS' : 'hung jury';
+        const right = (all1 && truth) || (all0 && !truth);
+        verdict.textContent = `${said} (${ones}/${N} were on) ${
+            all1 || all0 ? (right ? '✓ correct' : '✗ wrong') : '— near-tie indecision'}`;
+        verdict.classList.toggle('verdict-bad', !(all1 || all0) || !right);
+        Snd.note(scale(right ? 4 : 1, 1), {gain: .7});
+      }
+    }, 60);
+  }
+  document.getElementById('tRun').onclick = runElection;
+  document.getElementById('tRand').onclick = () => {
+    const d = Math.random();
+    ic = ic.map(() => Math.random() < d ? 1 : 0); paint();
+  };
+  document.getElementById('tClear').onclick = build;
+  document.getElementById('tW').onchange = e => { N = +e.target.value; build(); };
+  build();
+}
+
+/* ============ V. self-healing checkerboard (the real 8-weight genome) ==== */
+{
+  const G = {"w1":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,1,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,1,0,0,1,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0]],
+             "b1":[-2,4,1,4,-1,-3,-1,3,4,1,-2,-2],
+             "w2":[[0,0,0,0,1,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0]],
+             "b2":[-1,-3,2,0,1,0]};
+  const C = 6, H = 12;
+  let N = 32, S, tick = 0;
+  const cv = document.getElementById('nCanvas'), ctx = cv.getContext('2d');
+  const status = document.getElementById('nStatus');
+  function reset() {
+    S = Array.from({length: C}, () =>
+        Array.from({length: N}, () => Array(N).fill(0)));
+    tick = 0;
+  }
+  function getX(nb, c, y, x) {           // [self,N,S,E,W], zero boundary
+    const dy = [0, -1, 1, 0, 0][nb], dx = [0, 0, 0, 1, -1][nb];
+    const yy = y + dy, xx = x + dx;
+    return (yy < 0 || yy >= N || xx < 0 || xx >= N) ? 0 : S[c][yy][xx];
+  }
+  function step() {
+    const out = Array.from({length: C}, () =>
+        Array.from({length: N}, () => Array(N).fill(0)));
+    let births = 0;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const h = [];
+      for (let j = 0; j < H; j++) {
+        let z = G.b1[j];
+        const row = G.w1[j];
+        for (let idx = 0; idx < 30; idx++) {
+          const w = row[idx];
+          if (w) z += w * getX((idx / C) | 0, idx % C, y, x);
+        }
+        h.push(z >= 0 ? 1 : 0);
+      }
+      for (let c = 0; c < C; c++) {
+        let z = G.b2[c];
+        const row = G.w2[c];
+        for (let j = 0; j < H; j++) if (row[j]) z += row[j] * h[j];
+        const v = z >= 0 ? 1 : 0;
+        out[c][y][x] = v;
+        if (c === 0 && v && !S[0][y][x]) births++;
+      }
+    }
+    S = out; tick++;
+    if (births && tick % 2 === 0)
+      Snd.note(scale(births % 9), {gain: Math.min(.5, births * .04)});
+  }
+  function draw() {
+    const px = 640 / N;
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, 640, 400);
+    const off = (400 - N * (400 / (640 / px) * 0)) / 2;   // square cells
+    const cell = Math.min(640 / N, 400 / N);
+    const ox = (640 - cell * N) / 2, oy = (400 - cell * N) / 2;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      if (S[0][y][x]) {
+        ctx.fillStyle = '#e2a13f';
+        ctx.fillRect(ox + x * cell, oy + y * cell, cell - .5, cell - .5);
+      }
+    }
+    // exactness readout vs the boundary-anchored checkerboard it grows
+    let okA = true, okB = true;
+    for (let y = 0; y < N && (okA || okB); y++)
+      for (let x = 0; x < N; x++) {
+        const v = S[0][y][x], par = (x + y) % 2;
+        if (v !== (par === 0 ? 1 : 0)) okA = false;
+        if (v !== (par === 1 ? 1 : 0)) okB = false;
+      }
+    status.textContent = (okA || okB) ? `exact checkerboard ✓ (t=${tick})`
+                                      : `organising… (t=${tick})`;
+    status.classList.toggle('verdict-bad', false);
+  }
+  let running = true;
+  function loop() {
+    if (running) { step(); draw(); }
+    setTimeout(loop, 90);
+  }
+  function wound(e) {
+    const rect = cv.getBoundingClientRect();
+    const cell = Math.min(640 / N, 400 / N);
+    const ox = (640 - cell * N) / 2, oy = (400 - cell * N) / 2;
+    const gx = Math.floor(((e.clientX - rect.left) * (640 / rect.width) - ox) / cell);
+    const gy = Math.floor(((e.clientY - rect.top) * (400 / rect.height) - oy) / cell);
+    const r = +document.getElementById('nBrush').value;
+    for (let y = gy - r; y <= gy + r; y++) for (let x = gx - r; x <= gx + r; x++)
+      if (y >= 0 && y < N && x >= 0 && x < N &&
+          (y - gy) ** 2 + (x - gx) ** 2 <= r * r)
+        for (let c = 0; c < C; c++) S[c][y][x] = 0;
+    draw();
+    Snd.note(scale(0, -1), {gain: .5, type: 'triangle'});
+  }
+  let dragging = false;
+  cv.addEventListener('mousedown', e => { dragging = true; wound(e); });
+  cv.addEventListener('mousemove', e => { if (dragging) wound(e); });
+  addEventListener('mouseup', () => dragging = false);
+  document.getElementById('nRun').onclick = e => {
+    running = !running; e.target.textContent = running ? 'Pause' : 'Run';
+  };
+  document.getElementById('nReset').onclick = () => { reset(); draw(); };
+  document.getElementById('nN').onchange = e => { N = +e.target.value; reset(); draw(); };
+  reset(); draw();
+  if (reduced) { running = false; document.getElementById('nRun').textContent = 'Run'; }
+  loop();
+}
+</script>
+</body>
+</html>

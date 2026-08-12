@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — a neural law that grows, holds, and heals</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: #0d1015;
+    color: #d7dae2;
+    font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 20px 80px;
+  }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  h3 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid #242a35; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px; background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; line-height: 1.35;
+        background: #12151b; border: 1px solid #242a35; border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; margin: 14px 0; color: #c4c9d4; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 8px 14px; background: #12151b; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .cols { display: flex; gap: 14px; flex-wrap: wrap; }
+  .cols pre { flex: 1; min-width: 200px; }
+  .cap { color: #9aa1ad; font-size: 13.5px; margin: -8px 0 14px; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35; padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>a neural law that <span>grows, holds, and heals</span></h1>
+  <p class="sub">Evolution discovered a constant-size local neural update rule — eight
+  nonzero ternary weights — whose repeated instantiation grows an exact global pattern
+  on lattices 16× larger than anything seen in training, holds it indefinitely, and
+  regenerates it exactly after severe damage. Experiment 4A on the MorphoHDL
+  dynamic-systems extension. August 2026.</p>
+
+  <div class="links">
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code &amp; experiments</a>
+    <a href="/morpho-laws.html">← experiments 1–2: laws that grow machines</a>
+    <a href="/morpho-defects.html">← experiment 0: sparse defects</a>
+    <a href="/research.html">← research notes</a>
+  </div>
+
+  <h2>Setup</h2>
+  <p>
+    A quantized neural cellular automaton, kept deliberately hardware-native: every cell
+    of a 2-D lattice holds C=6 binary state channels in registers and applies the
+    <em>same</em> small threshold network synchronously — 30 inputs (self + von Neumann
+    neighbours), 12 hidden threshold units, 6 outputs, ternary weights {−1, 0, +1},
+    small integer biases. The genome is the shared rule alone: <b>450 integers at every
+    lattice size</b>. Channel 0 is the scored phenotype; the rest are free latent state.
+    Boundaries are fixed-zero (a finite organism with a physical edge — documented
+    choice; torus is a later control). No floating point, no gradients, no coordinates,
+    no stochastic updates.
+  </p>
+  <p>
+    The honest pipeline holds: each cell compiles to ordinary Morpho structure (a REG
+    bank; each neuron a popcount tree of full adders with a ripple comparator; every
+    recurrent path crosses REG). A vectorized stepper was verified <b>bit-exact</b>
+    against the compiled circuit across grids, genomes, states and horizons before any
+    large-lattice result was recorded, alongside nine other preregistered selftests
+    (synchrony, neighbour indexing, boundary semantics, weight sharing, constant genome,
+    full-channel damage, metric sanity, train/test disjointness, arbitrary-size
+    instantiation).
+  </p>
+  <p>
+    Task: from a single seeded cell, develop a checkerboard whose phase is anchored at
+    the seed — an exact, scale-independent target at every size. The primary score is
+    phase-contrast Dice (target-phase Dice minus complement-phase Dice), so the empty
+    lattice and the all-ones lattice both score zero — Experiment 3's lesson about
+    trivial optima, applied in advance. Fitness is lexicographic: development at T=2N,
+    then persistence over [2N, 4N], then recovery from 25% random deletion, then
+    −(nonzero weights). Training sizes: 8, 12, 16 only.
+  </p>
+
+  <h2>Result</h2>
+  <table>
+    <tr><th>arm</th><th>solved training</th><th>exact dev at all 7 unseen sizes</th><th>statically stable + self-repairing</th><th>median evals</th></tr>
+    <tr><td>hand reference law</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+    <tr><td>evolution (8 seeds)</td><td><b>8/8</b></td><td><b>8/8</b></td><td><b>4/8</b></td><td>3,328</td></tr>
+    <tr><td>random search (matched budget)</td><td>3/8</td><td>3/3</td><td>1/3</td><td>4,628</td></tr>
+  </table>
+  <p>
+    Zero-shot sizes were 10, 14, 20, 24, 32, 48 and 64 — never touched during evolution
+    or selection. Every evolved law that solved training develops the <em>exact</em>
+    checkerboard at every unseen size. Four of eight winners additionally hold it exactly
+    for the entire 8N observation window and pass the full damage battery: after 10%,
+    25% or 40% random deletion (all channels cleared — no hidden survivors) or a
+    25%-area square wound, the same frozen rule regenerates the exact pattern at every
+    size, with recovery time scaling roughly linearly in lattice diameter (~1.7N for
+    deletions, faster for wounds). The other four winners are a second legitimate
+    solution class: <em>period-2 phase blinkers</em> that grow the exact pattern and then
+    alternate it with its complement — dynamic rather than static homeostasis.
+  </p>
+  <div class="verdict pos">
+    A constant-size local neural law, trained only on small lattices, produces
+    scale-general morphogenesis and regeneration: exact growth, exact persistence, and
+    exact self-repair on unseen lattices up to 16× the training area. Genome complexity
+    stays O(1) while instantiated hardware grows as 6N² registers and ~15 gates per cell.
+  </div>
+
+  <h2>The decoded mechanism — evolution exapts the boundary</h2>
+  <p>
+    The sparsest winner uses <b>8 nonzero weights</b> — fewer than the ~20 of our
+    hand-designed law — and works by a completely different principle. Decoded:
+  </p>
+  <pre>h4  = [ E.ch2 − E.ch0 ≥ 1 ]
+h11 = [ N.ch2 + N.ch5 − S.ch0 − E.ch0 ≥ 2 ]
+ch0' = [ h4 + h11 ≥ 1 ]
+ch2..ch5' = constant 1        ch1' = constant 0</pre>
+  <p>
+    The rule first floods every latent channel to constant 1 — a "developed medium"
+    flag. Interior cells then reduce to ch0' ≈ ¬(east neighbour): pure anti-alignment.
+    What fixes the global phase is the <em>edge of the world</em>: cells missing
+    neighbours see zeros where the medium flag should be, which breaks the symmetry;
+    the pattern nucleates from a corner and anti-alignment relaxation propagates inward.
+    The seed cell is ignored entirely. Repair is perfect for the same reason — the
+    boundary is an indestructible phase reference, so any wound re-anchors
+    deterministically.
+  </p>
+  <p>
+    Our hand law solves the same task by the textbook mechanism: a "reached" wavefront
+    expands from the seed at speed 1, each newly reached cell latches the phase opposite
+    to its already-reached neighbours, and damage (which clears wavefront state too)
+    regrows from the intact surround. Two mechanistically distinct morphogenesis
+    strategies — seed-anchored travelling wave, boundary-anchored relaxation — plus the
+    blinker class, from one 450-int search space.
+  </p>
+
+  <h3>Caveats</h3>
+  <p>
+    All preregistered sizes are even; the boundary-anchored mechanism's phase consistency
+    at odd sizes is untested (recorded, not re-run — the experiment is frozen). "Strong"
+    means exact-for-≥2N-consecutive-steps within an 8N window, not a proof of unbounded
+    stability. Random search also finds solutions at this task (3/8) — the checkerboard
+    calibration is intentionally easy; evolution's advantages here are rate and the
+    ability to then compress (the 8-weight winner). As throughout this programme,
+    failures and successes are statements about the preregistered representation and
+    matched budgets.
+  </p>
+
+  <h2>The programme so far</h2>
+  <table>
+    <tr><th>chapter</th><th>result</th></tr>
+    <tr><td><a href="/morpho-defects.html">Exp 0 — CA defects</a></td><td>local dynamics → interpretable global mechanism (traffic medium + one-bit defects)</td></tr>
+    <tr><td><a href="/morpho-laws.html">Exp 1–2 — laws</a></td><td>constant hereditary law → exact machines at unseen scales (22/22 transfer)</td></tr>
+    <tr><td>Exp 3 — bandwidth &amp; fitness</td><td>interface bandwidth necessary but not sufficient; fitness geometry fails two distinct ways</td></tr>
+    <tr><td>Exp 4A — neural CA</td><td><b>constant neural law → unseen-scale self-organising, self-repairing systems</b></td></tr>
+  </table>
+  <p>
+    Next: differentiated neural tissue — can a developmental genome that places a small
+    number of shared cell types discover functional roles (boundary cells, relays,
+    organizers, repair cells), the neural analogue of Experiment 0's homogeneous medium
+    plus specialised defects?
+  </p>
+
+  <p class="foot">
+    Code: <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">PedalCore/morpho@dynamic-systems</a>
+    (<code>evolve/nca_*.py</code>, <code>evolve/experiment4_nca.py</code>).
+    Related: Mordvintsev et al., Growing Neural Cellular Automata (Distill 2020), for the
+    differentiable NCA lineage; this experiment is its quantized, evolved,
+    hardware-native cousin. All zero-shot numbers are frozen-genome evaluations at sizes
+    never exposed during evolution.
+  </p>
+</article>
+</body>
+</html>
