@@ -557,8 +557,14 @@ $('loadbtn').onclick = async () => {
     setStatus('model loaded: 6 blocks × d=384, vocab 4096 — ready');
     $('genbtn').disabled = false;
   } catch (e) {
-    setStatus('load failed: ' + e.message +
-      ' — the binary must sit next to this page at rwkv-export/model-int8.bin', true);
+    if (/HTTP 40/.test(e.message)) {
+      setStatus('the model files are not hosted here — this preview is the ' +
+        'page alone (the weights are 14.9 MB). The runner works where ' +
+        'rwkv-export/ travels with the page: the deployed site, or locally ' +
+        'via  python3 -m http.server  in site/.', true);
+    } else {
+      setStatus('load failed: ' + e.message, true);
+    }
     $('loadbtn').disabled = false;
     loadbar.style.width = '0%';
   }

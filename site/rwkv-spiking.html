@@ -304,7 +304,10 @@ async function loadModel(variant, setStatus, setBar) {
       if (!r.ok) throw new Error('manifest missing (HTTP ' + r.status + ')');
       return r.json();
     }),
-    fetch(base + 'tokenizer.json').then(r => r.json()),
+    fetch(base + 'tokenizer.json').then(r => {
+      if (!r.ok) throw new Error('tokenizer missing (HTTP ' + r.status + ')');
+      return r.json();
+    }),
   ]);
   M.variant = variant;
   M.spiking = !!manifest.config.spiking;
@@ -656,7 +659,14 @@ $('loadbtn').onclick = async () => {
     buildMeters();
     $('counters').innerHTML = ''; $('race').innerHTML = '';
   } catch (e) {
-    setStatus('load failed: ' + e.message, true);
+    if (/HTTP 40/.test(e.message)) {
+      setStatus('the model files are not hosted here — this preview is the ' +
+        'page alone (the weights are ~15 MB per model). The runner works ' +
+        'where rwkv-export/ travels with the page: the deployed site, or ' +
+        'locally via  python3 -m http.server  in site/.', true);
+    } else {
+      setStatus('load failed: ' + e.message, true);
+    }
   }
   $('loadbtn').disabled = false;
 };
