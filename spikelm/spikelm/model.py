@@ -25,6 +25,10 @@ class Config:
     spiking: bool = False  # milestone 1
     nlm: bool = False      # milestone 4a: CTM-style neuron-level temporal models
     nlm_k: int = 4         # history window each unit sees
+    spike_in: bool = False # milestone 2b: spike the channel-mix INPUT too, so
+                           # both of its matmuls become accumulate-only
+    chanlif: bool = False  # milestone 5: SNN-MLP-style LIF along the CHANNEL axis
+    chanlif_k: int = 8
     sync: bool = False     # milestone 4b: CTM-style synchronization representation
     sync_pairs: int = 512  # how many unit pairs are watched
     sync_k: int = 32       # temporal window of the synchrony trace
@@ -107,10 +111,16 @@ class ChannelMix(nn.Module):
         super().__init__()
         C = cfg.n_embd
         spike_act = None
+        self.spike_in = None
         if spiking:
             from .spiking import SpikeAct
 
             spike_act = SpikeAct(dim=4 * C)  # per-block, per-channel thresholds
+            if cfg.spike_in:
+                # signed spikes on the block input: now W_k consumes spikes too,
+                # so both channel-mix matmuls are multiply-free
+                self.spike_in = SpikeAct(dim=C, signed=True)
+        self.chanlif = ChannelLIF(cfg.chanlif_k) if cfg.chanlif else None
         ratio = layer_id / max(1, cfg.n_layer - 1)
         self.mix_k = nn.Parameter(torch.pow(torch.linspace(0, 1, C), 1 - ratio).unsqueeze(0).unsqueeze(0))
         self.mix_r = nn.Parameter(self.mix_k.data.clone())
@@ -121,14 +131,44 @@ class ChannelMix(nn.Module):
         self.shift = NeuronTime(C, cfg.nlm_k) if cfg.nlm else token_shift
 
     def forward(self, x):
+        if self.chanlif is not None:
+            x = self.chanlif(x)
         xs = self.shift(x)
-        k = self.key(x * self.mix_k + xs * (1 - self.mix_k))
+        kin = x * self.mix_k + xs * (1 - self.mix_k)
+        if self.spike_in is not None:
+            kin = self.spike_in(kin)
+        k = self.key(kin)
         if self.spike_act is not None:
             k = self.spike_act(k)
         else:
             k = torch.square(torch.relu(k))
         r = torch.sigmoid(self.receptance(x * self.mix_r + xs * (1 - self.mix_r)))
         return r * self.value(k)
+
+
+class ChannelLIF(nn.Module):
+    """SNN-MLP's idea rotated: leaky integration along the CHANNEL axis
+    instead of the sequence axis. Each channel accumulates a decaying sum of
+    its neighbours, so channels interact with no matmul and two parameters
+    (a decay and a scale). Along the sequence axis this would duplicate what
+    RWKV's time-mix already does — across channels, nothing in the
+    architecture does it at all. Scale is zero-initialized: starts a no-op.
+    """
+
+    def __init__(self, k=8):
+        super().__init__()
+        self.k = k
+        self.decay_raw = nn.Parameter(torch.tensor(0.0))   # sigmoid -> 0.5
+        self.scale = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x):                                   # (B, T, C)
+        B, T, C = x.shape
+        lam = torch.sigmoid(self.decay_raw)
+        j = torch.arange(self.k - 1, -1, -1, device=x.device, dtype=x.dtype)
+        kern = (lam ** j).view(1, 1, self.k)
+        y = F.pad(x.reshape(B * T, 1, C), (self.k - 1, 0))
+        y = F.conv1d(y, kern).reshape(B, T, C)
+        return x + self.scale * y
 
 
 class SyncReadout(nn.Module):
