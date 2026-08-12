@@ -245,18 +245,32 @@ cell</a>:</p>
 2.1× at 4 levels and 5.1× at binary, because the multiplier's area goes as
 the operand width and a spike count is 3 bits, then 1. The producer collapses
 almost entirely: squared-ReLU is a 16×16 multiplier (566 LUTs), the uniform
-threshold is bit inspection (5 LUTs). Three honest boundaries: this model
-routes spikes only through W<sub>v</sub> — 27% of its MACs — so the
-model-level area saving is bounded by that fraction until the fully-spiking
-variant (signed input spikes) extends it to W<sub>k</sub> as well, roughly
-doubling the covered share. Event-driven <em>skipping</em> saves energy and
-time, never area — gates are laid down for the worst case. And weight
-<em>bandwidth</em> is untouched, so on the DRAM-bound builds from the
+threshold is bit inspection (5 LUTs).</p>
+<p>And the whole-model number is <b>counted by construction, not
+extrapolated</b>: <code>examples/rwkv/count_gates.py</code> builds the actual
+matmul engines at full width — the 384-lane value engine, the 1536-lane key
+engine (497,664 gates, dense), all variants, lane-linearity asserted rather
+than assumed — and assembles the datapath from the emitted netlists (plus the
+measured 7,201-gate wkv cell):</p>
+<table>
+<tr><th>datapath</th><th>per block</th><th>whole model</th><th>vs dense</th></tr>
+<tr><td>all dense (the float model)</td><td>1,252,251</td><td>8,840,610</td><td>—</td></tr>
+<tr><td>current spiking (spike-4 → W<sub>v</sub>)</td><td>1,182,640</td><td>8,422,944</td><td>−4.7%</td></tr>
+<tr><td>current at binary</td><td>1,148,080</td><td>8,215,584</td><td>−7.1%</td></tr>
+<tr><td>fully-spiking, binary (→ W<sub>k</sub> too)</td><td><b>797,872</b></td><td><b>6,114,336</b></td><td><b>−30.8%</b></td></tr>
+</table>
+<p>The signed-ternary input lane the fully-spiking variant needs (add or
+subtract the weight, never scale it) measures 96 gates — 3.4× smaller than
+dense. Three honest boundaries hold throughout: this model routes spikes only
+through W<sub>v</sub> — 27% of its MACs — which is why the current saving is
+single-digit; event-driven <em>skipping</em> saves energy and time, never
+area — gates are laid down for the worst case; and weight <em>bandwidth</em>
+is untouched, so on the DRAM-bound builds from the
 <a href="/morpho-silicon.html">silicon page</a> spiking doesn't raise
 tokens/s at all — what it raises is tokens per second <b>per unit area</b>
-(2–5× more lanes in the same fabric) and per joule, which is the currency
-that matters once weights are on-chip. Reproduce:
-<code>python3 examples/rwkv/spike_mac.py</code>.</p>
+and per joule, the currency that matters once weights are on-chip.
+Reproduce: <code>python3 examples/rwkv/spike_mac.py</code> (lanes) and
+<code>python3 examples/rwkv/count_gates.py</code> (engines and totals).</p>
 
 <script>
 'use strict';
