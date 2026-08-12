@@ -23,10 +23,34 @@ class Config:
     n_embd: int = 384
     ctx: int = 256
     spiking: bool = False  # milestone 1
+    nlm: bool = False      # milestone 4a: CTM-style neuron-level temporal models
+    nlm_k: int = 4         # history window each unit sees
 
 
 def token_shift(x):
     return F.pad(x, (0, 0, 1, -1))
+
+
+class NeuronTime(nn.Module):
+    """CTM idea #1: neuron-level temporal processing — every unit gets its
+    OWN weights over its OWN recent history, instead of the architecture's
+    single fixed token-shift. Implemented as a causal depthwise convolution
+    (one k-tap filter per channel), initialized to reproduce token_shift
+    exactly, so an NLM model starts life identical to the baseline and any
+    difference is learned rather than granted.
+    """
+
+    def __init__(self, C, k=4):
+        super().__init__()
+        self.k = k
+        self.conv = nn.Conv1d(C, C, kernel_size=k, groups=C, bias=False)
+        with torch.no_grad():
+            self.conv.weight.zero_()
+            self.conv.weight[:, 0, -2] = 1.0  # tap on t-1 == token_shift
+
+    def forward(self, x):  # (B, T, C)
+        y = F.pad(x.transpose(1, 2), (self.k - 1, 0))
+        return self.conv(y).transpose(1, 2)
 
 
 class TimeMix(nn.Module):
@@ -44,9 +68,10 @@ class TimeMix(nn.Module):
         self.value = nn.Linear(C, C, bias=False)
         self.receptance = nn.Linear(C, C, bias=False)
         self.output = nn.Linear(C, C, bias=False)
+        self.shift = NeuronTime(C, cfg.nlm_k) if cfg.nlm else token_shift
 
     def forward(self, x):
-        xs = token_shift(x)
+        xs = self.shift(x)
         k = self.key(x * self.mix_k + xs * (1 - self.mix_k))
         v = self.value(x * self.mix_v + xs * (1 - self.mix_v))
         r = torch.sigmoid(self.receptance(x * self.mix_r + xs * (1 - self.mix_r)))
@@ -90,9 +115,10 @@ class ChannelMix(nn.Module):
         self.value = nn.Linear(4 * C, C, bias=False)
         self.receptance = nn.Linear(C, C, bias=False)
         self.spike_act = spike_act  # None → squared ReLU (conventional)
+        self.shift = NeuronTime(C, cfg.nlm_k) if cfg.nlm else token_shift
 
     def forward(self, x):
-        xs = token_shift(x)
+        xs = self.shift(x)
         k = self.key(x * self.mix_k + xs * (1 - self.mix_k))
         if self.spike_act is not None:
             k = self.spike_act(k)
