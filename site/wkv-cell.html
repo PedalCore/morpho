@@ -190,12 +190,46 @@ pp′ = p2</pre>
   the last, rising slightly then settling, with zero saturation events at
   Q8.8. The max-subtraction normalization is doing its job: quantization
   error does not compound through aa/bb.</p>
-  <p><b>Prediction on record</b> (before the perplexity sweep reports):
-  Q6.10 breaks first on the decay side — pp + w₂ must represent steps down
-  to −26.5 and Q6.10 tops out at ±32, leaving almost no headroom. The
-  eight-arm sweep (LUT 32/64, interpolation on/off, exact-exp, exact-div vs
-  restoring divider, Q6.10/Q10.6) isolates each cause and reports held-out
-  perplexity, saturation counts, and generated text per format.</p>
+  <h2>the sweep reports</h2>
+  <p><b>Held-out perplexity: 6.244 in every format tested.</b> Q8.8, Q6.10,
+  Q10.6; LUT 32 or 64; interpolation on or off; exact division or the
+  restoring divider — all identical to the float64 reference to three
+  decimal places, and the Q8.8 circuit's generated story is <em>verbatim</em>
+  the float model's:</p>
+<pre>Once upon a time, there was a little girl named Lily. She loved
+to play outside in the sunshine. One day, she went to the park
+with her mommy and saw a very big slide. She wanted to go, but
+she knew she had to be careful.</pre>
+  <p>Not because the arms are equivalent — at the wkv output they span a
+  <b>12× range</b> in RMS error (Q6.10 best at 8.4×10⁻⁴, Q8.8 with
+  interpolation 2.5×10⁻³, without 4.3×10⁻³, Q10.6 worst at 9.8×10⁻³) — but
+  because the model has enormous headroom: ~0.2% relative error on a signal
+  spanning ±4.9 does not measurably move the next-token distribution.
+  <b>The circuit numerics are not the binding constraint. Pick the format on
+  area and timing grounds.</b></p>
+  <p><b>A prediction falsified, and why.</b> This page predicted, on record,
+  that Q6.10 would fail first on the decay side because pp + w₂ must
+  represent steps to −26.5. Measured: Q6.10 racked up <b>98,746 saturation
+  events — and they cost nothing.</b> The reason is structural: pp clips at
+  the bottom of the format exactly in the regime where pp − p is already
+  below ≈ −20, i.e. where the exponential has <em>already underflowed to
+  zero</em>. The clamp lands only where the value's magnitude no longer
+  matters. Revised sizing rule: what must be representable is <b>w₂ and
+  k₂</b>; pp's lower bound is cheap.</p>
+  <p><b>Error accumulation is depth-dependent</b> (measured on real
+  activations, per block and timestep):</p>
+  <table>
+    <tr><th>block</th><th>t = 0–32</th><th>t = 32–128</th><th>behaviour</th></tr>
+    <tr><td>block 0 (median w₂ ≈ −1.2)</td><td>1.6×10⁻³</td><td>2.2×10⁻³</td>
+        <td><b>flat</b> — decay flushes error as fast as it enters</td></tr>
+    <tr><td>block 5 (median w₂ ≈ −0.09)</td><td>6.0×10⁻³</td><td>1.7×10⁻²</td>
+        <td><i>grows ~6×</i> — slow decay integrates error longer</td></tr>
+  </table>
+  <p>The honest caveat to pair with "indistinguishable": deeper blocks hold
+  memory longer and therefore compound quantization error. It does not hurt
+  this model at this context length — but it is exactly the mechanism that
+  would bite a longer-context one. The simulator's stress case is precisely
+  this: drag the decay slider toward zero and watch the error trace climb.</p>
 
   <h2>unit inventory · per channel per token</h2>
   <table>
@@ -230,11 +264,12 @@ pp′ = p2</pre>
   point, which changes how much headroom is worth buying.</p>
   <p><b>pp width, concretely:</b> pp is a running max of k₂ and pp + w₂, so
   it tracks recent key magnitudes rather than accumulating without bound.
-  Two constraints size it: no clipping at the top of the k₂ range, and one
-  decay step of −26.5 must be representable without underflow — a 5-bit
-  integer part plus sign as the floor. Q6.10 is therefore expected to fail
-  first on the decay side; the format switch and the saturation counters
-  above let you watch it happen.</p>
+  The measured sizing rule (see the sweep results below, which falsified
+  this page's first guess): the format must represent <b>w₂ and k₂</b>
+  faithfully; pp's <em>lower</em> excursion is cheap to clamp, because by
+  the time pp hits a format floor the exponentials it feeds have already
+  underflowed to zero, so the clip lands where magnitude no longer
+  matters.</p>
   <p><b>Two architecture notes.</b> Only the output path divides — the state
   update doesn't — so one divider (or Newton–Raphson reciprocal) can be
   time-multiplexed across all 384 channels rather than instantiated per
