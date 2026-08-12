@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.04891304347826087,
+  "rep4": 0.0273224043715847,
+  "distinct1": 0.6559139784946236,
+  "distinct2": 0.9027027027027027,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the snow. One day, she went to the park to play with her friends. She saw a big tree with lots of fun things to play with. \nAs they played, Lily noticed a group of "
+ },
+ {
+  "rep3": 0.009708737864077669,
+  "rep4": 0.004878048780487805,
+  "distinct1": 0.625,
+  "distinct2": 0.9565217391304348,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a stick and started to chew it. Tom ran after the piece but it was too late. The dog fell and hurt his leg. It made a loud noise and no one heard him laugh. Tom realized that he should "
+ },
+ {
+  "rep3": 0.0966183574879227,
+  "rep4": 0.07766990291262135,
+  "distinct1": 0.48325358851674644,
+  "distinct2": 0.8076923076923077,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird again. He was so happy to see her. He gave the bird a big hug and thanked her.\nThe bird and the bird continued to play in the park. It was a happy day for the bird.\n<|endoftext|>\nOnce upon a"
+ },
+ {
+  "rep3": 0.07692307692307693,
+  "rep4": 0.03864734299516908,
+  "distinct1": 0.5190476190476191,
+  "distinct2": 0.8133971291866029,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to add some baking. Her mom said yes and they waited until the cake was done.\nWhen the oven was done, Lily and her mom finished making soup. When they were done, Lily and her mom all en"
+ },
+ {
+  "rep3": 0.010050251256281407,
+  "rep4": 0.0,
+  "distinct1": 0.5323383084577115,
+  "distinct2": 0.89,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a bird and wanted to help.\n\"Thank you, bird!\" Ben said. \"You can help you.\"\nThe bird nodded and flew away. Ben and the bird worked together to make the bird go away. The bird and the bir"
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.0481283422459893,
+  "rep4": 0.021505376344086023,
+  "distinct1": 0.6031746031746031,
+  "distinct2": 0.8723404255319149,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the snow. One day, she went to the house to play with her family. They were having so much fun playing in the backyard every day.\nLily wanted to have a new friend, "
+ },
+ {
+  "rep3": 0.02040816326530612,
+  "rep4": 0.0,
+  "distinct1": 0.5757575757575758,
+  "distinct2": 0.9086294416243654,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " his dog was sitting on a bench. Tom was crying and he saw Tom. He looked at Tom and Lily.\n\"Help Tom, help me! I will join you!\" Lily said. She grabbed Tom and her ball.\nSpot heard the noise. He looke"
+ },
+ {
+  "rep3": 0.08737864077669903,
+  "rep4": 0.06341463414634146,
+  "distinct1": 0.5144230769230769,
+  "distinct2": 0.8454106280193237,
+  "prompt": "The old man opened the box and found",
+  "sample": " the toy car. He was so happy and went back to his house to play with his toy car.\n<|endoftext|>\nOnce upon a time, there was a little girl named Lily. She loved to play outside in the yard. One day, s"
+ },
+ {
+  "rep3": 0.025510204081632654,
+  "rep4": 0.015384615384615385,
+  "distinct1": 0.5808080808080808,
+  "distinct2": 0.9238578680203046,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to buy some apples.\nLily was very excited and asked her mom to buy some more food to eat. Her mom said yes and they started to eat candy and milk. They were so so many and laughed toget"
+ },
+ {
+  "rep3": 0.028985507246376812,
+  "rep4": 0.0048543689320388345,
+  "distinct1": 0.4784688995215311,
+  "distinct2": 0.8125,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big lions on the ground. The bird was sad because the bird was too fast. The bird wanted to play on the tree and play with the bird.\"\nThe bird didn't like the bug, so the bird flew awa"
+ }
+]

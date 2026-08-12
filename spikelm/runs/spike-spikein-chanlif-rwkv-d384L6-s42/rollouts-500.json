@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.08695652173913043,
+  "rep4": 0.03398058252427184,
+  "distinct1": 0.507177033492823,
+  "distinct2": 0.8028846153846154,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved help and play with her toys. One day, Lily felt happy. She wanted to eat the fun. She went to the park to play with, but she knew that the park was not a place to make a big, old man "
+ },
+ {
+  "rep3": 0.014423076923076924,
+  "rep4": 0.0,
+  "distinct1": 0.580952380952381,
+  "distinct2": 0.9043062200956937,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " they found a blue blue flowers to open and fell. It was full of fun.\nSuddenly, the bird looked around and said, \"No, what are you doing?\" The farmer tried to catch it. He thought it was nice and than"
+ },
+ {
+  "rep3": 0.028846153846153848,
+  "rep4": 0.004830917874396135,
+  "distinct1": 0.5285714285714286,
+  "distinct2": 0.8660287081339713,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird again. He was so happy to use her new things.\n<|endoftext|>\n\nOnce upon a time, there was a little girl named Benny. She was very kind and the girl loved him with her toys. One day she decide"
+ },
+ {
+  "rep3": 0.016042780748663103,
+  "rep4": 0.005376344086021506,
+  "distinct1": 0.5925925925925926,
+  "distinct2": 0.9468085106382979,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom.\n\"No, I found a ball with you, Ben,\" said her mom.\n\"It's you to a tree and you have to use your wings and play with it.\"\nLily laughed and hugged her. She said \"I like the hill. It is no"
+ },
+ {
+  "rep3": 0.028846153846153848,
+  "rep4": 0.014492753623188406,
+  "distinct1": 0.5380952380952381,
+  "distinct2": 0.8995215311004785,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird went to the park and looked away. The boy was very brave. He wanted to take the dog to the tree. He was so happy.\nThe moral of the park, the dog did not listen to the rabbit. He was s"
+ }
+]

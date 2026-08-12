@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.04830917874396135,
+  "rep4": 0.024271844660194174,
+  "distinct1": 0.5454545454545454,
+  "distinct2": 0.8653846153846154,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play together in her yard. One day, she felt her hair hair hair full. She jumped up and down and licked her face.\nLily felt so happy. She wanted to play with her toys too, but she "
+ },
+ {
+  "rep3": 0.09278350515463918,
+  "rep4": 0.025906735751295335,
+  "distinct1": 0.4846938775510204,
+  "distinct2": 0.7846153846153846,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " his mom found him and said, \"Let's play a game\".\nSam looked for a moment and saw many things inside. He saw his friend, a dog. The dog was very fast and had a big ball. The dog said, \"Let's play with"
+ },
+ {
+  "rep3": 0.016216216216216217,
+  "rep4": 0.005434782608695652,
+  "distinct1": 0.6310160427807486,
+  "distinct2": 0.956989247311828,
+  "prompt": "The old man opened the box and found",
+  "sample": " the keys. He was so happy and said, \"Thank you, dad!\" And the old man was very kind and generous to everyone. He said, \"You're welcome the man's kindness. Just be kind and kind to me.\" The old lady s"
+ },
+ {
+  "rep3": 0.015228426395939087,
+  "rep4": 0.01020408163265306,
+  "distinct1": 0.5879396984924623,
+  "distinct2": 0.9191919191919192,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to buy some apples. Her mom said yes and they all took a snack for Lily. Lily was very excited and asked her mommy to help her. Her mom said, \"But Lily, have a cake for you. I am glad t"
+ },
+ {
+  "rep3": 0.020512820512820513,
+  "rep4": 0.0,
+  "distinct1": 0.6243654822335025,
+  "distinct2": 0.9183673469387755,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big tree with many colors. The bird was scared and didn't know what to do.\nThen, a tall, cold and scary bird came to help. It had a big, shiny bird and a warm heart. The bird went to f"
+ }
+]

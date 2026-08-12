@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.014492753623188406,
+  "rep4": 0.0,
+  "distinct1": 0.5645933014354066,
+  "distinct2": 0.9182692307692307,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she went to the park with her mommy and daddy. They were playing in the park when Lily found a fragile fragile bird bird. She didn't want to "
+ },
+ {
+  "rep3": 0.016304347826086956,
+  "rep4": 0.00546448087431694,
+  "distinct1": 0.6344086021505376,
+  "distinct2": 0.9459459459459459,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big, red ball. He picked it up and showed it to his grandma.\n\"Look, grandma, Tom! My ball is gone!\" said Lily.\n\"Don't worry, we can find it together. We can find the ball.\" said Lily."
+ },
+ {
+  "rep3": 0.04878048780487805,
+  "rep4": 0.029411764705882353,
+  "distinct1": 0.5458937198067633,
+  "distinct2": 0.8932038834951457,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden coin. He was so happy and thanked her. From that day on, Lily and her friends played with the coin every day in the backyard.\n<|endoftext|>\nOnce upon a time, there was a chubby bunny named"
+ },
+ {
+  "rep3": 0.004901960784313725,
+  "rep4": 0.0,
+  "distinct1": 0.6553398058252428,
+  "distinct2": 0.9658536585365853,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help. Her mom helped her mix the flour, sugar, and cups. They mixed them together and started to mix the dough. They stirred and stirred until it was delicious. Lily and her mom sat "
+ },
+ {
+  "rep3": 0.057692307692307696,
+  "rep4": 0.03864734299516908,
+  "distinct1": 0.5380952380952381,
+  "distinct2": 0.8660287081339713,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small cat with a hurt wing. The cat was brave and wanted to help. So, the big bird flew on the big bird and hurt its wing. It helped the cat to feel safe and warm. The cat and the bird"
+ }
+]

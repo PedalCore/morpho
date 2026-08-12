@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.031088082901554404,
+  "rep4": 0.010416666666666666,
+  "distinct1": 0.517948717948718,
+  "distinct2": 0.8814432989690721,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she went to the park to play with her friends. She saw a big tree with lots of leaves. Lily knew she had to be careful. \nLily walked up to th"
+ },
+ {
+  "rep3": 0.0223463687150838,
+  "rep4": 0.0,
+  "distinct1": 0.6243093922651933,
+  "distinct2": 0.9111111111111111,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a rare magnet. It was red and shiny. Tom picked it up and put it on the ground.\n\"Wow, look at this!\" said Tom. \"I found it first!\" He showed the magnet to his friend. It was a magnet. It wa"
+ },
+ {
+  "rep3": 0.05339805825242718,
+  "rep4": 0.03414634146341464,
+  "distinct1": 0.47596153846153844,
+  "distinct2": 0.8405797101449275,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical coin! He was so happy he had found something even better than an old coin!\n<|endoftext|>\n\nOnce upon a time there was an ancient garden. In the garden, a little girl lived on the farm. She"
+ },
+ {
+  "rep3": 0.01485148514851485,
+  "rep4": 0.004975124378109453,
+  "distinct1": 0.5441176470588235,
+  "distinct2": 0.8817733990147784,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help. Her mom helped her mix the batter batter, and Lily was so happy.\nAfter dinner, Lily asked her mom to help her make the cake. Her mom showed her how to use the battery. They put"
+ },
+ {
+  "rep3": 0.08056872037914692,
+  "rep4": 0.03333333333333333,
+  "distinct1": 0.43661971830985913,
+  "distinct2": 0.7830188679245284,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small cat. The cat was not scared of the cat. The cat wanted to help the cat.\nThe cat put the bird on a branch. The cat gave the bird some food to eat. The bird felt better. The cat we"
+ }
+]

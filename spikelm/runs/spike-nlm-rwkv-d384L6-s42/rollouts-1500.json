@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.059113300492610835,
+  "rep4": 0.024752475247524754,
+  "distinct1": 0.5219512195121951,
+  "distinct2": 0.8480392156862745,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in her yard. One day, she went to the park to play with her friends. She saw a big tree in the park, but she knew it was a tree.\nLily asked her friend, the tree to pla"
+ },
+ {
+  "rep3": 0.029850746268656716,
+  "rep4": 0.005,
+  "distinct1": 0.6157635467980296,
+  "distinct2": 0.9158415841584159,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " he found a yellow spot in the grass. He picked it up and showed it to his friend, a girl named Lucy.\n\"Hi, I am John,\" said Timmy. \"I'm very sleepy. I'm bored. She might hurt you.\"\nTimmy smiled and sa"
+ },
+ {
+  "rep3": 0.021621621621621623,
+  "rep4": 0.0,
+  "distinct1": 0.5614973262032086,
+  "distinct2": 0.9086021505376344,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical coin. He was so happy and went back to his home, pleased to have found the treasure. From then on, the man was very happy to have the coin.\n<|endoftext|>\n\nBen and Lily were playing in the"
+ },
+ {
+  "rep3": 0.01990049751243781,
+  "rep4": 0.0,
+  "distinct1": 0.5960591133004927,
+  "distinct2": 0.9108910891089109,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to try it. Her mom said yes, and they both took a different cup together.\nLily put the cup in the fridge and it started to spray from the bathroom. They put it in a oven and started to "
+ },
+ {
+  "rep3": 0.06190476190476191,
+  "rep4": 0.023923444976076555,
+  "distinct1": 0.5047169811320755,
+  "distinct2": 0.8293838862559242,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big, black bird with a long tail and made loud roar. The bird was sad and it saw the bird. The bird was sad and didn't like the bird. The bird asked the bird if she could take some. Th"
+ }
+]

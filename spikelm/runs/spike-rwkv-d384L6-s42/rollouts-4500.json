@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.01,
+  "rep4": 0.0,
+  "distinct1": 0.599009900990099,
+  "distinct2": 0.9203980099502488,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she saw a big, open tree. She wanted to climb the tree, but she knew it was too high. So, she asked her mommy for help.\n\"Mommy, look for a br"
+ },
+ {
+  "rep3": 0.004694835680751174,
+  "rep4": 0.0,
+  "distinct1": 0.5813953488372093,
+  "distinct2": 0.9345794392523364,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big, red ball. He rolled down the slide and went to play with the ball.\nTom saw the ball and ran after it. He picked it up and tried to catch it. He kicked it hard and it flew away. T"
+ },
+ {
+  "rep3": 0.04326923076923077,
+  "rep4": 0.028985507246376812,
+  "distinct1": 0.5428571428571428,
+  "distinct2": 0.8899521531100478,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird. He put it in a cage and took out a blanket to keep it safe.\nThe bird drank the blanket and spread it out. The bird flew away and the bird flew away. The other animals were happy and thanked"
+ },
+ {
+  "rep3": 0.005050505050505051,
+  "rep4": 0.0,
+  "distinct1": 0.59,
+  "distinct2": 0.9346733668341709,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help him. She helped her put the mix into a bowl and poured the cake to the oven. It was a very strong and fun cake, just like her mom had a cake.\nAfter the cake was ready, Lily put "
+ },
+ {
+  "rep3": 0.07729468599033816,
+  "rep4": 0.03398058252427184,
+  "distinct1": 0.4784688995215311,
+  "distinct2": 0.8076923076923077,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big cat. The cat was very angry. It did not like the cat. The cat wanted to play with its friend, the cat.\nThe cat saw the cat on the ground. The cat saw the cat. The cat was happy. It"
+ }
+]

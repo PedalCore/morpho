@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.03535353535353535,
+  "rep4": 0.015228426395939087,
+  "distinct1": 0.58,
+  "distinct2": 0.8844221105527639,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she felt a little bit dizzy, so she went to find some water to drink in the water.\nAs she walked, she saw a big, strong bird in the water. Th"
+ },
+ {
+  "rep3": 0.005291005291005291,
+  "rep4": 0.0,
+  "distinct1": 0.5916230366492147,
+  "distinct2": 0.9315789473684211,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big, red ball. He picked it up and showed it to his grandma.\n\"Look, grandma, Tom! My ball is so pretty!\" said Lily.\n\"Can I see it too, Tom?\" asked Lily.\n\"Yes, Lily, you can play with "
+ },
+ {
+  "rep3": 0.05392156862745098,
+  "rep4": 0.034482758620689655,
+  "distinct1": 0.558252427184466,
+  "distinct2": 0.8634146341463415,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden coin. He was so happy and he thanked the old man.\nThe old man smiled and thanked the kind man. He thanked the kind old man and the old man. He knew the coin was the best treasure ever.\n<|e"
+ },
+ {
+  "rep3": 0.019230769230769232,
+  "rep4": 0.004830917874396135,
+  "distinct1": 0.5666666666666667,
+  "distinct2": 0.9330143540669856,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help. Her mom helped her put the cake in the oven and waited for the cake to be ready. It was a very strong and safe time, making a yummy cake for Lily's birthday.\nAfter they finishe"
+ },
+ {
+  "rep3": 0.04975124378109453,
+  "rep4": 0.015,
+  "distinct1": 0.5270935960591133,
+  "distinct2": 0.8613861386138614,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird was so excited to find the bird! The bird wanted to keep the bird safe, so it flew as far as it could.\nThe bird flew away in a big tree with the bird, but the bird didn't take anything. The "
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.010471204188481676,
+  "rep4": 0.0,
+  "distinct1": 0.616580310880829,
+  "distinct2": 0.9375,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in her yard. One day, she felt something special in her yard. She jumped up and down and looked around to see what was inside the window.\nSuddenly, she heard a loud no"
+ },
+ {
+  "rep3": 0.039603960396039604,
+  "rep4": 0.009950248756218905,
+  "distinct1": 0.5441176470588235,
+  "distinct2": 0.8669950738916257,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " he found a big hole in the hole. He was so happy! Tom thanked the hole for helping him move the hole.\nTom learned that his house might hurt us when he was still feeling lonely. He learned to share an"
+ },
+ {
+  "rep3": 0.03626943005181347,
+  "rep4": 0.010416666666666666,
+  "distinct1": 0.6,
+  "distinct2": 0.9020618556701031,
+  "prompt": "The old man opened the box and found",
+  "sample": " the old coin. He was so happy and thanked her. From that day on, the man was very grateful. He knew that he could help the old man who was happy.\n<|endoftext|>\n\nBen and Lily were twins who lived near"
+ },
+ {
+  "rep3": 0.06341463414634146,
+  "rep4": 0.024509803921568627,
+  "distinct1": 0.5265700483091788,
+  "distinct2": 0.8495145631067961,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her to mix the cake. Her mom said yes, and they both took a different cup of cake to play.\nThey started to put the cake on top, and then Lily's mom took out a cake. She put the cake on one and "
+ },
+ {
+  "rep3": 0.1024390243902439,
+  "rep4": 0.0392156862745098,
+  "distinct1": 0.46859903381642515,
+  "distinct2": 0.7621359223300971,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a long rock in the distance. The bird wanted to reach it. The bird was sad, but he did not know how to fly.\nSuddenly, a big tree fell on the ground. The bird saw the bird and wanted to h"
+ }
+]

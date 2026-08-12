@@ -95,3 +95,27 @@ did NOT inflate to compensate. Op-count proxy: ~30% of a block's matrix
 energy, no wall-clock or memory gain on GPU/MPS (dense kernels, float
 storage). Caveats: single seed, extra fine-tune steps vs comparison arms,
 annealed-not-from-scratch.
+
+**CTM arms (milestone 4, both null):** neuron-level temporal models (per-unit
+history weights) tracked the plain spiking arm across 5 checkpoints
+(21.28/14.95/10.97/10.44/8.39 vs 21.47/14.71/10.90/10.54/8.28) — plausibly
+because RWKV already gives every channel its own learnable time-decay, unlike
+CTM's feed-forward setting. The synchronization readout (512 pairwise
+co-activation traces) led by 0.77 at step 500 and was level by step 1000.
+Both arms started as exact no-ops by construction (zero-init projections),
+so neither null is explained by the mechanism failing to engage.
+
+**Fully-spiking channel-mix + channel-axis LIF (in progress):** signed input
+spikes make BOTH channel-mix matmuls multiply-free (~54% of model arithmetic,
+up from ~27%). Gap to plain spiking closing over training: +16.4% (500),
++10.1% (1000), +8.7% (1500), +6.4% (2000), +7.8% (3000). Confounded between
+the two mechanisms — split them before drawing conclusions.
+
+**Fixed-point wkv sweep:** perplexity 6.244 in every format (Q8.8/Q6.10/Q10.6,
+LUT 32/64, interp on/off, exact vs restoring division) despite a 12x spread in
+wkv-output RMS error. Published on soundlark.studio/wkv-cell.html.
+
+**Export:** export/wkv-atlas.json (exact per-block decays, committed),
+site/rwkv-export/model-int8.bin (14.9MB, committed; validated 6.4224 ->
+6.4215, -0.01%), also mirrored as release spikelm-v0.1. Runs live in the
+browser at soundlark.studio/rwkv-live.html.

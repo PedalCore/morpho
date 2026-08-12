@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.04522613065326633,
+  "rep4": 0.020202020202020204,
+  "distinct1": 0.4975124378109453,
+  "distinct2": 0.85,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play together in the sunshine. One day, she felt sorry for her toy toy. She asked her mom, \"No, Lily! You are my best!\"\nLily wanted to go home. She said, \"No, Lily, I have a lot of"
+ },
+ {
+  "rep3": 0.010256410256410256,
+  "rep4": 0.0,
+  "distinct1": 0.5431472081218274,
+  "distinct2": 0.9030612244897959,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " they found a blue car in the forest. They had many toys that had many crayons to make friends.\nOne day, they saw a big tree about the park. They felt happy that the dog had gone. The ball had a big d"
+ },
+ {
+  "rep3": 0.0,
+  "rep4": 0.0,
+  "distinct1": 0.5707547169811321,
+  "distinct2": 0.9241706161137441,
+  "prompt": "The old man opened the box and found",
+  "sample": " the big, dark dark and the sun was so fast. He was so pleased that he had been very happy.\n<|endoftext|>\n\nOnce upon a time, there was a little girl named Lily. She loved to play play on the table. On"
+ },
+ {
+  "rep3": 0.06735751295336788,
+  "rep4": 0.03125,
+  "distinct1": 0.5025641025641026,
+  "distinct2": 0.8298969072164949,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom.\nHer mom was happy to see the bird. They said, \"I'm sorry, mom. We have to put a picture on the ground from your room. They can't have a big hug. I am sorry for you to be a good friends"
+ },
+ {
+  "rep3": 0.014018691588785047,
+  "rep4": 0.0,
+  "distinct1": 0.5509259259259259,
+  "distinct2": 0.8790697674418605,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a bird. The bird looked at the bird and saw the duck. The little bird was very sad. The bird was very excited! The dog looked up and saw the bird on the dog, and it saw the dog. The bird"
+ }
+]

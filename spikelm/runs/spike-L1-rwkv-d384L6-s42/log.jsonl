@@ -1,0 +1,2 @@
+{"step": 500, "train_loss": 1.7619, "val_loss": 1.8897, "val_ppl": 6.62, "rep3": 0.0327, "rep4": 0.0139, "distinct1": 0.5647, "distinct2": 0.8948}
+{"step": 1000, "train_loss": 1.955, "val_loss": 1.9941, "val_ppl": 7.35, "rep3": 0.0555, "rep4": 0.0289, "distinct1": 0.5449, "distinct2": 0.8597}

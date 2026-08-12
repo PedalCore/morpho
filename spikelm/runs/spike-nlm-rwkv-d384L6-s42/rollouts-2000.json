@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.04205607476635514,
+  "rep4": 0.009389671361502348,
+  "distinct1": 0.5416666666666666,
+  "distinct2": 0.8697674418604651,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside and play with her toys. One day, she wanted to go for a walk with her mom and daddy. She ran to the house and saw a big, furry dog sitting on a bench. \nLily was scared"
+ },
+ {
+  "rep3": 0.009523809523809525,
+  "rep4": 0.0,
+  "distinct1": 0.5613207547169812,
+  "distinct2": 0.933649289099526,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " he found a picture of a happy cat. He picked up the picture and showed it to his friends. He smiled, said, \"Thank you, what he made!\" and agreed that it was a special gift.\nThe cat looked at the pict"
+ },
+ {
+  "rep3": 0.045,
+  "rep4": 0.03015075376884422,
+  "distinct1": 0.5346534653465347,
+  "distinct2": 0.8955223880597015,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden spot he had seen inside. He went back to his house to buy the old man for his new toy.\nThe old man was very happy to have the old old toy home. He hugged the old man and drove away to his "
+ },
+ {
+  "rep3": 0.02843601895734597,
+  "rep4": 0.0,
+  "distinct1": 0.5164319248826291,
+  "distinct2": 0.8679245283018868,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if she could have one. Her mom said yes and they found a good cupcake to play.\nLily was so happy to see her grandma, and they all played together. When they got home, they all enjoyed t"
+ },
+ {
+  "rep3": 0.04455445544554455,
+  "rep4": 0.014925373134328358,
+  "distinct1": 0.5392156862745098,
+  "distinct2": 0.8669950738916257,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small bird sitting on a branch. The bird was sad and hurt.\nThe bird saw the bird and said, \"Oh no, ow, ow! The bird is sad. It needs to fly and be happy.\" The bird said, \"Yes, it is ok"
+ }
+]

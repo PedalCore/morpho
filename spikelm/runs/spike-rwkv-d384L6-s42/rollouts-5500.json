@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.02358490566037736,
+  "rep4": 0.0,
+  "distinct1": 0.5233644859813084,
+  "distinct2": 0.8826291079812206,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the snow. One day, she went to the park with her mom and saw a very big slide. She wanted to play, so she asked her mom if she could go on the slide, but her mom sa"
+ },
+ {
+  "rep3": 0.045,
+  "rep4": 0.010050251256281407,
+  "distinct1": 0.5346534653465347,
+  "distinct2": 0.8606965174129353,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big tree. Tom and his dog played together in the tree. They laughed and had fun.\n<|endoftext|>\nOnce upon a time, there was a little boy named Tim. Tim liked to play outside in the par"
+ },
+ {
+  "rep3": 0.020618556701030927,
+  "rep4": 0.0,
+  "distinct1": 0.6122448979591837,
+  "distinct2": 0.9282051282051282,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden coin. He was so happy and couldn't wait to show off his new treasure. \nThe next day, Jimmy returned to the house. He proudly put the coin in the box and ran home. He was so excited to show"
+ },
+ {
+  "rep3": 0.03431372549019608,
+  "rep4": 0.014778325123152709,
+  "distinct1": 0.5533980582524272,
+  "distinct2": 0.8878048780487805,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if she could. Her mom said yes, and they baked the cake together.\nAfter they finished decorating the cake, Lily and her mom finished making a yummy cake for a cake. Lily and her mom sat"
+ },
+ {
+  "rep3": 0.047619047619047616,
+  "rep4": 0.023923444976076555,
+  "distinct1": 0.5,
+  "distinct2": 0.8530805687203792,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw the bird and wanted to help. The bird flew down and tried to fly away, but the bird saw the bird and flew away. The bird felt sad for the bird and said, \"Don't worry, I'll help you find "
+ }
+]

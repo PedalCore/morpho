@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.0273224043715847,
+  "rep4": 0.01098901098901099,
+  "distinct1": 0.5567567567567567,
+  "distinct2": 0.9130434782608695,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside and play in the park. One day, she wanted to go for a walk with her mom and dad. She saw a big, white bird standing under the ground. The bird said, \"Wow, it's so cool"
+ },
+ {
+  "rep3": 0.0048543689320388345,
+  "rep4": 0.0,
+  "distinct1": 0.6057692307692307,
+  "distinct2": 0.9468599033816425,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a blueberryberry. It was sour. It was full of juicy fruit with delicious seeds! Tom was so happy with his new blueberryberry! He ate it all up and smiled. Then, Tom realized that he had don"
+ },
+ {
+  "rep3": 0.014778325123152709,
+  "rep4": 0.0,
+  "distinct1": 0.5853658536585366,
+  "distinct2": 0.9215686274509803,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden coin he had seen inside. He had found a jewel! The little boy was so happy and thanked the old man. He thanked the old man for his goodile. \nFrom that day on, the little boy and the old ma"
+ },
+ {
+  "rep3": 0.030456852791878174,
+  "rep4": 0.01020408163265306,
+  "distinct1": 0.542713567839196,
+  "distinct2": 0.8838383838383839,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if she could have one. Her mom said yes, but Lily didn't listen.\nAfter dinner, Lily asked her mom to help her pick up the cake. She showed it to her friends and they started to bake coo"
+ },
+ {
+  "rep3": 0.035,
+  "rep4": 0.01507537688442211,
+  "distinct1": 0.5594059405940595,
+  "distinct2": 0.8706467661691543,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a bird and wanted to help it. The bird was very brave. The little bird was very curious and wanted to help the bird. The bird hopped up to the tree and said, \"Hello, bird! What are you d"
+ }
+]

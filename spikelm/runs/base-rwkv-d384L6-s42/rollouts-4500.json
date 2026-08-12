@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.03271028037383177,
+  "rep4": 0.009389671361502348,
+  "distinct1": 0.5277777777777778,
+  "distinct2": 0.8697674418604651,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she saw a big, open tree with green leaves. She wanted to climb it to see what was inside, but she was a little afraid. \nLily tried to turn t"
+ },
+ {
+  "rep3": 0.058823529411764705,
+  "rep4": 0.04838709677419355,
+  "distinct1": 0.6190476190476191,
+  "distinct2": 0.898936170212766,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog caught on a rock and fell to the ground. He cried and cried. His friend came over and helped him get up. They called his dog to help him up. They tried to catch him, but it was too late. The "
+ },
+ {
+  "rep3": 0.04035874439461883,
+  "rep4": 0.02252252252252252,
+  "distinct1": 0.48444444444444446,
+  "distinct2": 0.84375,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical power he could use to make a new power. He used the power to make the world a brighter. Now the fox was very happy and could not wait to find someone else the power to make the world more"
+ },
+ {
+  "rep3": 0.046632124352331605,
+  "rep4": 0.026041666666666668,
+  "distinct1": 0.5384615384615384,
+  "distinct2": 0.8608247422680413,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to mix the baking. She said, \"No, Lily, I want to mix the flour and salad that is too big for the cake.\"\nLily's mom saw her trying and said, \"Lily, do you want to help me cook some pret"
+ },
+ {
+  "rep3": 0.03773584905660377,
+  "rep4": 0.014218009478672985,
+  "distinct1": 0.5560747663551402,
+  "distinct2": 0.8732394366197183,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small bird in the tree. The bird wanted to help the bird, so it hopped over to the big tree. The bird gave the bird some berries to eat. It was so happy to eat the berries, it flew awa"
+ }
+]

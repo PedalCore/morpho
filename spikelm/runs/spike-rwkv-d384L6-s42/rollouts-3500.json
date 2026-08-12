@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.043478260869565216,
+  "rep4": 0.0273224043715847,
+  "distinct1": 0.553763440860215,
+  "distinct2": 0.8864864864864865,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she felt her hair rusty and she felt scared.\nLily's mom told her, \"Don't worry, let's go inside and you'll get ready for bed.\"\nLily sat and l"
+ },
+ {
+  "rep3": 0.028169014084507043,
+  "rep4": 0.009433962264150943,
+  "distinct1": 0.5162790697674419,
+  "distinct2": 0.9018691588785047,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a ball. He played with it all day and had fun. Tom felt a little sad for Tom.\nBack Tom saw the ball and he thought it was funny. He played with it for a while and had a fun day. Tom was hap"
+ },
+ {
+  "rep3": 0.0055248618784530384,
+  "rep4": 0.0,
+  "distinct1": 0.6120218579234973,
+  "distinct2": 0.9340659340659341,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird's broken wing. The little bird was very sad, but the old man told the little boy. \"Don't worry, I will fix the bird's home.\" The little boy was happy again and thanked the old man. From that"
+ },
+ {
+  "rep3": 0.11282051282051282,
+  "rep4": 0.09278350515463918,
+  "distinct1": 0.5634517766497462,
+  "distinct2": 0.8367346938775511,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to mix the ingredients together. Her mom said, \"Sure, but be careful. The oven is too hot to mix.\" Lily finished making the cake and they put it in a oven. After they finished, the cake"
+ },
+ {
+  "rep3": 0.04854368932038835,
+  "rep4": 0.014634146341463415,
+  "distinct1": 0.5,
+  "distinct2": 0.8405797101449275,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small bird in the tree. The bird wanted to help the bird.\nThe bird saw the bird and said, \"I need help. Let me help you.\" The bird said, \"I will help you!\" The bird flew down and put t"
+ }
+]

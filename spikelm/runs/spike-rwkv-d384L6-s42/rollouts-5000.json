@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.005494505494505495,
+  "rep4": 0.0,
+  "distinct1": 0.6358695652173914,
+  "distinct2": 0.9453551912568307,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she felt the sun shining in her backyard. But she was getting tired and so she decided to go inside to drink.\nAs she walked, she saw her frie"
+ },
+ {
+  "rep3": 0.009569377990430622,
+  "rep4": 0.0,
+  "distinct1": 0.5497630331753555,
+  "distinct2": 0.9523809523809523,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big, red ball. He picked it up and threw it in the air. The dog ran faster and faster. Tom was very happy. He loved the ball and hugged it tight.\nTom and his friend played under the s"
+ },
+ {
+  "rep3": 0.05128205128205128,
+  "rep4": 0.030927835051546393,
+  "distinct1": 0.5634517766497462,
+  "distinct2": 0.8775510204081632,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird. He put it on a shelf and he smiled. The little bird thought it was very pretty. From then on, he always remembered the old man who put his toys away the floor.\n<|endoftext|>\nOnce upon a tim"
+ },
+ {
+  "rep3": 0.034482758620689655,
+  "rep4": 0.01485148514851485,
+  "distinct1": 0.551219512195122,
+  "distinct2": 0.8725490196078431,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help. Her mom agreed and said, \"We can help you. You can help me cut the cake and you'll find something fun to do.\"\nThey cooked a big cake and waited. After they were finished, Lily "
+ },
+ {
+  "rep3": 0.04,
+  "rep4": 0.010050251256281407,
+  "distinct1": 0.5396039603960396,
+  "distinct2": 0.8756218905472637,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small hole in the ground. The bird was sad because it had no friends to play with.\nThen, a nice dog came and sat on the ground. The dog saw the dog and said, \"I am sorry, little bird. "
+ }
+]

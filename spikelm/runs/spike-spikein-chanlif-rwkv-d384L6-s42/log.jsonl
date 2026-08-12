@@ -1,0 +1,6 @@
+{"step": 500, "train_loss": 3.2064, "val_loss": 3.2186, "val_ppl": 24.99, "rep3": 0.035, "rep4": 0.0117, "distinct1": 0.5495, "distinct2": 0.8839}
+{"step": 1000, "train_loss": 2.8257, "val_loss": 2.7849, "val_ppl": 16.2, "rep3": 0.0374, "rep4": 0.0178, "distinct1": 0.5779, "distinct2": 0.8807}
+{"step": 1500, "train_loss": 2.525, "val_loss": 2.4726, "val_ppl": 11.85, "rep3": 0.0421, "rep4": 0.021, "distinct1": 0.5505, "distinct2": 0.8725}
+{"step": 2000, "train_loss": 2.264, "val_loss": 2.4167, "val_ppl": 11.21, "rep3": 0.0568, "rep4": 0.0162, "distinct1": 0.5137, "distinct2": 0.8342}
+{"step": 2500, "train_loss": 2.2328, "val_loss": 2.1877, "val_ppl": 8.91, "rep3": 0.0339, "rep4": 0.0129, "distinct1": 0.5496, "distinct2": 0.8774}
+{"step": 3000, "train_loss": 2.1571, "val_loss": 2.189, "val_ppl": 8.93, "rep3": 0.0368, "rep4": 0.0121, "distinct1": 0.578, "distinct2": 0.8869}

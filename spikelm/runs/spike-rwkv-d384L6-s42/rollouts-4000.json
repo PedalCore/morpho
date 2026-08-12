@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.026455026455026454,
+  "rep4": 0.0,
+  "distinct1": 0.643979057591623,
+  "distinct2": 0.9263157894736842,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she felt something special in her hands. She went inside and found a big green leaf. It was so pretty! She put it on and started to draw. \nAs"
+ },
+ {
+  "rep3": 0.015306122448979591,
+  "rep4": 0.0,
+  "distinct1": 0.601010101010101,
+  "distinct2": 0.9035532994923858,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " they found a rare thing in the park. It was a big, round piece of cake with a picture of a cat on it. Tom and Lily laughed and said, \"We love that dog!\" They played with the ball for a long time.\nAft"
+ },
+ {
+  "rep3": 0.06310679611650485,
+  "rep4": 0.03414634146341464,
+  "distinct1": 0.5240384615384616,
+  "distinct2": 0.8405797101449275,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden coin. He was so happy and thanked the little boy. From that day on, he never let anyone was in trouble to give the coin back.\n<|endoftext|>\n\nOnce upon a time there was a delicate little gi"
+ },
+ {
+  "rep3": 0.005291005291005291,
+  "rep4": 0.0,
+  "distinct1": 0.6230366492146597,
+  "distinct2": 0.9263157894736842,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help him. Her mom said yes and they started baking together. \nAfter dinner, Lily and her mom started to bake a cake. Lily found a delicate cookie that was a big plate. She thought it"
+ },
+ {
+  "rep3": 0.07729468599033816,
+  "rep4": 0.04854368932038835,
+  "distinct1": 0.5167464114832536,
+  "distinct2": 0.8221153846153846,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw the bird and wanted to help.\nThe bird was scared and tried to fly down. But it was too late. The bird was too strong. The bird was scared and tried to run away. The bird could reach the "
+ }
+]

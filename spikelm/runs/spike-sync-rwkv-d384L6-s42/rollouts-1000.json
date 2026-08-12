@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.07142857142857142,
+  "rep4": 0.023923444976076555,
+  "distinct1": 0.49528301886792453,
+  "distinct2": 0.8388625592417062,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play all day long and sunny day. She imagined she was a very brave girl named Lily. One day, Lily found a beautiful orange orange, so she knew it was a bad bug. \nLily picked up the"
+ },
+ {
+  "rep3": 0.0297029702970297,
+  "rep4": 0.009950248756218905,
+  "distinct1": 0.5882352941176471,
+  "distinct2": 0.9113300492610837,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the slide was so much fun! Spot's mom gave him a big hug. \"While you are flying, Spot!\" Tom cried.\nSue picked up a big hug and tried to catch the ball. But, he won the ball, and Sue was brave. She co"
+ },
+ {
+  "rep3": 0.0,
+  "rep4": 0.0,
+  "distinct1": 0.6019417475728155,
+  "distinct2": 0.9512195121951219,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical bookcase and the bookcase. He took a bite of the book and looked at it. There were many pictures of the pictures. He asked the children inside, \"What is that?\"\nThe man smiled and said, \"I"
+ },
+ {
+  "rep3": 0.05853658536585366,
+  "rep4": 0.029411764705882353,
+  "distinct1": 0.5555555555555556,
+  "distinct2": 0.8689320388349514,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked some some yummy cookies. Her mom helped her put a spoon of milk to eat. Lily loved to eat apple.\nLily was so happy to see her mom, making a cookie. They were both happy. They continued to play "
+ },
+ {
+  "rep3": 0.046948356807511735,
+  "rep4": 0.014150943396226415,
+  "distinct1": 0.5813953488372093,
+  "distinct2": 0.883177570093458,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The flower flew to the sky and saw a big bird flying in the sky. The bird flew down and saw the bright blue flower. It was so soft and cute. The bird flew to the flower and asked the bird, \"Hello, li"
+ }
+]

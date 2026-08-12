@@ -1,0 +1,5 @@
+{"step": 500, "train_loss": 3.0077, "val_loss": 3.0577, "val_ppl": 21.28, "rep3": 0.0274, "rep4": 0.0103, "distinct1": 0.533, "distinct2": 0.8772}
+{"step": 1000, "train_loss": 2.7177, "val_loss": 2.7048, "val_ppl": 14.95, "rep3": 0.0281, "rep4": 0.0092, "distinct1": 0.5781, "distinct2": 0.9011}
+{"step": 1500, "train_loss": 2.4664, "val_loss": 2.3953, "val_ppl": 10.97, "rep3": 0.0385, "rep4": 0.0107, "distinct1": 0.56, "distinct2": 0.8826}
+{"step": 2000, "train_loss": 2.1711, "val_loss": 2.3457, "val_ppl": 10.44, "rep3": 0.0339, "rep4": 0.0109, "distinct1": 0.5387, "distinct2": 0.8868}
+{"step": 2500, "train_loss": 2.1726, "val_loss": 2.1268, "val_ppl": 8.39, "rep3": 0.0273, "rep4": 0.0058, "distinct1": 0.5125, "distinct2": 0.8744}

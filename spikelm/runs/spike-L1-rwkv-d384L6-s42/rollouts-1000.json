@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.08,
+  "rep4": 0.06030150753768844,
+  "distinct1": 0.5445544554455446,
+  "distinct2": 0.8407960199004975,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she went to the park to play with her friends. She ran around and played in the sunshine, but she knew she was not going to have a ruler. \nSu"
+ },
+ {
+  "rep3": 0.014563106796116505,
+  "rep4": 0.0,
+  "distinct1": 0.5625,
+  "distinct2": 0.927536231884058,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a spot to hide. Tom and Sam looked inside the hole to find a new spot. Tom looked around and said, \"I found a bone!\"\nThey were excited to find a special spot to hide the bone. Tom said,"
+ },
+ {
+  "rep3": 0.0374331550802139,
+  "rep4": 0.016129032258064516,
+  "distinct1": 0.6031746031746031,
+  "distinct2": 0.8829787234042553,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird's wing. The bird was so happy! The frog was so kind and he accepted the bird's wing.\nThe bird flew away and the bird flew back to its nest. The bird was so happy to have found the wing. From"
+ },
+ {
+  "rep3": 0.06280193236714976,
+  "rep4": 0.043689320388349516,
+  "distinct1": 0.507177033492823,
+  "distinct2": 0.8461538461538461,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to help her. Her mom said yes and they started baking. Lily was very obedient and kept making the cake. She put a cake on top of the cake in the oven. When it was all mixed, Lily's mom "
+ },
+ {
+  "rep3": 0.08292682926829269,
+  "rep4": 0.024509803921568627,
+  "distinct1": 0.5072463768115942,
+  "distinct2": 0.8009708737864077,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small bird with a hurt wing. The bird was scared. The bird flew around the tree and said, \"Don't be scared, little bird.\"\nThe bird flapped its wings and flew away. The bird flew into t"
+ }
+]

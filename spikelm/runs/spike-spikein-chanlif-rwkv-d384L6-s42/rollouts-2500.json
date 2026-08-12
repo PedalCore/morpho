@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.005319148936170213,
+  "rep4": 0.0,
+  "distinct1": 0.6,
+  "distinct2": 0.9259259259259259,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play with her toys and pick flowers. One day, she wanted to go for a walk with her mom and dads. Lily looked at the flowers and said, \"Look, mommy! I found a pretty flower,\" Her mo"
+ },
+ {
+  "rep3": 0.08095238095238096,
+  "rep4": 0.03827751196172249,
+  "distinct1": 0.4481132075471698,
+  "distinct2": 0.7962085308056872,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a new spot to hide. Tom looked up and saw the dog. He looked out and saw Tom's owner, Tom.\nTom went back to playing with his toy cars. Tom had fun with the dog and he was happy. Tom had a n"
+ },
+ {
+  "rep3": 0.004807692307692308,
+  "rep4": 0.0,
+  "distinct1": 0.5666666666666667,
+  "distinct2": 0.9186602870813397,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical box. He was so happy he had found a secret. \nThe little boy was amazed and he thanked the old man to always check the door. He put the chest back in the box and knew the old man would alw"
+ },
+ {
+  "rep3": 0.03409090909090909,
+  "rep4": 0.011428571428571429,
+  "distinct1": 0.6235955056179775,
+  "distinct2": 0.8926553672316384,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if she could have one. Her mom said yes, but she was also a bit nervous.\nLily was so happy that she ran and started to show her mom her new ceiling. Her mom smiled and said: \"That's gre"
+ },
+ {
+  "rep3": 0.04411764705882353,
+  "rep4": 0.014778325123152709,
+  "distinct1": 0.5097087378640777,
+  "distinct2": 0.8536585365853658,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big, soft bird flying away. The bird was sad and didn't know what to do. The bird said, \"I need help. I can help you find the bird.\"\nBut the bird could not find the bird anymore. The b"
+ }
+]

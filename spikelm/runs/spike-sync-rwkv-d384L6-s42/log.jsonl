@@ -1,0 +1,4 @@
+{"step": 500, "train_loss": 2.9425, "val_loss": 3.0299, "val_ppl": 20.7, "rep3": 0.041, "rep4": 0.0143, "distinct1": 0.5443, "distinct2": 0.8776}
+{"step": 1000, "train_loss": 2.7385, "val_loss": 2.7045, "val_ppl": 14.95, "rep3": 0.0413, "rep4": 0.0155, "distinct1": 0.5645, "distinct2": 0.8907}
+{"step": 1500, "train_loss": 2.4714, "val_loss": 2.415, "val_ppl": 11.19, "rep3": 0.1827, "rep4": 0.1616, "distinct1": 0.469, "distinct2": 0.7414}
+{"step": 2000, "train_loss": 2.2254, "val_loss": 2.4027, "val_ppl": 11.05, "rep3": 0.0294, "rep4": 0.0164, "distinct1": 0.5914, "distinct2": 0.9112}

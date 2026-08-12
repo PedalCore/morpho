@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.03529411764705882,
+  "rep4": 0.005917159763313609,
+  "distinct1": 0.5697674418604651,
+  "distinct2": 0.8713450292397661,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to bake cookies with her mommy. One day, Lily's mommy asked her to eat the cookies. Lily was excited to help her mommy and brought the cookies.\nWhen they got home, Lily's mommy asked "
+ },
+ {
+  "rep3": 0.031088082901554404,
+  "rep4": 0.0,
+  "distinct1": 0.5743589743589743,
+  "distinct2": 0.8969072164948454,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a rare magnet. The magnet said \"Ha ha, I know you'd like it!\" Tom was very happy and he said \"I found it!\"\nTogether, Tom and the magnet became best friends. They played together every day, "
+ },
+ {
+  "rep3": 0.03482587064676617,
+  "rep4": 0.01,
+  "distinct1": 0.5467980295566502,
+  "distinct2": 0.8861386138613861,
+  "prompt": "The old man opened the box and found",
+  "sample": " the keys. He was so happy to use it! He gave the key to the man who thanked him.\nThe man and the woman continued the keys and made the keys a secret. They never forgot the key of the key when they we"
+ },
+ {
+  "rep3": 0.015873015873015872,
+  "rep4": 0.0,
+  "distinct1": 0.5863874345549738,
+  "distinct2": 0.9263157894736842,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if they could have some cake. Her mom said yes, so Lily.\nThey went to the kitchen and bought some sugar. They put on some red ingredients and started to stir. They mixed the ingredients"
+ },
+ {
+  "rep3": 0.08,
+  "rep4": 0.05527638190954774,
+  "distinct1": 0.4900990099009901,
+  "distinct2": 0.8109452736318408,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small cat in the tree. The cat wanted to play with the cat. The cat saw the cat and said, \"Get away, bird. This is my ball. Your cat is mine.\" The cat was happy and took the ball. The "
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.044444444444444446,
+  "rep4": 0.0223463687150838,
+  "distinct1": 0.5824175824175825,
+  "distinct2": 0.9060773480662984,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play in the park and pick flowers. One day, she found a toy that was green and shiny.\nLily asked her mom, \"Can I have the toy, Mommy?\" Her mom said, \"No, it's too expensive for you"
+ },
+ {
+  "rep3": 0.024509803921568627,
+  "rep4": 0.009852216748768473,
+  "distinct1": 0.5242718446601942,
+  "distinct2": 0.8975609756097561,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a big, shiny rock. He was so happy!\nTom went home with his ball. He looked in his pocket and they both found a shiny rock. They played together for a while, but then they realized they forg"
+ },
+ {
+  "rep3": 0.05263157894736842,
+  "rep4": 0.005291005291005291,
+  "distinct1": 0.5625,
+  "distinct2": 0.8586387434554974,
+  "prompt": "The old man opened the box and found",
+  "sample": " the old man's face. The old man smiled and took the little boy to his room. \nThe little boy was so happy to meet the old man who put the box away. They continued their walk and the old man was very r"
+ },
+ {
+  "rep3": 0.01098901098901099,
+  "rep4": 0.0,
+  "distinct1": 0.6467391304347826,
+  "distinct2": 0.9398907103825137,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to mix it. Her mom said, \"Be careful, the cake has a slip is too spicy.\" Lily was sad, but her mom said, \"I think you can try it.\" Lily tried the chips, but she couldn't eat them. She f"
+ },
+ {
+  "rep3": 0.0430622009569378,
+  "rep4": 0.009615384615384616,
+  "distinct1": 0.5355450236966824,
+  "distinct2": 0.861904761904762,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird was sad because it couldn't fly anymore.\nThe little bird flew away with his nest. The big bird saw the little bird and wanted to help it. The little bird flapped its wings and flew do"
+ }
+]

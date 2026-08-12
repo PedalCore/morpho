@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.05392156862745098,
+  "rep4": 0.029556650246305417,
+  "distinct1": 0.5631067961165048,
+  "distinct2": 0.8829268292682927,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the snow. One day, she went to the park to play with her friends. They were having so much fun!\nSuddenly, Lily slipped and hurt her knee. She started to cry because"
+ },
+ {
+  "rep3": 0.024390243902439025,
+  "rep4": 0.0,
+  "distinct1": 0.6038647342995169,
+  "distinct2": 0.9174757281553398,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a shiny metal ball. Spot wanted to play with the ball, but he looked for the ball.\nThey started to fight over the ball. They made a lot of noise. They pushed each other, and the ball rolled"
+ },
+ {
+  "rep3": 0.022222222222222223,
+  "rep4": 0.00558659217877095,
+  "distinct1": 0.5989010989010989,
+  "distinct2": 0.9005524861878453,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical box! He was so happy and thanked her. From that day on, the man and the little girl became good friends and always remembered the special moment of the magical box of the ancient man.\n<|e"
+ },
+ {
+  "rep3": 0.004975124378109453,
+  "rep4": 0.0,
+  "distinct1": 0.5862068965517241,
+  "distinct2": 0.9554455445544554,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to try. Her mom helped her put the cake into a cake and gave her a big pot to put the cake in the oven.\nLily started to work and her mom painted a cake with a cake. She put cake and mil"
+ },
+ {
+  "rep3": 0.07177033492822966,
+  "rep4": 0.038461538461538464,
+  "distinct1": 0.5023696682464455,
+  "distinct2": 0.819047619047619,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a small cat with a hurt tail. The bird was sad because it couldn't talk.\nThe big bird saw the big bird and wanted to help. The big bird saw the big cat and wanted to help. The cat and th"
+ }
+]

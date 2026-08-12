@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.041884816753926704,
+  "rep4": 0.021052631578947368,
+  "distinct1": 0.6113989637305699,
+  "distinct2": 0.9010416666666666,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in her garden. One day, she saw a man with a bag of candy. He said, \"Hello, my bird!\"\nLily was very happy and wanted to play with the bird. She asked the man to talk t"
+ },
+ {
+  "rep3": 0.11055276381909548,
+  "rep4": 0.05555555555555555,
+  "distinct1": 0.4626865671641791,
+  "distinct2": 0.8,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a ball. It was round and soft. It was fun.\nTom looked for balls. He saw a ball. He ran towards it. He picked it up. He liked to laugh. He thought it was nice. He decided to make a ball. He "
+ },
+ {
+  "rep3": 0.029556650246305417,
+  "rep4": 0.0049504950495049506,
+  "distinct1": 0.5414634146341464,
+  "distinct2": 0.8725490196078431,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden box of toys. It was a surprise. It was a special surprise.\n\"Look, there were lots of things to choose,\" the old old child asked.\n\"What does the story?\" the old woman asked.\n\"I found this,\""
+ },
+ {
+  "rep3": 0.08653846153846154,
+  "rep4": 0.057971014492753624,
+  "distinct1": 0.46190476190476193,
+  "distinct2": 0.784688995215311,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to buy it.\n\"Sure, but be careful, sweetie,\" her mom said.\nLily and her mom started to mix the cake together. They had a lot of fun. When the cake was ready, they were happy to see the c"
+ },
+ {
+  "rep3": 0.05238095238095238,
+  "rep4": 0.023923444976076555,
+  "distinct1": 0.5141509433962265,
+  "distinct2": 0.8388625592417062,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a bird with its pretty colors. The bird was scared, but the bird wanted to help the bird. The bird flew on the tree and sat on the grass.\nThe bird was very happy and flew away. The bird "
+ }
+]

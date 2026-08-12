@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.03286384976525822,
+  "rep4": 0.009433962264150943,
+  "distinct1": 0.4930232558139535,
+  "distinct2": 0.8691588785046729,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she went to the park and went to the park. She spotted a big tree in the park, so she walked up to it and started walking towards it. \nAs she"
+ },
+ {
+  "rep3": 0.0,
+  "rep4": 0.0,
+  "distinct1": 0.64,
+  "distinct2": 0.964824120603015,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a big hole in the ground. He climbed down the ladder and went inside. \nTom's mom saw what Tom Tom had said and said, \"Don't worry, we can help fix the hole. You can use this hole and make a"
+ },
+ {
+  "rep3": 0.04716981132075472,
+  "rep4": 0.014218009478672985,
+  "distinct1": 0.5373831775700935,
+  "distinct2": 0.8591549295774648,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical box. He was so grateful to have found such a great, tidy room. \nThe man was very happy. He thanked the old man and gave the old man a big hug. From then on, he was always extra careful wi"
+ },
+ {
+  "rep3": 0.01485148514851485,
+  "rep4": 0.0,
+  "distinct1": 0.5735294117647058,
+  "distinct2": 0.896551724137931,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if she could have some cake. Her mom said yes, but Lily was sad because she didn't want to make a cake.\nLily went to work and her mom showed her how to use the cake. She wanted to see h"
+ },
+ {
+  "rep3": 0.06862745098039216,
+  "rep4": 0.03940886699507389,
+  "distinct1": 0.529126213592233,
+  "distinct2": 0.8341463414634146,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird was scared and wanted to help, but the bird was too strong. The little bird was very strong and did not know how to fly.\nSuddenly, a big tree appeared in the sky. The bird saw the gra"
+ }
+]

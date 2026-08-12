@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.057291666666666664,
+  "rep4": 0.020942408376963352,
+  "distinct1": 0.5463917525773195,
+  "distinct2": 0.844559585492228,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play together and play in the park. One day, she was playing in her backyard and she knew that it was wrong to stay there for a walk every day.\nLily found a big yellow yellow bird "
+ },
+ {
+  "rep3": 0.025380710659898477,
+  "rep4": 0.01020408163265306,
+  "distinct1": 0.5728643216080402,
+  "distinct2": 0.8888888888888888,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " his dog found him and said, \"Let's play!\"\nThe dog was so excited and started to run. It said, \"No one! I will come back!\"\nThe dog was very happy. He grabbed the ball and thanked the dog. Everyone was"
+ },
+ {
+  "rep3": 0.03314917127071823,
+  "rep4": 0.016666666666666666,
+  "distinct1": 0.639344262295082,
+  "distinct2": 0.9230769230769231,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical cake. He was so happy and said goodbye to the man, \"I'm glad you\u2019re here here, but I'm glad you are the best. I am so happy. Can you tell your family of the story?\" The girl smiled and sa"
+ },
+ {
+  "rep3": 0.061224489795918366,
+  "rep4": 0.041025641025641026,
+  "distinct1": 0.5606060606060606,
+  "distinct2": 0.8730964467005076,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to put the paper in the bag. \nLily tried to reach the wand but the box is too tall for her. But first, her mom said, \"I think it\u2019s too dangerous. You made a big cake.\" Lily felt sad and"
+ },
+ {
+  "rep3": 0.00975609756097561,
+  "rep4": 0.0,
+  "distinct1": 0.5700483091787439,
+  "distinct2": 0.8737864077669902,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big lion in the forest. The bird wanted to help you. The little bird said, \"No, I can help you. The bird can help you.\"\nThe bird said, \"But I want the rabbit to help. The bird won't ta"
+ }
+]

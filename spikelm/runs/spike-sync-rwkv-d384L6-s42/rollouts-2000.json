@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.014925373134328358,
+  "rep4": 0.005,
+  "distinct1": 0.6157635467980296,
+  "distinct2": 0.9356435643564357,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play with her toys and explore the world around her. One day, she went to the zoo with her mommy and daddy. There, she found a big, yellow bird. She was so happy!\nOn the way back t"
+ },
+ {
+  "rep3": 0.029411764705882353,
+  "rep4": 0.014778325123152709,
+  "distinct1": 0.5922330097087378,
+  "distinct2": 0.9073170731707317,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " he found a blue spot in the front of a tree. He climbed up the tree and looked around. He saw many birds, ducks, and birds. He hopped and joined them. He liked to dig and dig and make them look happy"
+ },
+ {
+  "rep3": 0.010256410256410256,
+  "rep4": 0.0,
+  "distinct1": 0.5888324873096447,
+  "distinct2": 0.9438775510204082,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden spot. He was so happy and full. He took the box home with his family. When they were finished, they were very happy. They were all very happy.\n<|endoftext|>\n\nBen and Lily went to the farm "
+ },
+ {
+  "rep3": 0.02631578947368421,
+  "rep4": 0.021164021164021163,
+  "distinct1": 0.6145833333333334,
+  "distinct2": 0.9214659685863874,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom if she could have one. Her mom said yes, but she was too busy and couldn't find anything.\nLily put a picture on the table and put it on the table. She put on a plate of cake, and one by"
+ },
+ {
+  "rep3": 0.0663265306122449,
+  "rep4": 0.041025641025641026,
+  "distinct1": 0.5454545454545454,
+  "distinct2": 0.8477157360406091,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a bird with its nest on a branch. The bird was scared. The bird flew around the nest and said, \"Don't worry, bird. I will help you.\" The bird said, \"I will help you.\" The bird looked up "
+ }
+]

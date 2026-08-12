@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.03827751196172249,
+  "rep4": 0.019230769230769232,
+  "distinct1": 0.5497630331753555,
+  "distinct2": 0.9047619047619048,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside and play in the park. One day, she wanted to go for a ride with her ball, but she couldn't find a place to play.\nSuddenly, she saw a big tree with a big, red ball. She"
+ },
+ {
+  "rep3": 0.004901960784313725,
+  "rep4": 0.0,
+  "distinct1": 0.5825242718446602,
+  "distinct2": 0.9170731707317074,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " his mom found him over to see what was behind. She said \"I don't forget and want to stay in the pool. Let's go back to the boat and look at the slide.\" Tom was scared and ran to his mom.\nWhen she got"
+ },
+ {
+  "rep3": 0.03431372549019608,
+  "rep4": 0.019704433497536946,
+  "distinct1": 0.5970873786407767,
+  "distinct2": 0.9024390243902439,
+  "prompt": "The old man opened the box and found",
+  "sample": " the hidden spot in the living room. He had found a secret place to sit. He had never seen anything like.\n<|endoftext|>\n\nOnce upon a time, there was a little girl called Mary. Mary was three years old"
+ },
+ {
+  "rep3": 0.015151515151515152,
+  "rep4": 0.005076142131979695,
+  "distinct1": 0.615,
+  "distinct2": 0.9396984924623115,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to buy some apples. Her mom said, \"No, it's a tasty dinner is for dinner.\" Lily was sad and said, \"Of course, mom.\"\nAfter a while, Lily's mom came home from the kitchen and her mom was "
+ },
+ {
+  "rep3": 0.06280193236714976,
+  "rep4": 0.024271844660194174,
+  "distinct1": 0.569377990430622,
+  "distinct2": 0.8605769230769231,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird went to the house and looked for the birdcage. The little bird was happy to find it. The little girl put the bird and sat on the door.\nWhen she arrived, the little bird saw the bird a"
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.020833333333333332,
+  "rep4": 0.005235602094240838,
+  "distinct1": 0.5979381443298969,
+  "distinct2": 0.917098445595855,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play with her teddy bear. One day, she went to the store with her mommy to buy a new toy.\nAt the store, Lily saw a man with a big red hat. She asked her mommy, \"Where is my toy car"
+ },
+ {
+  "rep3": 0.037914691943127965,
+  "rep4": 0.01904761904761905,
+  "distinct1": 0.48826291079812206,
+  "distinct2": 0.8773584905660378,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom saw a big dog in the park. He was big and loud and hungry. Tom laughed and licked Tom's face. Tom cried and wagged his tail. He was scared and tried to catch Tom. He barked and ran to Lily. He th"
+ },
+ {
+  "rep3": 0.0,
+  "rep4": 0.0,
+  "distinct1": 0.643979057591623,
+  "distinct2": 0.9526315789473684,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical coin he had seen inside. He said it was a special special place. He said he could use a special secret and to choose the treasure.\n<|endoftext|>\n\nOnce upon a time, there was a chubby bear"
+ },
+ {
+  "rep3": 0.05434782608695652,
+  "rep4": 0.00546448087431694,
+  "distinct1": 0.553763440860215,
+  "distinct2": 0.8756756756756757,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to cook. Her mom said, \"Lily, you can't paint a big cake to make you want.\"\nLily did not listen to her mom. She kept making a mess, so she tried to make the cake, but it was too big for"
+ },
+ {
+  "rep3": 0.058823529411764705,
+  "rep4": 0.019704433497536946,
+  "distinct1": 0.5388349514563107,
+  "distinct2": 0.8390243902439024,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big, red bird on a branch. The bird was scared. The bird flew around the tree and said, \"Don't be scared, little bird.\"\nThe bird said, \"I will help you!\" The bird flew away and the bir"
+ }
+]

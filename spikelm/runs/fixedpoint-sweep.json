@@ -1,0 +1,58 @@
+[
+ {
+  "arm": "float64 reference",
+  "ppl": 6.244,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": 0.0
+ },
+ {
+  "arm": "Q8.8  LUT32 interp",
+  "ppl": 6.244,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": 0.0
+ },
+ {
+  "arm": "Q8.8  LUT64 interp",
+  "ppl": 6.244,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": 0.0
+ },
+ {
+  "arm": "Q8.8  LUT32 no-interp",
+  "ppl": 6.244,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": -0.0
+ },
+ {
+  "arm": "Q8.8  exact exp",
+  "ppl": 6.244,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": 0.0
+ },
+ {
+  "arm": "Q6.10 LUT32 interp",
+  "ppl": 6.244,
+  "sat_events": 98746,
+  "sat_frac": 0.00065389,
+  "delta_pct": 0.0
+ },
+ {
+  "arm": "Q10.6 LUT32 interp",
+  "ppl": 6.246,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": 0.04
+ },
+ {
+  "arm": "Q8.8  + restoring div",
+  "ppl": 6.244,
+  "sat_events": 0,
+  "sat_frac": 0.0,
+  "delta_pct": -0.0
+ }
+]

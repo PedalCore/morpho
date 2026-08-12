@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.03535353535353535,
+  "rep4": 0.01015228426395939,
+  "distinct1": 0.57,
+  "distinct2": 0.8994974874371859,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to bake bake cookies with her mom and dad. One day, Lily's mom took her to a very special den. It was big, bright and very noisy, but it smelled bad. \nLily's mom asked her what was wr"
+ },
+ {
+  "rep3": 0.053475935828877004,
+  "rep4": 0.016129032258064516,
+  "distinct1": 0.5873015873015873,
+  "distinct2": 0.8457446808510638,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a big hole in the ground. He climbed down the ladder and went inside to find his mom.\n\"Mom, Tom, help!\" Tom said. He looked around and saw a small hole in the grass. He looked under the hol"
+ },
+ {
+  "rep3": 0.029411764705882353,
+  "rep4": 0.0049261083743842365,
+  "distinct1": 0.5728155339805825,
+  "distinct2": 0.9073170731707317,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird's wing. The bird was very happy and thanked the bird. \nThe old man thanked the kindman and said, \"You're welcome, little one. You should share the magic magic with your family.\" The little b"
+ },
+ {
+  "rep3": 0.005405405405405406,
+  "rep4": 0.0,
+  "distinct1": 0.6203208556149733,
+  "distinct2": 0.9193548387096774,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to cook. Her mom agreed, but they all started to bake.\nWhen they got to the oven, they saw that a table and some chairs were mixed in their pans. They put on the paa, and their little b"
+ },
+ {
+  "rep3": 0.033816425120772944,
+  "rep4": 0.009708737864077669,
+  "distinct1": 0.5215311004784688,
+  "distinct2": 0.8509615384615384,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a sad bird in the tree. The bird wanted to help the bird.\nThe bird saw the bird and said, \"Can you help me fly up to help the bird?\" The bird said, \"I want to take some food from the bir"
+ }
+]

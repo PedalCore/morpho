@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.08490566037735849,
+  "rep4": 0.02843601895734597,
+  "distinct1": 0.4719626168224299,
+  "distinct2": 0.7981220657276995,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play together and play with her toys. One day, she wanted to play with her toys with her very much. Lily loved to play with her toys every day.\nLater, Timmy played with her toys, b"
+ },
+ {
+  "rep3": 0.015384615384615385,
+  "rep4": 0.005154639175257732,
+  "distinct1": 0.5736040609137056,
+  "distinct2": 0.9132653061224489,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the slide found a big tree to open the slide. It was the ball to the slide. Tim and Lily looked around and saw Tom and the bird. The cat said, \"I'll catch it for help!\" The cat said, \"Now, you don't "
+ },
+ {
+  "rep3": 0.023923444976076555,
+  "rep4": 0.009615384615384616,
+  "distinct1": 0.5876777251184834,
+  "distinct2": 0.9047619047619048,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird again. He was so happy to see her and took the bite. He told the cat to play with the new things to play again.\n<|endoftext|>\n\nOnce upon a time there was a little girl named Lily. She loved "
+ },
+ {
+  "rep3": 0.010101010101010102,
+  "rep4": 0.0,
+  "distinct1": 0.635,
+  "distinct2": 0.9547738693467337,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked some some food for him. Her mom said yes. Her mom said yes and gave her a big mess. Lily said, \"Lily, you can't like your toys. You are a good friend. You are not not care about me. Give me to "
+ },
+ {
+  "rep3": 0.07075471698113207,
+  "rep4": 0.02843601895734597,
+  "distinct1": 0.4532710280373832,
+  "distinct2": 0.8169014084507042,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird flew to the bird and said, \"I hope I didn't hurt it!\" So, the bird saw big yellow tree on the ground and started to cry. The tree was very angry, but the bird didn't take anything. The bird "
+ }
+]

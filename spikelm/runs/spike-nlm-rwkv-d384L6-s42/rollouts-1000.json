@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.02564102564102564,
+  "rep4": 0.005154639175257732,
+  "distinct1": 0.5939086294416244,
+  "distinct2": 0.8979591836734694,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play together in her garden. One day, she felt playing with her toy toy car when she found an unknown toy car. It was big, white and old.\nLily asked her mommy, \"Mommy, what is the "
+ },
+ {
+  "rep3": 0.05670103092783505,
+  "rep4": 0.031088082901554404,
+  "distinct1": 0.5969387755102041,
+  "distinct2": 0.8923076923076924,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " his mom found him and said, \"Lily, come down.\" She took the ball to him and said, \"Lily, do you know that one about the dog?\" Timmy felt excited and said, \"Yes, I'm here. She might be nice to you.\" \n"
+ },
+ {
+  "rep3": 0.020100502512562814,
+  "rep4": 0.0,
+  "distinct1": 0.5572139303482587,
+  "distinct2": 0.92,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical book. He was so happy and said, \"Thank you, little boy, and he was so happy.\nThe old man laughed and said, \"You're welcome the day! You're so happy and proud of you. The girl was so kind "
+ },
+ {
+  "rep3": 0.013888888888888888,
+  "rep4": 0.0,
+  "distinct1": 0.591743119266055,
+  "distinct2": 0.9216589861751152,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to buy some apples. Her mom said yes and they all took a snack for Lily. Lily was very excited and asked the kids to see her.\nLily and her mom were so proud of her and they said: \"We ca"
+ },
+ {
+  "rep3": 0.024390243902439025,
+  "rep4": 0.00980392156862745,
+  "distinct1": 0.5507246376811594,
+  "distinct2": 0.8737864077669902,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird went to the bird's nest. The bird was sad and hurt.\nThe bird saw the bright blue bird and asked, \"What is that?\" The bird replied, \"I know, and it's very pretty.\" The bird went to the"
+ }
+]
