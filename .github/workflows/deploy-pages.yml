@@ -44,6 +44,15 @@ jobs:
           mkdir -p _site/snn
           cp -r site/. _site/
           cp -r snn/. _site/snn/
+      # rwkv-live.html runs the whole model in-browser; its 14.9MB int8 binary
+      # lives in a release asset rather than the repo, and is staged here so the
+      # page can fetch it same-origin.
+      - name: Stage model weights for rwkv-live
+        run: |
+          mkdir -p _site/rwkv-export
+          curl -sSL --retry 3 -o _site/rwkv-export/model-int8.bin \
+            https://github.com/PedalCore/morpho/releases/download/spikelm-v0.1/model-int8.bin
+          ls -l _site/rwkv-export/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
