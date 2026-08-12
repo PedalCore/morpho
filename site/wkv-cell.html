@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the wkv cell</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+        line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+        border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 12px 0;
+        color: #b9c7bf; }
+  pre .hl { color: var(--amber); }
+  pre .gn { color: var(--green); }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  td i { color: var(--red); font-style: normal; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { margin-top: 0; }
+  .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button.primary { border-color: var(--amber); color: var(--amber); }
+  input[type=range] { accent-color: var(--amber); }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 6px; }
+  canvas { border: 1px solid var(--line); border-radius: 8px; display: block;
+           background: #0a0d11; max-width: 100%; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .selbox { background: var(--panel2); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
+      font: 13px inherit; }
+  .legend { display: flex; gap: 18px; font: 12px ui-monospace, monospace;
+            color: var(--muted); margin: 6px 0; flex-wrap: wrap; }
+  .sw { display: inline-block; width: 18px; height: 3px; vertical-align: middle;
+        margin-right: 6px; border-radius: 2px; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px;
+          border-top: 1px solid var(--line); padding-top: 16px; max-width: 46em; }
+</style>
+</head>
+<body>
+<article>
+  <h1>the <span>wkv</span> cell</h1>
+  <p class="sub">RWKV's attention, per channel, is three registers and a leak.
+  This page is the circuit plan: the numerically-stable recurrence, the unit
+  inventory, its mapping onto MorphoHDL's verified components — and a live
+  simulator running the recurrence in floating point and in the proposed
+  fixed-point circuit numerics side by side, so the precision question is a
+  picture instead of a guess.</p>
+
+  <div class="links">
+    <a href="/found-machines.html">← found machines</a>
+    <a href="/circuits-that-move.html">← circuits that move</a>
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code</a>
+  </div>
+
+  <h2>the recurrence</h2>
+  <p>RWKV-v4's per-channel state is <code>aa</code> (signed numerator),
+  <code>bb</code> (positive denominator) and <code>pp</code> (running
+  max-exponent). Per token, with inputs k, v and trained constants u
+  (bonus) and w (decay, negative):</p>
+<pre>ww  = u + k                     p  = <span class="hl">max</span>(pp, ww)
+out = (2^(pp−p)·aa + 2^(ww−p)·v) / (2^(pp−p)·bb + 2^(ww−p) + ε)
+ww2 = pp + w                    p2 = <span class="hl">max</span>(ww2, k)
+aa′ = 2^(ww2−p2)·aa + 2^(k−p2)·v
+bb′ = 2^(ww2−p2)·bb + 2^(k−p2)
+pp′ = p2</pre>
+  <p>Two facts do most of the engineering work. <b>Every exponent is ≤ 0</b> —
+  each is x − max(…, x) by construction — so only the decaying half of the
+  exponential exists, the result lives in (0, 1], and underflow to zero is
+  <em>correct</em>, not an error. And <b>base 2 costs nothing</b>: absorb
+  log₂e into the trained constants and 2^(−n.f) becomes a barrel shift by n
+  plus a small lookup for the fraction.</p>
+
+<pre>            k ───┬──────────────┐        v ──────────┐
+                 │              │                    │
+   u ──▶(+)── ww │       ┌──▶ <span class="hl">max</span> ── p              │
+                 │       │      │                    │
+  pp ────────────┼───────┤   ┌──┴───────────┐        │
+   ▲             │       │  <span class="gn">2^(pp−p)</span>   <span class="gn">2^(ww−p)</span>     │
+   │             │       │   │  │        │  │        │
+   │  w ──▶(+)── ww2     │   ▼  ▼        ▼  ▼        │
+   │             │      aa ×    bb ×     ×  ◀────────┘
+   │             ▼       │       │       │
+   │     <span class="hl">max</span>(ww2, k)=p2 └──(+)──┼──(+)──┘
+   │             │           num │  den(+ε)
+   └── pp′ ◀─────┘               ▼   ▼
+        aa′,bb′ ◀── same trick ──▶ (÷) ──▶ out</pre>
+
+  <h2>one channel, live</h2>
+  <div class="demo">
+    <h3>float vs circuit numerics</h3>
+    <div class="teach">The same recurrence runs twice on the same token
+    stream: once in double precision (green), once in the proposed hardware
+    numerics (amber) — fixed-point registers, the 2^(−x) unit as barrel shift
+    + 32-entry interpolated LUT, and division by a 16-bit restoring divider
+    (the one added to <code>examples/arithmetic/</code>). Red is the error,
+    magnified. Drag the decay: slow channels (w near 0) are the precision
+    stress test.</div>
+    <canvas id="cv" width="640" height="300"></canvas>
+    <div class="legend">
+      <span><span class="sw" style="background:#4a5568"></span>v (input)</span>
+      <span><span class="sw" style="background:#7bd8a5"></span>out — float</span>
+      <span><span class="sw" style="background:#e2a13f"></span>out — circuit</span>
+      <span><span class="sw" style="background:#d96c6c"></span>|error| ×32</span>
+    </div>
+    <div class="controls">
+      <button id="run">Pause</button>
+      <button id="burst" class="primary">Inject burst ✦</button>
+      <label>decay w <input type="range" id="w" min="-500" max="-2" value="-40">
+        <span class="readout" id="wOut"></span></label>
+      <label>bonus u <input type="range" id="u" min="-200" max="200" value="60">
+        <span class="readout" id="uOut"></span></label>
+      <label>format <select id="fmt" class="selbox">
+        <option value="8">Q8.8</option><option value="10">Q6.10</option>
+        <option value="6">Q10.6</option></select></label>
+      <label>2^x LUT <select id="lut" class="selbox">
+        <option value="32">32 + interp</option><option value="64">64 + interp</option>
+        <option value="32n">32, no interp</option></select></label>
+      <span class="readout" id="err"></span>
+    </div>
+  </div>
+
+  <h2>unit inventory · per channel per token</h2>
+  <table>
+    <tr><th>unit</th><th>count</th><th>in Morpho today</th></tr>
+    <tr><td>comparator + mux (max)</td><td>2</td>
+        <td><b>have</b> — ≥ is the ripple adder's carry-out (a + ~b + 1); Mux2 selects; signed = flip sign bits first</td></tr>
+    <tr><td>2^(−x) unit</td><td>4 (or 1, time-multiplexed)</td>
+        <td><b>mostly have</b> — barrel shift is the article's <code>right_shifter</code>; the fractional table is an arity-5 LUT per output bit (native — tables are just ints) + one small multiply for interpolation</td></tr>
+    <tr><td>divide / reciprocal</td><td>1</td>
+        <td><b>have</b> — restoring divider added in <code>examples/arithmetic/</code> (527 gates at 16/8); Newton–Raphson reciprocal (seed LUT + 1–2 iterations of r·(2−d·r)) is the smaller-area alternative and the denominator is always &gt; 0, so no sign handling</td></tr>
+    <tr><td>fixed-point multiply</td><td>~6</td>
+        <td><b>have</b> — Wallace tree; Qm.n product is a bit-slice of the full 2N-bit output, pure wiring</td></tr>
+    <tr><td>add</td><td>~4</td><td><b>have</b> — ripple / Brent–Kung; two's complement works unmodified</td></tr>
+    <tr><td>registers</td><td>3 banks (aa, bb, pp)</td><td><b>have</b> — REG/DRIVE</td></tr>
+  </table>
+  <p>The structural gift: wkv is <b>completely independent per channel</b>.
+  One <code>wkv_cell</code> with its three REGs, and Morpho's ordinary SPLIT
+  recursion generates the bank at any width — 384 channels is a parameter,
+  not a rewrite. Rough area at 16-bit: ~10–15k gates per fully-parallel
+  channel; the streaming divider/exponentiator pattern gives the
+  channel-serial rotation if area wins over latency.</p>
+
+  <h2>precision plan</h2>
+  <p>The max-subtraction already bounds every exponent, so dynamic range is
+  solved by construction; the open question is fraction width. The simulator
+  above is the intuition pump — Q8.8 vs Q6.10, LUT size, interpolation on/off
+  — but the committing test is measured task quality: quantize the wkv path
+  of a trained model to the exact candidate numerics (base-2 LUT exponential,
+  chosen Q-format, real divider) and read the perplexity. Watch
+  <code>pp</code>'s integer width: trained decays span w ≈ −20 (flushes in a
+  token) to w ≈ −0.007 (persists for hundreds), and the slow channels are the
+  ones that accumulate.</p>
+
+  <p class="foot">
+    Recurrence: RWKV-v4 numerically-stable form, base-2 semantics (log₂e
+    absorbed into trained constants — mathematically identical). The circuit
+    path in the simulator: fixed-point registers with saturation, 2^(−x) =
+    barrel shift + interpolated fractional LUT, division = 16-bit restoring
+    divider. Building blocks verified in the repository:
+    <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems/examples/arithmetic">examples/arithmetic/</a>
+    (divider, exponentiation), the article's adders, multiplier and shifter,
+    and the sequential extension's REG/DRIVE.
+  </p>
+</article>
+
+<script>
+'use strict';
+/* ---------- the recurrence, twice: float (base-2) and circuit ---------- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const W = 640, H = 300, COLS = 320;
+let FRAC = 8;                       // fractional bits (Q format)
+let LUTN = 32, INTERP = true;
+const EPS = 1e-6;
+
+/* float reference (base-2 exponentials) */
+const F = {aa: 0, bb: 0, pp: -1e30,
+  step(k, v, u, w) {
+    const p2 = x => Math.pow(2, x);
+    const ww = u + k, p = Math.max(this.pp, ww);
+    const e1 = p2(this.pp - p), e2 = p2(ww - p);
+    const out = (e1 * this.aa + e2 * v) / (e1 * this.bb + e2 + EPS);
+    const ww2 = this.pp + w, q = Math.max(ww2, k);
+    const f1 = p2(ww2 - q), f2 = p2(k - q);
+    this.aa = f1 * this.aa + f2 * v;
+    this.bb = f1 * this.bb + f2;
+    this.pp = q;
+    return out;
+  },
+  reset() { this.aa = 0; this.bb = 0; this.pp = -1e30; }};
+
+/* circuit numerics: Q-format ints, LUT 2^-x, restoring divide */
+let LUT = [];
+function buildLut() {
+  const n = LUTN;
+  LUT = Array.from({length: n + 1},
+      (_, i) => Math.round(65536 * Math.pow(2, -i / n)));
+}
+const SAT = x => Math.max(-32768, Math.min(32767, x | 0));
+function exp2neg(xq) {              // xq >= 0 in Q(FRAC) -> Q16 in (0,1]
+  if (xq < 0) xq = 0;
+  const n = xq >> FRAC;
+  if (n >= 16) return 0;
+  const fracBits = FRAC, idxBits = Math.log2(LUTN);
+  const shift = fracBits - idxBits;
+  const idx = shift >= 0 ? (xq >> shift) & (LUTN - 1)
+                         : (xq << -shift) & (LUTN - 1);
+  let val = LUT[idx];
+  if (INTERP && shift > 0) {
+    const rem = xq & ((1 << shift) - 1);
+    val = val + (((LUT[idx + 1] - val) * rem) >> shift);
+  }
+  return val >> n;
+}
+const mulQ16 = (aq, e16) => Math.floor((aq * e16) / 65536);  // Q(FRAC)xQ16
+function divQ(numq, denq) {         // restoring divide, num<<FRAC / den
+  if (denq <= 0) return 0;
+  const neg = numq < 0;
+  let n = Math.abs(numq) * (1 << FRAC), q = 0, r = 0;
+  for (let i = 31; i >= 0; i--) {   // 32-step long division (the divider)
+    r = (r << 1) | ((n >> i) & 1);
+    q <<= 1;
+    if (r >= denq) { r -= denq; q |= 1; }
+  }
+  return neg ? -q : q;
+}
+const Q = {aa: 0, bb: 0, pp: -32768,
+  step(kq, vq, uq, wq) {
+    const ww = SAT(uq + kq), p = Math.max(this.pp, ww);
+    const e1 = exp2neg(p - this.pp), e2 = exp2neg(p - ww);
+    const num = SAT(mulQ16(this.aa, e1) + mulQ16(vq, e2));
+    const den = SAT(mulQ16(this.bb, e1) + (e2 >> (16 - FRAC)) ) + 1;
+    const out = SAT(divQ(num, den));
+    const ww2 = SAT(this.pp + wq), q2 = Math.max(ww2, kq);
+    const f1 = exp2neg(q2 - ww2), f2 = exp2neg(q2 - kq);
+    this.aa = SAT(mulQ16(this.aa, f1) + mulQ16(vq, f2));
+    this.bb = SAT(mulQ16(this.bb, f1) + (f2 >> (16 - FRAC)));
+    this.pp = q2;
+    return out;
+  },
+  reset() { this.aa = 0; this.bb = 0; this.pp = -32768; }};
+
+/* ---------- stream + plotting ---------- */
+const histV = [], histF = [], histQ = [], histE = [];
+let t = 0, burst = 0, phase = 0, errSum = 0, errN = 0, errMax = 0;
+function tok() {                    // a wandering token stream
+  phase += 0.13 + 0.05 * Math.sin(t * 0.011);
+  let k = 0.9 * Math.sin(phase) + 0.4 * Math.sin(t * 0.041 + 1.3);
+  let v = Math.sin(t * 0.07) + 0.6 * Math.sin(t * 0.023 + 0.5);
+  if (burst > 0) { k += 2.2; v = 1.6; burst--; }
+  return [k, v];
+}
+function step() {
+  const w = +document.getElementById('w').value / 100;
+  const u = +document.getElementById('u').value / 100;
+  const [k, v] = tok();
+  const S = 1 << FRAC;
+  const fo = F.step(k, v, u, w);
+  const qo = Q.step(Math.round(k * S), Math.round(v * S),
+                    Math.round(u * S), Math.round(w * S)) / S;
+  const err = Math.abs(fo - qo);
+  errSum += err * err; errN++; errMax = Math.max(errMax, err);
+  histV.push(v); histF.push(fo); histQ.push(qo); histE.push(err);
+  if (histV.length > COLS) { histV.shift(); histF.shift(); histQ.shift(); histE.shift(); }
+  t++;
+  document.getElementById('wOut').textContent = w.toFixed(2);
+  document.getElementById('uOut').textContent = u.toFixed(2);
+  document.getElementById('err').textContent =
+    `rms err ${Math.sqrt(errSum / errN).toExponential(1)} · max ${errMax.toExponential(1)}`;
+}
+function draw() {
+  ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#1a212c';
+  ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+  const px = W / COLS, mid = H / 2, sc = H / 5;
+  const line = (hist, color, lw, scale = 1, off = 0) => {
+    ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.beginPath();
+    hist.forEach((y, i) => {
+      const yy = mid - (y * scale + off) * sc;
+      i ? ctx.lineTo(i * px, yy) : ctx.moveTo(0, yy);
+    });
+    ctx.stroke();
+  };
+  line(histV, '#4a5568', 1);
+  line(histF, '#7bd8a5', 2);
+  line(histQ, '#e2a13f', 1.6);
+  line(histE, '#d96c6c', 1.2, 32, -2.2);
+  ctx.lineWidth = 1;
+}
+let running = true;
+function loop() { if (running) { step(); draw(); } setTimeout(loop, 50); }
+document.getElementById('run').onclick = e => {
+  running = !running; e.target.textContent = running ? 'Pause' : 'Run';
+};
+document.getElementById('burst').onclick = () => burst = 4;
+function reformat() {
+  FRAC = +document.getElementById('fmt').value;
+  const lv = document.getElementById('lut').value;
+  LUTN = parseInt(lv); INTERP = !lv.endsWith('n');
+  buildLut();
+  F.reset(); Q.reset();
+  errSum = 0; errN = 0; errMax = 0;
+}
+document.getElementById('fmt').onchange = reformat;
+document.getElementById('lut').onchange = reformat;
+buildLut();
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  running = false; document.getElementById('run').textContent = 'Run';
+}
+loop();
+</script>
+</body>
+</html>
