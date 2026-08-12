@@ -1,0 +1,18 @@
+model runs/base-rwkv-d384L6-s42/ckpt.pt
+4 batches x 8x256 = 8192 tokens
+
+float64 reference        ppl   6.244  Δ +0.00%  saturations 0
+Q8.8  LUT32 interp       ppl   6.244  Δ +0.00%  saturations 0
+Q8.8  LUT64 interp       ppl   6.244  Δ +0.00%  saturations 0
+Q8.8  LUT32 no-interp    ppl   6.244  Δ -0.00%  saturations 0
+Q8.8  exact exp          ppl   6.244  Δ +0.00%  saturations 0
+Q6.10 LUT32 interp       ppl   6.244  Δ +0.00%  saturations 98746
+Q10.6 LUT32 interp       ppl   6.246  Δ +0.04%  saturations 0
+Q8.8  + restoring div    ppl   6.244  Δ -0.00%  saturations 0
+
+— generated text, Q8.8 LUT32 interp —
+Once upon a time, there was a little girl named Lily. She loved to play outside in the sunshine. One day, she went to the park with her mommy and saw a very big slide. She wanted to go, but she knew she had to be careful. 
+Lily's mommy told her to be careful and not to fall off the slide anyway. Lil
+rep4 0.000 distinct2 0.892
+
+saved runs/fixedpoint-sweep.json
