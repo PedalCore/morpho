@@ -2,4 +2,6 @@ __marimo__/
 __pycache__/
 tmp.py
 # local reading copies of papers cited by arXiv id in snn/EXPERIMENT.md
-/*.pdfspikelm/export/model-int8.bin
+/*.pdf
+# 15MB quantized model export — fetch locally or via release asset
+spikelm/export/model-int8.bin
