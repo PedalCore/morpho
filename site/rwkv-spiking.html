@@ -418,7 +418,7 @@ function makeTokenizer(json) {
       if (t.startsWith('<byte:')) {
         pendingBytes.push(+t.slice(6, -1));
         const s = dec.decode(new Uint8Array(pendingBytes));
-        if (!s.includes('�')) { pendingBytes.length = 0; return s; }
+        if (!s.includes('\uFFFD')) { pendingBytes.length = 0; return s; }
         return '';
       }
       let pre = '';
