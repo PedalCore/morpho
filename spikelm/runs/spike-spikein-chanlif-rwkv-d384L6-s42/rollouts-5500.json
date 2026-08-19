@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.02403846153846154,
+  "rep4": 0.0,
+  "distinct1": 0.5619047619047619,
+  "distinct2": 0.8899521531100478,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in her garden. One day, she found a special plant in the garden. It was very sparkly and shiny. Lily picked it up and threw it in the air. But it shook and made a loud"
+ },
+ {
+  "rep3": 0.01951219512195122,
+  "rep4": 0.0,
+  "distinct1": 0.5652173913043478,
+  "distinct2": 0.9029126213592233,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a big metal tree. He wanted to measure the tree but he couldn't. So, he tried to push the tree down the tree. He tried and tried, but he couldn't measure.\nFinally, he had done it! Tom was s"
+ },
+ {
+  "rep3": 0.015625,
+  "rep4": 0.0,
+  "distinct1": 0.6030927835051546,
+  "distinct2": 0.917098445595855,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical coin! He thanked the boy and went back to his home, ready to go back to the store.\n<|endoftext|>\n\nOnce upon a time, there was a little girl named Matt. One day, Matt had a special special"
+ },
+ {
+  "rep3": 0.0787037037037037,
+  "rep4": 0.06046511627906977,
+  "distinct1": 0.5275229357798165,
+  "distinct2": 0.847926267281106,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to try. Her mom asked her to help with the baking and soon she was done printing.\nLily was so happy to see her grandma finished cooking and her grandma was so proud of her for making di"
+ },
+ {
+  "rep3": 0.02403846153846154,
+  "rep4": 0.004830917874396135,
+  "distinct1": 0.5428571428571428,
+  "distinct2": 0.8851674641148325,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big cat in the sky. The bird was angry and flew away. It wanted to catch the bird, but it was too fast and could hurt everyone.\nThe bird saw the cat, and wanted to help. He wanted to s"
+ }
+]

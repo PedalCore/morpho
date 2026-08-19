@@ -55,6 +55,7 @@
   <div class="links">
     <a href="changing-tack.html">← why we changed tack</a>
     <a href="language.html">← chapter one: the reservoir campaign</a>
+    <a href="two-recurrences.html">→ chapter three: two recurrences</a>
     <a href="https://github.com/PedalCore/morpho/tree/snn-lab/spikelm">code</a>
   </div>
 
@@ -236,6 +237,28 @@ rate    4%    5%    6%    8%   13%   20%     9.2%</pre>
     — not the 87–93% this literature usually quotes, because we have spiked one projection,
     not the whole model. On event-driven silicon the silent 90% would cost nothing at all.
     Every number in this paragraph is an operation-count proxy; none of it is measured watts.
+  </p>
+
+  <h3>Correction: the numbers above are single-batch</h3>
+  <p>
+    Every perplexity on this page came from one 8×256 validation batch per checkpoint,
+    which we later found was too noisy to resolve differences of this size — one arm swung
+    17% between adjacent checkpoints. Re-evaluating the saved checkpoints on 16k tokens
+    instead of 2k:
+  </p>
+  <table>
+    <tr><th>model (8 batches, 16k tokens)</th><th>perplexity</th><th>vs float</th></tr>
+    <tr><td>float baseline, step 5,500</td><td><b>6.843</b></td><td>—</td></tr>
+    <tr><td>spiking (4 levels), step 5,500</td><td>7.181</td><td>+4.9%</td></tr>
+    <tr><td>fully-spiking + channel-LIF, step 6,000</td><td>7.426</td><td>+8.5%</td></tr>
+  </table>
+  <p>
+    The ordering survives but the fully-spiking arm's apparent catch-up does not: on the
+    noisy single-batch numbers it looked level with, and once ahead of, the plain spiking
+    model. On the proper evaluation it is behind both — <em>and</em> it had 500 extra steps.
+    So making both channel-mix matmuls multiply-free costs about 3.4 points on top of
+    spiking's 4.9, not nothing. Still arguably a good trade for ~54% of the model's
+    arithmetic becoming accumulate-only, but a trade rather than a free lunch.
   </p>
 
   <h2>What this is not</h2>

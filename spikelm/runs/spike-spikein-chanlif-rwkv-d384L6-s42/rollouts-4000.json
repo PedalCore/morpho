@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.024271844660194174,
+  "rep4": 0.00975609756097561,
+  "distinct1": 0.5961538461538461,
+  "distinct2": 0.9130434782608695,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she went for a walk in the park to look for more flowers to eat. She looked through a bright green flowers and saw a tree with soft grass. Su"
+ },
+ {
+  "rep3": 0.03608247422680412,
+  "rep4": 0.010362694300518135,
+  "distinct1": 0.5459183673469388,
+  "distinct2": 0.882051282051282,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " Tom found a new spot in the grass. He picked it up and lay it on a bench.\n\"Look, Tom, Tom!\" said his dog. \"Let's look for the dog.\" Tom was scared and he looked under the bush.\nHe found the dog's fur"
+ },
+ {
+  "rep3": 0.014354066985645933,
+  "rep4": 0.0,
+  "distinct1": 0.5213270142180095,
+  "distinct2": 0.8857142857142857,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical box. He was so happy and went back to his house to show his parents the news. From then on, the man was never lonely again.\n<|endoftext|>\n\nOnce there was a little girl who loved to paint."
+ },
+ {
+  "rep3": 0.019417475728155338,
+  "rep4": 0.004878048780487805,
+  "distinct1": 0.5673076923076923,
+  "distinct2": 0.9420289855072463,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to mix the baking cake for her. Her mom said yes and gave her some more materials to make the cake.\nLily was finished making the cake and showed it to her friends. They all all wanted t"
+ },
+ {
+  "rep3": 0.11320754716981132,
+  "rep4": 0.05687203791469194,
+  "distinct1": 0.5186915887850467,
+  "distinct2": 0.7887323943661971,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big, red apple on the ground. The bird was scared. The little bird knew it should not be touched. It was a good apple. The little bird wanted to help the bird, so it picked it up and c"
+ }
+]

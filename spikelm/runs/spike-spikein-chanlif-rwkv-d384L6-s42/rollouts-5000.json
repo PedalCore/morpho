@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.015,
+  "rep4": 0.0,
+  "distinct1": 0.6089108910891089,
+  "distinct2": 0.9353233830845771,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside and explore the big, green field. One sunny day, she went to the park with her mommy. Lily loved to collect rocks, rocks and flowers.\nAs she was walking, Lily noticed "
+ },
+ {
+  "rep3": 0.005714285714285714,
+  "rep4": 0.0,
+  "distinct1": 0.655367231638418,
+  "distinct2": 0.9375,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big tree. Tom and his dog were happy to have fun. They played and had fun.\n<|endoftext|>\nOnce upon a time, there was a clever bird named Dollie. Doggy loved to fly all sunny. She woul"
+ },
+ {
+  "rep3": 0.01904761904761905,
+  "rep4": 0.009569377990430622,
+  "distinct1": 0.5424528301886793,
+  "distinct2": 0.8909952606635071,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical book. He was so happy and full. He took the book home.  He never forgot the amazing adventure he had to choose.\n<|endoftext|>\n\nOnce upon a time, there was a little girl named Sally. She w"
+ },
+ {
+  "rep3": 0.054187192118226604,
+  "rep4": 0.039603960396039604,
+  "distinct1": 0.5170731707317073,
+  "distinct2": 0.8970588235294118,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom. Her mom said they could, but they had to be careful with their cups.\nLily thought about it and realized she was very hungry. She decided to help her mom set up the bowl and the kitchen"
+ },
+ {
+  "rep3": 0.04926108374384237,
+  "rep4": 0.019801980198019802,
+  "distinct1": 0.5560975609756098,
+  "distinct2": 0.8578431372549019,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big spider in the sky. The bird wanted to eat the spider, but the spider was too strong. The spider swam away quickly and flew away. The spider felt sad and angry, so it flew away. The"
+ }
+]

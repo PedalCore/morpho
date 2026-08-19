@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark research — two recurrences</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: #0d1015; color: #d7dae2;
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif; padding: 48px 20px 80px; }
+  article { max-width: 46em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 6px; }
+  h1 span { color: #e2a13f; }
+  .sub { color: #9aa1ad; margin-bottom: 28px; }
+  h2 { font-size: 19px; font-weight: 600; margin: 36px 0 10px; color: #e2a13f; }
+  h3 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; }
+  a { color: #e2a13f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 7px 12px 7px 0; border-bottom: 1px solid #242a35;
+           vertical-align: top; }
+  th { color: #9aa1ad; font-weight: 600; font-size: 12.5px; text-transform: uppercase;
+       letter-spacing: 0.05em; }
+  td b { color: #7bd8a5; }
+  td i { color: #d96c6c; font-style: normal; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: #171b23; padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px; line-height: 1.45;
+        background: #12151b; border: 1px solid #242a35; border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; margin: 14px 0; color: #c4c9d4; }
+  .quote { border-left: 3px solid #3a4150; padding: 6px 0 6px 14px; margin: 12px 0;
+           color: #c4c9d4; font-size: 15px; }
+  .quote b { color: #9aa1ad; font-weight: 600; display: block; font-size: 12.5px;
+             text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .verdict { border-left: 3px solid #e2a13f; padding: 9px 14px; background: #12151b;
+             border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .verdict.pos { border-color: #7bd8a5; }
+  .verdict.null { border-color: #d96c6c; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .links a { border: 1px solid #242a35; border-radius: 8px; padding: 8px 16px; }
+  .links a:hover { border-color: #e2a13f; text-decoration: none; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px; border-top: 1px solid #242a35;
+          padding-top: 16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>two <span>recurrences</span></h1>
+  <p class="sub">We trained a Mamba-style selective state-space model against our RWKV at
+  matched parameters, in the same harness, to find out what selectivity costs and buys —
+  in quality, in speed, and in gates. What works, what it trades away, and the one number
+  we are not entitled to quote. August 2026.</p>
+
+  <div class="links">
+    <a href="spikelm.html">← chapter two: a spiking model that speaks</a>
+    <a href="mamba-live.html">▶ run it in your browser</a>
+    <a href="mamba-cell.html">the s6 cell as a circuit</a>
+  </div>
+
+  <h2>Why bother</h2>
+  <p>
+    The hardware track needs to know which recurrence is worth committing to silicon, and
+    the literature's answer — selective SSMs beat fixed-decay recurrences — was established
+    at scales and budgets nothing like ours. So we built Mamba-mini: 13.14M parameters
+    against RWKV-mini's 13.10M (0.3% apart), same tokenizer, same TinyStories data, same
+    6 blocks at width 384, same optimizer and schedule, same evaluation harness. One
+    architecture swapped, everything else held.
+  </p>
+  <p>
+    The recurrences differ in exactly three ways. RWKV keeps three scalar registers per
+    channel; Mamba keeps a 16-vector. RWKV's decay is a <em>fixed constant per channel</em>;
+    Mamba computes its decay from the input at every step — that is the "selectivity".
+    And RWKV normalizes (it divides); Mamba does not divide at all.
+  </p>
+
+  <h2>What works</h2>
+  <p>
+    <b>It trains without drama.</b> No stability fights, no exploding scans, no
+    architecture-specific hyperparameter search — the same learning rate and schedule that
+    trained RWKV trained this. Given how much of the spiking work was spent on stability,
+    that is worth stating.
+  </p>
+  <p>
+    <b>It writes well.</b> At the end of training, from the same prompt and seed the other
+    models use:
+  </p>
+  <div class="quote"><b>mamba-mini, step 5,500</b>
+    Lily. She loved to play outside in the snow. One day, she felt a cold and thirsty water.
+    She said, "Mommy, can you help me make a drink?"<br>
+    Her mommy came over and said, "Of course, Lily! Let's get you…"</div>
+  <p>
+    Dialogue with correct attribution, two speakers, a coherent domestic scene. On the
+    degeneration metrics that actually predict usable generation it is the equal of
+    anything we have trained: repeated 4-grams 0.8%, distinct bigrams 0.91.
+  </p>
+  <p>
+    <b>It quantizes for free.</b> Held-out perplexity 7.274 in float32 → 7.275 in per-row
+    int8, a +0.02% change. The same result we got for RWKV (−0.01%) and the spiking models,
+    now for a third architecture: <em>weight precision is not where these models are
+    fragile</em>.
+  </p>
+  <p>
+    <b>Its state is constant.</b> 1,536 inner channels × 16 states × 6 blocks = 147,456
+    numbers, and that never grows no matter how long the text gets — the property this
+    architecture family exists for, shared with RWKV and absent from attention. You can
+    watch it hold in the <a href="mamba-live.html">browser page</a>, which runs the model
+    in true streaming form: one token in, one token out, constant work.
+  </p>
+
+  <h2>The tradeoffs</h2>
+  <table>
+    <tr><th>axis</th><th>RWKV-mini</th><th>Mamba-mini</th></tr>
+    <tr><td>held-out perplexity (see caveat)</td><td><b>6.84</b></td><td>7.83</td></tr>
+    <tr><td>training throughput, same machine</td><td><b>~2,000 tok/s</b></td><td><i>535 tok/s</i></td></tr>
+    <tr><td>recurrent state per layer</td><td><b>1,152 numbers</b></td><td><i>24,576 numbers</i></td></tr>
+    <tr><td>exponentials per token per layer</td><td><b>1,536</b></td><td><i>24,576</i></td></tr>
+    <tr><td>division in the recurrence</td><td><i>yes (527-gate divider)</i></td><td><b>none</b></td></tr>
+    <tr><td>decay can be precomputed into constants</td><td><b>yes</b></td><td><i>no — data-dependent</i></td></tr>
+    <tr><td>int8 weight quantization</td><td>+0.00%</td><td>+0.02%</td></tr>
+  </table>
+  <p>
+    <b>Speed.</b> Four times slower to train at the same parameter count, and the reason is
+    structural rather than incidental: the scan carries a 16-wide vector per channel instead
+    of three scalars, so every timestep touches an order of magnitude more state.
+  </p>
+  <p>
+    <b>Gates.</b> It is tempting to conclude that dropping the divider makes S6 the cheaper
+    circuit. It does not. The divider is roughly 5% of a wkv cell; the N-wide state costs
+    11×, and Mamba-mini runs four times as many inner channels. The
+    <a href="mamba-cell.html">circuit page</a> works this through, and the difference that
+    survives all of it is <em>data dependence</em>: RWKV's decay is a constant that can be
+    baked into the circuit — potentially a hard-wired shift — while Mamba's must be computed
+    live, every token, forever. That is what selectivity costs in silicon.
+  </p>
+  <p>
+    <b>What it buys</b> is the thing our own reservoir campaign found independently, from
+    the other end: input-dependent state writes carry information that fixed decay cannot.
+    Back in the backprop-free work, a Mamba-style selective state beat a plain slow state at
+    matched dimensions (30.0% vs 28.5%) even in a substrate with no gradients at all. The
+    mechanism is real. The question is only ever what it costs.
+  </p>
+
+  <h2>The number we are not entitled to quote</h2>
+  <div class="verdict null">
+    Mamba trained at <b>batch 8</b> and RWKV at <b>batch 16</b>. At equal step counts Mamba
+    therefore saw half the tokens — 2.8M against 5.6M. The 14% perplexity gap is a
+    comparison at unequal data budgets, and we will not present it as an architecture
+    verdict. We chose batch 8 to keep the slow sequential scan tractable, and in doing so
+    broke the matching we had been careful about everywhere else.
+  </div>
+  <p>
+    The honest statement is narrower and still useful: <em>a selective SSM at half the data
+    budget lands 14% behind a fixed-decay recurrence, while costing 4× the training time and
+    an order of magnitude more state.</em> The controlled rematch — RWKV re-run at batch 8,
+    about forty minutes of machine time — is the outstanding experiment, and until it runs
+    the quality column stays provisional. The circuit accounting in the table above is
+    unaffected, because it follows from the architectures rather than from either run.
+  </p>
+  <p>
+    A second caveat we owe: we configured Mamba at <code>expand=4</code> to hit parameter
+    parity at 6 blocks, where canonical Mamba uses <code>expand=2</code> with more, thinner
+    layers. Parameter parity was the right call for this comparison, but it is not
+    necessarily Mamba's good operating point.
+  </p>
+  <p>
+    And a prediction on the record, wrong: before running this we predicted Mamba would
+    <em>win</em> at matched parameters, on the strength of the selectivity literature. It did
+    not, on the evidence we have. We are keeping the prediction visible rather than quietly
+    reframing it — partly because the batch confound means the prediction has not really
+    been tested yet.
+  </p>
+
+  <h2>The result that outlives either model</h2>
+  <div class="verdict pos">
+    Both recurrences are the same primitive: <code>h ← a·h + b·u</code> with
+    <code>a = 2^(negative)</code>. They differ in whether <code>a</code> is a per-channel
+    constant or computed per token, and whether the state is a scalar or an N-vector. Every
+    exponent argument is non-positive by construction in <em>both</em> — so the verified
+    2^(−x) unit built for wkv drops into S6 unchanged. What should be built is therefore not
+    a wkv cell or an S6 cell but a <b>parameterized diagonal-recurrence cell</b> whose state
+    width and decay source are arguments, with Morpho's recursion generating the bank at any
+    channel count. The architecture choice becomes a parameter rather than a rewrite.
+  </div>
+  <p>
+    That is also why both models now run in the browser from the same export format, and
+    why both live at the root of the
+    <a href="https://github.com/PedalCore/morpho">Morpho repository</a>: two architectures,
+    one flat binary format, one page of arithmetic each, verified against their PyTorch
+    originals to four decimal places. Portability is the point — the same argument the
+    hardware pages make in gates, made here in bytes.
+  </p>
+
+  <p class="foot">
+    Reproduce: <code>cd spikelm &amp;&amp; python -m spikelm.train --arch mamba --batch 8</code>
+    (RWKV is the default <code>--arch rwkv</code>). Model, training logs and rollout samples
+    are committed under <code>spikelm/</code>; the export and its int8 validation come from
+    <code>export_weights.py</code>. Run them:
+    <a href="mamba-live.html">mamba, live</a> · <a href="rwkv-live.html">rwkv, live</a>.
+    The circuit treatment: <a href="mamba-cell.html">the s6 cell</a> ·
+    <a href="wkv-cell.html">the wkv cell</a>.
+  </p>
+</article>
+</body>
+</html>

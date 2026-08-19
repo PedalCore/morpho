@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.024875621890547265,
+  "rep4": 0.01,
+  "distinct1": 0.5911330049261084,
+  "distinct2": 0.8861386138613861,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she went to the park to play with her friends. She ran around and played in the sunshine, but she knew she had to be careful. \nSuddenly, Lily"
+ },
+ {
+  "rep3": 0.07142857142857142,
+  "rep4": 0.028708133971291867,
+  "distinct1": 0.5188679245283019,
+  "distinct2": 0.8293838862559242,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " he saw a big hole in the ground. He climbed down the hole and went inside. \nTom was scared but he trusted Tom. He found a bone and put it in his pocket. He found the bone and the bone somewhere under"
+ },
+ {
+  "rep3": 0.06217616580310881,
+  "rep4": 0.03125,
+  "distinct1": 0.5538461538461539,
+  "distinct2": 0.8402061855670103,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical coin somewhere safe and happy. He thanked her and took the coin home.\nThe old man was very happy. He thanked the woman for his generous gift and thanked him for the gift. From that day fo"
+ },
+ {
+  "rep3": 0.037914691943127965,
+  "rep4": 0.014285714285714285,
+  "distinct1": 0.5352112676056338,
+  "distinct2": 0.8867924528301887,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to mix it. Her mom said yes, and they baked a cake for their dinner.\nLily was so happy that she took out her cake, and her mom helped her put it in a big bowl. She wanted to see if she "
+ },
+ {
+  "rep3": 0.04040404040404041,
+  "rep4": 0.015228426395939087,
+  "distinct1": 0.57,
+  "distinct2": 0.8793969849246231,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird was scared and wanted to help. The bird was scared and didn't know what to do.\nThen, a nice lady came and said, \"Don't worry, my little bird. I have an idea.\" She flew up to the bird "
+ }
+]

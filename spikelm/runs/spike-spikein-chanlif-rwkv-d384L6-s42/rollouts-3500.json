@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.0049261083743842365,
+  "rep4": 0.0,
+  "distinct1": 0.6,
+  "distinct2": 0.9264705882352942,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to play outside in the sunshine. One day, she saw a man selling apples. \"Hello, Mr. Swen!\" said Lily, holding the apples.\nThe man smiled and said, \"Do you need the apples for apples t"
+ },
+ {
+  "rep3": 0.04950495049504951,
+  "rep4": 0.029850746268656716,
+  "distinct1": 0.5735294117647058,
+  "distinct2": 0.8768472906403941,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " his dog was driving by. He saw a big tree and said \"I don't want to play with you, but I don't want to play with you.\"\nTom tried to catch his dog, but he was too scared. He tried to grab the ball but"
+ },
+ {
+  "rep3": 0.04477611940298507,
+  "rep4": 0.01,
+  "distinct1": 0.5812807881773399,
+  "distinct2": 0.8762376237623762,
+  "prompt": "The old man opened the box and found",
+  "sample": " the bird again. He was so happy and couldn't wait to show off his new photo. From then on, the man was more careful with his magnet and the little boy was even more nervous.\n<|endoftext|>\n\nOnce upon "
+ },
+ {
+  "rep3": 0.03571428571428571,
+  "rep4": 0.017964071856287425,
+  "distinct1": 0.5764705882352941,
+  "distinct2": 0.8816568047337278,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to buy him a big cake for his mom.\n\"That's a great cake, mom. I'm going first to get you some.\" Lily said.\n\"Can I have a cake?\" Tom asked.\n\"Sure, it's so yummy. I'm going to help me mix"
+ },
+ {
+  "rep3": 0.03431372549019608,
+  "rep4": 0.009852216748768473,
+  "distinct1": 0.5776699029126213,
+  "distinct2": 0.9073170731707317,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The little bird was scared and wanted to escape.\nThe bird was scared and didn't know what to do. Then, a nice man came and said, \"Don't worry, the little bird and the little bird. I will provide an i"
+ }
+]

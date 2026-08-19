@@ -1,0 +1,42 @@
+[
+ {
+  "rep3": 0.07804878048780488,
+  "rep4": 0.029411764705882353,
+  "distinct1": 0.47342995169082125,
+  "distinct2": 0.8203883495145631,
+  "prompt": "Once upon a time, there was a little girl named",
+  "sample": " Lily. She loved to dance and dance. She would dance all day long. She would dance all day long and make funny faces. The day was in the living room.\nOne day, Lily's mommy asked her to clean up her to"
+ },
+ {
+  "rep3": 0.0,
+  "rep4": 0.0,
+  "distinct1": 0.6180904522613065,
+  "distinct2": 0.9343434343434344,
+  "prompt": "Tom and his dog went to the park. Suddenly,",
+  "sample": " the dog found a big, red ball. He rolled down the slide and went to have a ball. Tom was scared but he knew he had found a bone. He ran to his owner, who had hit the bone and it broke. She was very u"
+ },
+ {
+  "rep3": 0.035897435897435895,
+  "rep4": 0.005154639175257732,
+  "distinct1": 0.5989847715736041,
+  "distinct2": 0.9030612244897959,
+  "prompt": "The old man opened the box and found",
+  "sample": " the magical box. He was so happy and thanked her. She hugged the box and thanked the old man. From then on, she always made sure to keep the box open.\n<|endoftext|>\n\nBen and Lily were playing in the "
+ },
+ {
+  "rep3": 0.035,
+  "rep4": 0.01507537688442211,
+  "distinct1": 0.5594059405940595,
+  "distinct2": 0.8805970149253731,
+  "prompt": "Lily wanted to bake a cake for her mom, so she",
+  "sample": " asked her mom to mix the baking. Her mom said yes, but only if she washed the cake.\nLily was sad. She asked her mom, \"Why is the cake so yummy?\" Her mom said, \"It makes cake, but not when it is messy"
+ },
+ {
+  "rep3": 0.08490566037735849,
+  "rep4": 0.02843601895734597,
+  "distinct1": 0.45794392523364486,
+  "distinct2": 0.7746478873239436,
+  "prompt": "One day, a small bird fell out of its nest.",
+  "sample": " The bird saw a big, juicy apple on a branch. The apple was green and yellow. The bird wanted to eat the apple, but the apple was too strong. The bird climbed up the tree and fell to the ground. The b"
+ }
+]
