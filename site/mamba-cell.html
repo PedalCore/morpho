@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the s6 cell</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root { --bg:#0d1015; --panel:#12151b; --panel2:#171b23; --line:#242a35;
+          --text:#d7dae2; --muted:#9aa1ad; --amber:#e2a13f; --green:#7bd8a5; --red:#d96c6c; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font:16px/1.65 -apple-system,"Segoe UI",sans-serif; padding:48px 20px 80px; }
+  article { max-width:47em; margin:0 auto; }
+  h1 { font-size:26px; font-weight:600; letter-spacing:.02em; margin-bottom:6px; }
+  h1 span { color:var(--amber); }
+  .sub { color:var(--muted); margin-bottom:22px; }
+  h2 { font-size:19px; font-weight:600; margin:38px 0 10px; color:var(--amber); }
+  h3 { font-size:16px; font-weight:600; margin:22px 0 6px; }
+  p { margin:10px 0; color:#c4c9d4; }
+  a { color:var(--amber); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:ui-monospace,"SF Mono",monospace; font-size:14px;
+         background:var(--panel2); padding:1px 6px; border-radius:4px; }
+  pre { font-family:ui-monospace,"SF Mono",monospace; font-size:12.5px; line-height:1.45;
+        background:var(--panel); border:1px solid var(--line); border-radius:8px;
+        padding:14px 16px; overflow-x:auto; margin:14px 0; color:#c4c9d4; }
+  table { border-collapse:collapse; margin:14px 0; width:100%; font-size:14.5px; }
+  th,td { text-align:left; padding:7px 12px 7px 0; border-bottom:1px solid var(--line);
+          vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase;
+       letter-spacing:.05em; }
+  td b { color:var(--green); }
+  td i { color:var(--red); font-style:normal; }
+  .verdict { border-left:3px solid var(--amber); padding:9px 14px; background:var(--panel);
+             border-radius:0 8px 8px 0; margin:14px 0; }
+  .verdict.pos { border-color:var(--green); }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0 6px; }
+  .links a { border:1px solid var(--line); border-radius:8px; padding:7px 14px; }
+  .links a:hover { border-color:var(--amber); text-decoration:none; }
+  .foot { color:#6a7280; font-size:13.5px; margin-top:44px; border-top:1px solid var(--line);
+          padding-top:16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>the s6 cell — and the cell that <span>generates both</span></h1>
+  <p class="sub">Mamba's selective state space as a circuit, beside RWKV's wkv. They are the
+  same primitive with different parameters — a diagonal linear recurrence whose decay is a
+  negative exponential — which means one Morpho cell definition can generate either
+  architecture. Where they differ, the differences are not the ones you would guess.</p>
+
+  <div class="links">
+    <a href="wkv-cell.html">← the wkv cell</a>
+    <a href="mamba-live.html">mamba running in the browser</a>
+    <a href="rwkv-atlas.html">the model atlas</a>
+  </div>
+
+  <h2>the recurrence</h2>
+  <p>
+    Per inner channel, S6 carries an <em>N-vector</em> of state (N = 16 here) rather than
+    wkv's three scalars. With input <code>u</code>, a per-token step size
+    <code>Δ</code>, and per-token vectors <code>B</code>, <code>C</code>:
+  </p>
+<pre>Ā = 2^(Δ·A·log₂e)        A = −exp(A_log) &lt; 0,  Δ = softplus(·) &gt; 0
+h ← Ā ⊙ h + (Δ·B)·u
+y  = ⟨h, C⟩ + D·u</pre>
+  <p>
+    <b>Two facts carry the engineering, and the first is familiar.</b> Because <code>A</code>
+    is parameterized negative and <code>Δ</code> positive, <code>Δ·A ≤ 0</code> always — so
+    the exponential only ever needs its decaying half, exactly as in wkv, and
+    <a href="wkv-cell.html">the verified 2^(−x) unit</a> drops in unchanged: barrel shift
+    plus interpolated table, 388 gates, exhaustively checked over all 65,536 Q8.8 inputs.
+    The second is new: <b>S6 never divides.</b> There is no normalizer, so the restoring
+    divider that sits in wkv's inner loop disappears entirely.
+  </p>
+
+  <h2>what it costs, honestly</h2>
+  <p>
+    It would be easy to conclude that dropping the divider makes S6 the cheaper circuit. It
+    does not. Per channel per token, using the gate counts measured for the verified Morpho
+    components:
+  </p>
+  <table>
+    <tr><th>per channel per token</th><th>wkv (RWKV)</th><th>S6 (Mamba, N=16)</th></tr>
+    <tr><td>exponentials</td><td>4</td><td><i>16</i></td></tr>
+    <tr><td>multiplies</td><td>~6</td><td><i>~80</i></td></tr>
+    <tr><td>adds</td><td>~4</td><td>~47</td></tr>
+    <tr><td>divides</td><td>1 (527 gates)</td><td><b>0</b></td></tr>
+    <tr><td>state registers</td><td><b>3</b></td><td><i>16</i></td></tr>
+    <tr><td>≈ gates, fully parallel</td><td><b>~9.8k</b></td><td><i>~108k</i></td></tr>
+  </table>
+  <p>
+    The divider is about <b>5%</b> of a wkv cell. The N-wide state is <b>11×</b> the cell.
+    And Mamba-mini runs 1,536 inner channels per block against RWKV's 384, so at equal
+    parameter count the recurrence hardware is two orders of magnitude apart if built fully
+    parallel. Our measured throughput agrees from the software side: 535 tokens/second
+    against RWKV's ~2,000 on the same machine at the same parameter count.
+  </p>
+  <div class="verdict">
+    But keep the proportion in view: in <em>both</em> architectures the recurrence is a
+    minority of the arithmetic. Per block per token, RWKV's matmuls are ≈1.9M multiply-accumulates
+    against a ≈3.8k-operation recurrence — <b>0.2%</b>. Mamba's matmuls are also ≈1.9M, against a
+    ≈220k-operation scan — <b>~10%</b>. Fifty times more significant, still not the thing that
+    dominates area. The atlas page's inversion survives: the expensive part of either model is
+    ordinary linear algebra.
+  </div>
+
+  <h3>the difference that no engineering removes</h3>
+  <p>
+    Not the divider, and not the register count: <b>data dependence</b>. RWKV's decay
+    <code>w</code> is a fixed per-channel constant, so <code>2^w</code> can be precomputed
+    once, baked in as a constant multiplier, or quantized to a power of two and implemented
+    as hard-wired shift — no exponential unit at all in the steady state. Mamba's decay is
+    <code>2^(Δ_t·A)</code> with <code>Δ_t</code> computed from the input at every step, so it
+    <em>must</em> keep a live exponential per state per token and can never be folded into
+    constants. That is the structural asymmetry, and it is the price of selectivity.
+  </p>
+
+  <h2>one cell, two architectures</h2>
+  <p>
+    Strip both to their core and the same line appears:
+  </p>
+<pre>h ← a·h + b·u        with a = 2^(negative)
+
+RWKV   a constant per channel · state width 1 · plus a normalizer branch (÷)
+S6     a computed per token   · state width N · no normalizer</pre>
+  <p>
+    So the Morpho artifact worth building is not "a wkv cell" or "an S6 cell" but a
+    <code>diag_recurrence</code> cell whose state width and whose decay source are
+    parameters — constant-from-ROM or live-from-datapath. Morpho's ordinary SPLIT recursion
+    then generates the bank at any channel count, exactly as it does for the wkv bank today,
+    and the architectural choice becomes a parameter rather than a rewrite. That is the same
+    size-agnostic argument this project has been making about bit-widths and lattice sizes,
+    applied one level up — to architecture itself.
+  </p>
+
+  <h2>measured, so far</h2>
+  <table>
+    <tr><th>13.1M params, same data, tokenizer, steps</th><th>held-out perplexity</th></tr>
+    <tr><td>RWKV-mini</td><td><b>6.84</b></td></tr>
+    <tr><td>Mamba-mini</td><td>7.83</td></tr>
+    <tr><td>Mamba-mini with int8 weights (the browser page)</td><td>7.83 (+0.02%)</td></tr>
+  </table>
+  <p>
+    <b>That gap is not a fair architecture verdict and we will not present it as one.</b>
+    Mamba trained at batch 8 to keep its sequential scan tractable while RWKV trained at
+    batch 16, so at equal step counts Mamba saw half the tokens — 2.8M against 5.6M. The
+    honest statement today is that a selective SSM at half the data budget lands 14% behind;
+    the controlled rematch (RWKV re-run at batch 8) is the outstanding experiment. What is
+    <em>not</em> in doubt is the circuit accounting above, which follows from the
+    architectures rather than from either training run.
+  </p>
+
+  <p class="foot">
+    Both models come from the same harness (<code>spikelm/</code>, TinyStories, 4k BPE,
+    context 256, 6 blocks, d=384) and the same export script, and both run in the browser
+    from int8 exports: <a href="rwkv-live.html">rwkv, live</a> ·
+    <a href="mamba-live.html">mamba, live</a>. The browser implementations are verified
+    against PyTorch on identical weights — matching logits to four decimal places — before
+    publication, the same discipline applied to the fixed-point circuit emulation on the
+    <a href="wkv-cell.html">wkv page</a>.
+  </p>
+</article>
+</body>
+</html>

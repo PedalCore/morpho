@@ -68,7 +68,7 @@ def quantize_int8(sd):
     offset = 0
     for name, t in sd.items():
         arr = t.detach().cpu().numpy()
-        if arr.ndim == 2 and arr.size > 4096:
+        if arr.ndim == 2 and arr.size > 4096 and "A_log" not in name:
             scale = np.abs(arr).max(axis=1, keepdims=True) / 127.0
             scale[scale == 0] = 1e-8
             q = np.clip(np.round(arr / scale), -127, 127).astype(np.int8)
@@ -131,9 +131,16 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     tok = get_tokenizer()
     sd = torch.load(args.ckpt, map_location="cpu")["model"]
+    mamba = any("A_log" in k for k in sd)
     spiking = any("spike_act.log_threshold" in k for k in sd)
-    cfg = Config(vocab_size=tok.vocab_size, spiking=spiking)
-    model = RWKVMini(cfg)
+    if mamba:
+        from spikelm.mamba import MambaConfig, MambaMini
+
+        cfg = MambaConfig(vocab_size=tok.vocab_size)
+        model = MambaMini(cfg)
+    else:
+        cfg = Config(vocab_size=tok.vocab_size, spiking=spiking)
+        model = RWKVMini(cfg)
     if spiking and args.levels != 4:
         from spikelm.spiking import SpikeAct
 
@@ -143,6 +150,36 @@ def main():
     model.load_state_dict(sd); model.eval()
     print(f"{'SPIKING' if spiking else 'float'} model, levels={args.levels if spiking else '-'}")
     data = load_split("valid")
+
+    if mamba:   # no wkv decays to atlas; record the S6 shape instead
+        doc = {"arch": "mamba-s6", "d_state": cfg.d_state, "d_conv": cfg.d_conv,
+               "expand": cfg.expand, "d_inner": cfg.expand * cfg.n_embd,
+               "dt_rank": max(1, cfg.n_embd // 16),
+               "note": "A = -exp(A_log) < 0 and dt = softplus(..) > 0, so every "
+                       "exponent argument dt*A is <= 0 — same property as wkv."}
+        json.dump(doc, open(os.path.join(OUT, "s6-shape.json"), "w"), indent=1)
+        blob, manifest = quantize_int8(sd)
+        manifest["config"] = {"arch": "mamba", "n_layer": cfg.n_layer,
+                              "n_embd": cfg.n_embd, "ctx": cfg.ctx,
+                              "vocab_size": cfg.vocab_size, "d_state": cfg.d_state,
+                              "d_conv": cfg.d_conv, "expand": cfg.expand,
+                              "dt_rank": max(1, cfg.n_embd // 16)}
+        if args.note:
+            manifest["note"] = args.note
+        pb = os.path.join(OUT, "model-int8.bin"); open(pb, "wb").write(blob)
+        pm = os.path.join(OUT, "model-manifest.json")
+        json.dump(manifest, open(pm, "w"), indent=1)
+        tok.save(os.path.join(OUT, "tokenizer.json"))
+        ppl_f = perplexity(model, data)
+        model.load_state_dict(dequantized_state(sd, blob, manifest))
+        ppl_q = perplexity(model, data)
+        print(f"{pb} ({os.path.getsize(pb)/1e6:.1f} MB)")
+        print(f"VALIDATION  float32 ppl {ppl_f:.3f}  ->  int8 ppl {ppl_q:.3f} "
+              f"({100*(ppl_q/ppl_f-1):+.2f}%)")
+        json.dump({"ppl_float32": round(ppl_f, 4), "ppl_int8": round(ppl_q, 4),
+                   "delta_pct": round(100*(ppl_q/ppl_f-1), 3)},
+                  open(os.path.join(OUT, "int8-validation.json"), "w"), indent=1)
+        return
 
     # 1. the atlas
     doc = atlas(sd, cfg.n_layer)
