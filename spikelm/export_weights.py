@@ -133,13 +133,16 @@ def main():
     sd = torch.load(args.ckpt, map_location="cpu")["model"]
     mamba = any("A_log" in k for k in sd)
     spiking = any("spike_act.log_threshold" in k for k in sd)
+    spike_in = any("spike_in.log_threshold" in k for k in sd)
+    chanlif = any("chanlif.scale" in k for k in sd)
     if mamba:
         from spikelm.mamba import MambaConfig, MambaMini
 
         cfg = MambaConfig(vocab_size=tok.vocab_size)
         model = MambaMini(cfg)
     else:
-        cfg = Config(vocab_size=tok.vocab_size, spiking=spiking)
+        cfg = Config(vocab_size=tok.vocab_size, spiking=spiking,
+                     spike_in=spike_in, chanlif=chanlif)
         model = RWKVMini(cfg)
     if spiking and args.levels != 4:
         from spikelm.spiking import SpikeAct
@@ -196,7 +199,9 @@ def main():
     blob, manifest = quantize_int8(sd)
     manifest["config"] = {"n_layer": cfg.n_layer, "n_embd": cfg.n_embd,
                           "ctx": cfg.ctx, "vocab_size": cfg.vocab_size,
-                          "spiking": spiking, "levels": args.levels if spiking else 0}
+                          "spiking": spiking, "levels": args.levels if spiking else 0,
+                          "spike_in": spike_in, "chanlif": chanlif,
+                          "chanlif_k": cfg.chanlif_k, "arch": "rwkv"}
     if spiking:
         thr = torch.exp(sd["blocks.0.cm.spike_act.log_threshold"])
         manifest["spike"] = {

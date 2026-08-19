@@ -1,0 +1,1462 @@
+{
+ "tensors": [
+  {
+   "name": "emb.weight",
+   "shape": [
+    4096,
+    384
+   ],
+   "kind": "int8",
+   "offset": 0,
+   "nbytes": 1572864,
+   "scale_offset": 1572864,
+   "scale_nbytes": 16384
+  },
+  {
+   "name": "ln_in.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1589248,
+   "nbytes": 1536
+  },
+  {
+   "name": "ln_in.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1590784,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1592320,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1593856,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1595392,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1596928,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 1598464,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 1600000,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 1601536,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1603072,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1604608,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 1606144,
+   "nbytes": 147456,
+   "scale_offset": 1753600,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 1755136,
+   "nbytes": 147456,
+   "scale_offset": 1902592,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 1904128,
+   "nbytes": 147456,
+   "scale_offset": 2051584,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 2053120,
+   "nbytes": 147456,
+   "scale_offset": 2200576,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 2202112,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 2203648,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.spike_in.log_threshold",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 2205184,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.chanlif.decay_raw",
+   "shape": [],
+   "kind": "float32",
+   "offset": 2206720,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.0.cm.chanlif.scale",
+   "shape": [
+    1
+   ],
+   "kind": "float32",
+   "offset": 2206724,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.0.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 2206728,
+   "nbytes": 589824,
+   "scale_offset": 2796552,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.0.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 2802696,
+   "nbytes": 589824,
+   "scale_offset": 3392520,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3394056,
+   "nbytes": 147456,
+   "scale_offset": 3541512,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.spike_act.log_threshold",
+   "shape": [
+    1536
+   ],
+   "kind": "float32",
+   "offset": 3543048,
+   "nbytes": 6144
+  },
+  {
+   "name": "blocks.1.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3549192,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3550728,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3552264,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3553800,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 3555336,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 3556872,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 3558408,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3559944,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3561480,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3563016,
+   "nbytes": 147456,
+   "scale_offset": 3710472,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3712008,
+   "nbytes": 147456,
+   "scale_offset": 3859464,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3861000,
+   "nbytes": 147456,
+   "scale_offset": 4008456,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 4009992,
+   "nbytes": 147456,
+   "scale_offset": 4157448,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 4158984,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 4160520,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.spike_in.log_threshold",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 4162056,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.chanlif.decay_raw",
+   "shape": [],
+   "kind": "float32",
+   "offset": 4163592,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.1.cm.chanlif.scale",
+   "shape": [
+    1
+   ],
+   "kind": "float32",
+   "offset": 4163596,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.1.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 4163600,
+   "nbytes": 589824,
+   "scale_offset": 4753424,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.1.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 4759568,
+   "nbytes": 589824,
+   "scale_offset": 5349392,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5350928,
+   "nbytes": 147456,
+   "scale_offset": 5498384,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.spike_act.log_threshold",
+   "shape": [
+    1536
+   ],
+   "kind": "float32",
+   "offset": 5499920,
+   "nbytes": 6144
+  },
+  {
+   "name": "blocks.2.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5506064,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5507600,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5509136,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5510672,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 5512208,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 5513744,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 5515280,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5516816,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5518352,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5519888,
+   "nbytes": 147456,
+   "scale_offset": 5667344,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5668880,
+   "nbytes": 147456,
+   "scale_offset": 5816336,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5817872,
+   "nbytes": 147456,
+   "scale_offset": 5965328,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5966864,
+   "nbytes": 147456,
+   "scale_offset": 6114320,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 6115856,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 6117392,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.spike_in.log_threshold",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 6118928,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.chanlif.decay_raw",
+   "shape": [],
+   "kind": "float32",
+   "offset": 6120464,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.2.cm.chanlif.scale",
+   "shape": [
+    1
+   ],
+   "kind": "float32",
+   "offset": 6120468,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.2.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 6120472,
+   "nbytes": 589824,
+   "scale_offset": 6710296,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.2.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 6716440,
+   "nbytes": 589824,
+   "scale_offset": 7306264,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7307800,
+   "nbytes": 147456,
+   "scale_offset": 7455256,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.spike_act.log_threshold",
+   "shape": [
+    1536
+   ],
+   "kind": "float32",
+   "offset": 7456792,
+   "nbytes": 6144
+  },
+  {
+   "name": "blocks.3.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7462936,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7464472,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7466008,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7467544,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 7469080,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 7470616,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 7472152,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7473688,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7475224,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7476760,
+   "nbytes": 147456,
+   "scale_offset": 7624216,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7625752,
+   "nbytes": 147456,
+   "scale_offset": 7773208,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7774744,
+   "nbytes": 147456,
+   "scale_offset": 7922200,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7923736,
+   "nbytes": 147456,
+   "scale_offset": 8071192,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 8072728,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 8074264,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.spike_in.log_threshold",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 8075800,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.chanlif.decay_raw",
+   "shape": [],
+   "kind": "float32",
+   "offset": 8077336,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.3.cm.chanlif.scale",
+   "shape": [
+    1
+   ],
+   "kind": "float32",
+   "offset": 8077340,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.3.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 8077344,
+   "nbytes": 589824,
+   "scale_offset": 8667168,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.3.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 8673312,
+   "nbytes": 589824,
+   "scale_offset": 9263136,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9264672,
+   "nbytes": 147456,
+   "scale_offset": 9412128,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.spike_act.log_threshold",
+   "shape": [
+    1536
+   ],
+   "kind": "float32",
+   "offset": 9413664,
+   "nbytes": 6144
+  },
+  {
+   "name": "blocks.4.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9419808,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9421344,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9422880,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9424416,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9425952,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9427488,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9429024,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9430560,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9432096,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9433632,
+   "nbytes": 147456,
+   "scale_offset": 9581088,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9582624,
+   "nbytes": 147456,
+   "scale_offset": 9730080,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9731616,
+   "nbytes": 147456,
+   "scale_offset": 9879072,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9880608,
+   "nbytes": 147456,
+   "scale_offset": 10028064,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 10029600,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 10031136,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.spike_in.log_threshold",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 10032672,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.chanlif.decay_raw",
+   "shape": [],
+   "kind": "float32",
+   "offset": 10034208,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.4.cm.chanlif.scale",
+   "shape": [
+    1
+   ],
+   "kind": "float32",
+   "offset": 10034212,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.4.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 10034216,
+   "nbytes": 589824,
+   "scale_offset": 10624040,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.4.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 10630184,
+   "nbytes": 589824,
+   "scale_offset": 11220008,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11221544,
+   "nbytes": 147456,
+   "scale_offset": 11369000,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.spike_act.log_threshold",
+   "shape": [
+    1536
+   ],
+   "kind": "float32",
+   "offset": 11370536,
+   "nbytes": 6144
+  },
+  {
+   "name": "blocks.5.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11376680,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11378216,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11379752,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11381288,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11382824,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11384360,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11385896,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11387432,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11388968,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11390504,
+   "nbytes": 147456,
+   "scale_offset": 11537960,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11539496,
+   "nbytes": 147456,
+   "scale_offset": 11686952,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11688488,
+   "nbytes": 147456,
+   "scale_offset": 11835944,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11837480,
+   "nbytes": 147456,
+   "scale_offset": 11984936,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11986472,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11988008,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.spike_in.log_threshold",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11989544,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.chanlif.decay_raw",
+   "shape": [],
+   "kind": "float32",
+   "offset": 11991080,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.5.cm.chanlif.scale",
+   "shape": [
+    1
+   ],
+   "kind": "float32",
+   "offset": 11991084,
+   "nbytes": 4
+  },
+  {
+   "name": "blocks.5.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11991088,
+   "nbytes": 589824,
+   "scale_offset": 12580912,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.5.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 12587056,
+   "nbytes": 589824,
+   "scale_offset": 13176880,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 13178416,
+   "nbytes": 147456,
+   "scale_offset": 13325872,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.spike_act.log_threshold",
+   "shape": [
+    1536
+   ],
+   "kind": "float32",
+   "offset": 13327408,
+   "nbytes": 6144
+  },
+  {
+   "name": "ln_out.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 13333552,
+   "nbytes": 1536
+  },
+  {
+   "name": "ln_out.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 13335088,
+   "nbytes": 1536
+  },
+  {
+   "name": "head.weight",
+   "shape": [
+    4096,
+    384
+   ],
+   "kind": "int8",
+   "offset": 13336624,
+   "nbytes": 1572864,
+   "scale_offset": 14909488,
+   "scale_nbytes": 16384
+  }
+ ],
+ "dtype_small": "float32",
+ "recipe": "w = int8_row * scale_row",
+ "config": {
+  "n_layer": 6,
+  "n_embd": 384,
+  "ctx": 256,
+  "vocab_size": 4096,
+  "spiking": true,
+  "levels": 4,
+  "spike_in": true,
+  "chanlif": true,
+  "chanlif_k": 8,
+  "arch": "rwkv"
+ },
+ "spike": {
+  "threshold_uniform": true,
+  "threshold": 0.5,
+  "rule": "z = min(floor(x/thr), levels) * thr  (negatives -> 0); thresholds did NOT train - grad is not routed to them - so all 9216 are exactly their init value",
+  "consumer_matmul": "blocks.{L}.cm.value.weight (1536 -> 384)",
+  "firing_rate_per_block": [
+   0.6678,
+   0.0333,
+   0.7024,
+   0.043,
+   0.7202,
+   0.0627,
+   0.7307,
+   0.0854,
+   0.7529,
+   0.1537,
+   0.7705,
+   0.2453
+  ],
+  "firing_rate_mean": 0.414
+ },
+ "note": "Fully-spiking: signed input spikes make BOTH channel-mix matmuls multiply-free, plus channel-axis LIF. Step 6000."
+}

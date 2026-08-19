@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — five models, one page</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root { --bg:#0d1015; --panel:#12151b; --panel2:#171b23; --line:#242a35;
+          --text:#d7dae2; --muted:#9aa1ad; --amber:#e2a13f; --green:#7bd8a5; --red:#d96c6c; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font:16px/1.65 -apple-system,"Segoe UI",sans-serif; padding:48px 20px 80px; }
+  article { max-width:47em; margin:0 auto; }
+  h1 { font-size:26px; font-weight:600; letter-spacing:.02em; margin-bottom:6px; }
+  h1 span { color:var(--amber); }
+  .sub { color:var(--muted); margin-bottom:22px; }
+  h2 { font-size:19px; font-weight:600; margin:36px 0 10px; color:var(--amber); }
+  p { margin:10px 0; color:#c4c9d4; }
+  a { color:var(--amber); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:ui-monospace,"SF Mono",monospace; font-size:14px;
+         background:var(--panel2); padding:1px 6px; border-radius:4px; }
+  table { border-collapse:collapse; margin:14px 0; width:100%; font-size:14.5px; }
+  th,td { text-align:left; padding:7px 12px 7px 0; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase;
+       letter-spacing:.05em; }
+  td b { color:var(--green); }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0 6px; }
+  .links a { border:1px solid var(--line); border-radius:8px; padding:7px 14px; }
+  .links a:hover { border-color:var(--amber); text-decoration:none; }
+  .runner { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+            padding:18px 20px; margin:16px 0; }
+  .models { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+            gap:8px; margin-bottom:14px; }
+  .models button { text-align:left; padding:10px 12px; line-height:1.35; }
+  .models button small { display:block; color:var(--muted); font-size:11.5px; margin-top:2px; }
+  .models button.sel { border-color:var(--amber); background:#1c1a12; }
+  button { background:var(--panel2); color:var(--text); border:1px solid var(--line);
+           border-radius:7px; padding:7px 15px; font:13.5px inherit; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--amber); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.primary { border-color:var(--amber); color:var(--amber); }
+  label { color:var(--muted); font-size:13px; display:inline-flex; align-items:center; gap:6px; }
+  input[type=range] { accent-color:var(--amber); }
+  input[type=text] { background:var(--panel2); color:var(--text); border:1px solid var(--line);
+                     border-radius:6px; padding:7px 10px; font:14px inherit; width:100%; }
+  .ctl { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .bar { height:5px; background:var(--panel2); border-radius:3px; overflow:hidden; margin:10px 0; }
+  .bar div { height:100%; width:0; background:var(--amber); transition:width .2s; }
+  .status { font:13px ui-monospace,monospace; color:var(--muted); }
+  .status.err { color:var(--red); }
+  .out { background:#0a0d11; border:1px solid var(--line); border-radius:8px; padding:14px;
+         margin-top:14px; min-height:7em; white-space:pre-wrap; font-size:15px; line-height:1.6; }
+  .out .prompt { color:var(--muted); }
+  .meters { display:flex; gap:18px; flex-wrap:wrap; font:12.5px ui-monospace,monospace;
+            color:var(--muted); margin-top:12px; }
+  .meters b { color:var(--green); font-weight:600; }
+  .fire { display:flex; gap:3px; align-items:flex-end; height:26px; margin-top:8px; }
+  .fire i { width:16px; background:var(--amber); opacity:.85; border-radius:2px 2px 0 0;
+            min-height:1px; }
+  .foot { color:#6a7280; font-size:13.5px; margin-top:44px; border-top:1px solid var(--line);
+          padding-top:16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>five models, <span>one page</span></h1>
+  <p class="sub">Every language model this project trained, running in your browser from the
+  same flat int8 format: a plain RWKV, three spiking variants of it, and a Mamba-style
+  selective SSM. Same tokenizer, same data, same 13.1M parameters. Load any of them, give
+  them the same prompt, and read the difference.</p>
+
+  <div class="links">
+    <a href="two-recurrences.html">the RWKV vs Mamba write-up</a>
+    <a href="spikelm.html">the spiking write-up</a>
+    <a href="wkv-cell.html">the circuit</a>
+  </div>
+
+  <div class="runner">
+    <div class="models" id="picker"></div>
+    <div class="status" id="status">choose a model, then load</div>
+    <div class="bar"><div id="bar"></div></div>
+    <div class="ctl"><button class="primary" id="load">load</button></div>
+    <div style="margin-top:14px">
+      <input type="text" id="prompt" value="Once upon a time, there was a little girl named" />
+    </div>
+    <div class="ctl">
+      <button id="gen" disabled>generate</button>
+      <button id="stop" disabled>stop</button>
+      <label>temp <input type="range" id="temp" min="0.1" max="1.5" step="0.05" value="0.8">
+        <span id="tempv">0.80</span></label>
+      <label>tokens <input type="range" id="ntok" min="32" max="400" step="8" value="180">
+        <span id="ntokv">180</span></label>
+      <label>seed <input type="range" id="seed" min="0" max="99" step="1" value="1">
+        <span id="seedv">1</span></label>
+    </div>
+    <div class="out" id="out">output appears here</div>
+    <div class="meters">
+      <span>ms/token: <b id="mms">—</b></span>
+      <span>tok/s: <b id="mtps">—</b></span>
+      <span id="firewrap" style="display:none">firing per block: <b id="mfire">—</b></span>
+    </div>
+    <div class="fire" id="fire" style="display:none"></div>
+  </div>
+
+  <h2>what you are switching between</h2>
+  <table>
+    <tr><th>model</th><th>what changed</th><th>held-out ppl</th></tr>
+    <tr><td>RWKV float</td><td>the baseline — squared-ReLU activations</td><td><b>6.84</b></td></tr>
+    <tr><td>RWKV spiking</td><td>channel-mix nonlinearity → integer spikes, 0–4, ~9% firing</td><td>7.18</td></tr>
+    <tr><td>RWKV binary</td><td>annealed to single-bit events, ~11% firing</td><td>7.35*</td></tr>
+    <tr><td>RWKV fully-spiking</td><td>signed input spikes too — both channel-mix matmuls multiply-free — plus channel-axis leak</td><td>7.43</td></tr>
+    <tr><td>Mamba S6</td><td>a different recurrence: selective decay, 16-wide state, no division</td><td>7.83†</td></tr>
+  </table>
+  <p style="font-size:14px; color:#9aa1ad">
+    * binary was annealed from the spiking model with extra fine-tuning steps, so its number
+    is not budget-matched to the others. † Mamba trained at batch 8 against everything else's
+    16, so it saw half the tokens — <a href="two-recurrences.html">the caveat in full</a>.
+    All five int8 exports were validated against their float originals (worst case +0.04%),
+    and the browser code is verified against PyTorch to four decimal places.
+  </p>
+
+  <h2>what to look for</h2>
+  <p>
+    The models are close enough that the interesting comparison is qualitative. Give them the
+    same prompt and seed and they write recognisably different stories — but all of them
+    write <em>stories</em>, with dialogue, causality and endings. That a model whose
+    activations are single-bit events does this at all is the point of the spiking work; that
+    a model with a completely different recurrence does it equally well is the point of the
+    Mamba work.
+  </p>
+  <p>
+    For the spiking variants the page shows <b>live firing rates per block</b> — the fraction
+    of spike units that fire on each token. They run around 4–5% in early blocks and 20% in
+    the last, a depth gradient that emerged from the firing-rate regularizer rather than
+    being imposed. On event-driven hardware that fraction is the share of the channel-mix
+    arithmetic that would need to happen at all.
+  </p>
+
+  <p class="foot">
+    Weights load from <code>rwkv-export/</code> and <code>mamba-export/</code> beside this
+    page — per-row symmetric int8, <code>w = int8_row × scale_row</code>. Each model is
+    ~15&nbsp;MB and is fetched once when selected. Everything here is one HTML file and no
+    libraries; the arithmetic is the same arithmetic in
+    <code>spikelm/model.py</code> and <code>spikelm/mamba.py</code>, transcribed.
+  </p>
+</article>
+
+<script>
+'use strict';
+const MODELS = [
+  { id:'float',     dir:'rwkv-export/',           name:'RWKV float',        note:'baseline · ppl 6.84' },
+  { id:'spiking',   dir:'rwkv-export/spiking/',   name:'RWKV spiking',      note:'integer spikes · 7.18' },
+  { id:'binary',    dir:'rwkv-export/binary/',    name:'RWKV binary',       note:'1-bit events · 7.35' },
+  { id:'fullspike', dir:'rwkv-export/fullspike/', name:'RWKV fully-spiking',note:'both matmuls · 7.43' },
+  { id:'mamba',     dir:'mamba-export/',          name:'Mamba S6',          note:'selective SSM · 7.83' },
+];
+const $ = id => document.getElementById(id);
+let sel = MODELS[0], M = null, running = false, stopFlag = false;
+
+const picker = $('picker');
+MODELS.forEach(m => {
+  const b = document.createElement('button');
+  b.innerHTML = m.name + '<small>' + m.note + '</small>';
+  b.onclick = () => { sel = m; draw(); $('load').disabled = false; $('gen').disabled = true;
+                      setStatus('selected ' + m.name + ' — press load'); };
+  b.dataset.id = m.id; picker.appendChild(b);
+});
+function draw() { [...picker.children].forEach(b => b.classList.toggle('sel', b.dataset.id === sel.id)); }
+draw();
+const setStatus = (s, err) => { $('status').textContent = s; $('status').className = 'status' + (err?' err':''); };
+$('temp').oninput = e => $('tempv').textContent = (+e.target.value).toFixed(2);
+$('ntok').oninput = e => $('ntokv').textContent = e.target.value;
+$('seed').oninput = e => $('seedv').textContent = e.target.value;
+
+async function fetchBinary(url, onProgress) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('weights missing (HTTP ' + r.status + ')');
+  const total = +r.headers.get('content-length') || 0;
+  const reader = r.body.getReader(); const chunks = []; let got = 0;
+  for (;;) { const { done, value } = await reader.read(); if (done) break;
+    chunks.push(value); got += value.length; if (total) onProgress(got/total); }
+  const buf = new Uint8Array(got); let off = 0;
+  for (const c of chunks) { buf.set(c, off); off += c.length; }
+  return buf.buffer;
+}
+async function loadModel(m, onProgress) {
+  const [manifest, tokjson] = await Promise.all([
+    fetch(m.dir + 'model-manifest.json').then(r => { if(!r.ok) throw new Error('manifest missing'); return r.json(); }),
+    fetch(m.dir + 'tokenizer.json').then(r => { if(!r.ok) throw new Error('tokenizer missing'); return r.json(); }),
+  ]);
+  const bin = await fetchBinary(m.dir + 'model-int8.bin', onProgress);
+  const t = {};
+  for (const rec of manifest.tensors) {
+    t[rec.name] = rec.kind === 'int8'
+      ? { shape:rec.shape, kind:'int8', i8:new Int8Array(bin, rec.offset, rec.nbytes),
+          scales:new Float32Array(bin.slice(rec.scale_offset, rec.scale_offset+rec.scale_nbytes)) }
+      : { shape:rec.shape, kind:'float32',
+          f32:new Float32Array(bin.slice(rec.offset, rec.offset+rec.nbytes)) };
+  }
+  const cfg = manifest.config, T = n => { if (!t[n]) throw new Error('missing ' + n); return t[n]; };
+  const mm = { cfg, t, tok:makeTokenizer(tokjson), arch:cfg.arch || 'rwkv' };
+  if (mm.arch === 'mamba') {
+    mm.di = cfg.expand * cfg.n_embd;
+    mm.layers = MODELS && Array.from({length:cfg.n_layer}, (_, L) => {
+      const f = n => T(`blocks.${L}.${n}`).f32;
+      const Al = T(`blocks.${L}.A_log`).f32, A = new Float32Array(Al.length);
+      for (let i=0;i<A.length;i++) A[i] = -Math.exp(Al[i]);
+      return { nw:f('norm.weight'), nb:f('norm.bias'), inP:T(`blocks.${L}.in_proj.weight`),
+               convW:f('conv.weight'), convB:f('conv.bias'), xP:T(`blocks.${L}.x_proj.weight`),
+               dtP:T(`blocks.${L}.dt_proj.weight`), dtB:f('dt_proj.bias'), A, D:f('D'),
+               outP:T(`blocks.${L}.out_proj.weight`) };
+    });
+  } else {
+    mm.layers = Array.from({length:cfg.n_layer}, (_, L) => {
+      const f = n => T(`blocks.${L}.${n}`).f32;
+      const dec = f('tm.time_decay'), w = new Float32Array(dec.length);
+      for (let i=0;i<w.length;i++) w[i] = -Math.exp(dec[i]);
+      const lay = { l1w:f('ln1.weight'), l1b:f('ln1.bias'), l2w:f('ln2.weight'), l2b:f('ln2.bias'),
+        mk:f('tm.mix_k'), mv:f('tm.mix_v'), mr:f('tm.mix_r'), w, u:f('tm.time_first'),
+        Wk:T(`blocks.${L}.tm.key.weight`), Wv:T(`blocks.${L}.tm.value.weight`),
+        Wr:T(`blocks.${L}.tm.receptance.weight`), Wo:T(`blocks.${L}.tm.output.weight`),
+        ck:f('cm.mix_k'), cr:f('cm.mix_r'), CWk:T(`blocks.${L}.cm.key.weight`),
+        CWv:T(`blocks.${L}.cm.value.weight`), CWr:T(`blocks.${L}.cm.receptance.weight`) };
+      if (cfg.spiking) {
+        const lt = f('cm.spike_act.log_threshold');
+        lay.thr = new Float32Array(lt.length);
+        for (let i=0;i<lt.length;i++) lay.thr[i] = Math.exp(lt[i]);
+      }
+      if (cfg.spike_in) {
+        const lt = f('cm.spike_in.log_threshold');
+        lay.thrIn = new Float32Array(lt.length);
+        for (let i=0;i<lt.length;i++) lay.thrIn[i] = Math.exp(lt[i]);
+      }
+      if (cfg.chanlif) {
+        lay.lam = 1/(1+Math.exp(-f('cm.chanlif.decay_raw')[0]));
+        lay.lifScale = f('cm.chanlif.scale')[0];
+      }
+      return lay;
+    });
+    mm.lnInW = T('ln_in.weight').f32; mm.lnInB = T('ln_in.bias').f32;
+  }
+  mm.lnOutW = T('ln_out.weight').f32; mm.lnOutB = T('ln_out.bias').f32;
+  mm.emb = T('emb.weight'); mm.head = T('head.weight');
+  return mm;
+}
+
+/* ---------- kernels ---------- */
+function matvec(T, x, out, n) {
+  const [rows, cols] = T.shape; out.fill(0, 0, rows);
+  if (T.kind === 'int8') { const w = T.i8, s = T.scales;
+    for (let j=0;j<rows;j++) { let a=0; const b=j*cols;
+      for (let i=0;i<cols;i++) a += w[b+i]*x[i]; out[j]=a*s[j]; } }
+  else { const w = T.f32;
+    for (let j=0;j<rows;j++) { let a=0; const b=j*cols;
+      for (let i=0;i<cols;i++) a += w[b+i]*x[i]; out[j]=a; } }
+  return out;
+}
+function layernorm(x, w, b, out, n) {
+  let m=0; for (let i=0;i<n;i++) m+=x[i]; m/=n;
+  let v=0; for (let i=0;i<n;i++) { const d=x[i]-m; v+=d*d; }
+  const inv = 1/Math.sqrt(v/n + 1e-5);
+  for (let i=0;i<n;i++) out[i] = (x[i]-m)*inv*w[i] + b[i];
+  return out;
+}
+const sigmoid = v => 1/(1+Math.exp(-v));
+const silu = v => v*sigmoid(v);
+const softplus = v => v>20 ? v : Math.log1p(Math.exp(v));
+
+/* ---------- RWKV forward, one token ---------- */
+function stepRWKV(token, st, B) {
+  const C = M.cfg, d = C.n_embd, dh = 4*d;
+  const emb = M.emb;
+  if (emb.kind === 'int8') for (let i=0;i<d;i++) B.e[i] = emb.i8[token*d+i]*emb.scales[token];
+  else for (let i=0;i<d;i++) B.e[i] = emb.f32[token*d+i];
+  layernorm(B.e, M.lnInW, M.lnInB, B.x, d);
+  st.fire.fill(0);
+  for (let L=0;L<C.n_layer;L++) {
+    const p = M.layers[L], s = st.l[L];
+    layernorm(B.x, p.l1w, p.l1b, B.h, d);
+    for (let i=0;i<d;i++) {
+      B.mk[i] = B.h[i]*p.mk[i] + s.tmPrev[i]*(1-p.mk[i]);
+      B.mv[i] = B.h[i]*p.mv[i] + s.tmPrev[i]*(1-p.mv[i]);
+      B.mr[i] = B.h[i]*p.mr[i] + s.tmPrev[i]*(1-p.mr[i]);
+    }
+    s.tmPrev.set(B.h);
+    matvec(p.Wk, B.mk, B.k); matvec(p.Wv, B.mv, B.v); matvec(p.Wr, B.mr, B.r);
+    for (let i=0;i<d;i++) {                       // wkv, streaming
+      const kt = B.k[i], vt = B.v[i];
+      const ww = p.u[i] + kt, pp = s.pp[i];
+      const pmax = pp > ww ? pp : ww;
+      const e1 = Math.exp(pp - pmax), e2 = Math.exp(ww - pmax);
+      B.o[i] = (e1*s.aa[i] + e2*vt) / (e1*s.bb[i] + e2 + 1e-9);
+      const ww2 = pp + p.w[i];
+      const p2 = ww2 > kt ? ww2 : kt;
+      const f1 = Math.exp(ww2 - p2), f2 = Math.exp(kt - p2);
+      s.aa[i] = f1*s.aa[i] + f2*vt; s.bb[i] = f1*s.bb[i] + f2; s.pp[i] = p2;
+    }
+    for (let i=0;i<d;i++) B.o[i] *= sigmoid(B.r[i]);
+    matvec(p.Wo, B.o, B.t1);
+    for (let i=0;i<d;i++) B.x[i] += B.t1[i];
+
+    layernorm(B.x, p.l2w, p.l2b, B.h, d);
+    if (p.lam !== undefined) {                    // channel-axis leak: K-tap FIR
+      const KL = C.chanlif_k || 8;
+      for (let c=0;c<d;c++) { let a=0, wt=1;
+        for (let j=0;j<KL && c-j>=0;j++) { a += wt*B.h[c-j]; wt *= p.lam; }
+        B.t1[c] = a; }
+      for (let c=0;c<d;c++) B.h[c] += p.lifScale * B.t1[c];
+    }
+    for (let i=0;i<d;i++) {
+      B.mk[i] = B.h[i]*p.ck[i] + s.cmPrev[i]*(1-p.ck[i]);
+      B.mr[i] = B.h[i]*p.cr[i] + s.cmPrev[i]*(1-p.cr[i]);
+    }
+    s.cmPrev.set(B.h);
+    if (p.thrIn) for (let i=0;i<d;i++) {           // signed input spikes
+      const t = p.thrIn[i], a = Math.abs(B.mk[i]);
+      const n = Math.min(Math.floor(a/t), C.levels);
+      B.mk[i] = n === 0 ? 0 : Math.sign(B.mk[i])*n*t;
+    }
+    matvec(p.CWk, B.mk, B.kk);
+    if (p.thr) { let fired = 0;
+      for (let i=0;i<dh;i++) { const t = p.thr[i];
+        const n = Math.min(Math.floor(B.kk[i]/t), C.levels);
+        if (n > 0) { B.kk[i] = n*t; fired++; } else B.kk[i] = 0; }
+      st.fire[L] = fired/dh;
+    } else for (let i=0;i<dh;i++) { const t = B.kk[i] > 0 ? B.kk[i] : 0; B.kk[i] = t*t; }
+    matvec(p.CWr, B.mr, B.r);
+    matvec(p.CWv, B.kk, B.t1);
+    for (let i=0;i<d;i++) B.x[i] += sigmoid(B.r[i]) * B.t1[i];
+  }
+  layernorm(B.x, M.lnOutW, M.lnOutB, B.h, d);
+  return matvec(M.head, B.h, B.logits);
+}
+
+/* ---------- Mamba forward, one token ---------- */
+function stepMamba(token, st, B) {
+  const C = M.cfg, d = C.n_embd, di = M.di, N = C.d_state, K = C.d_conv;
+  const emb = M.emb;
+  if (emb.kind === 'int8') for (let i=0;i<d;i++) B.x[i] = emb.i8[token*d+i]*emb.scales[token];
+  else for (let i=0;i<d;i++) B.x[i] = emb.f32[token*d+i];
+  for (let L=0;L<C.n_layer;L++) {
+    const p = M.layers[L], s = st.l[L];
+    layernorm(B.x, p.nw, p.nb, B.h, d);
+    matvec(p.inP, B.h, B.xz);
+    const z = B.xz.subarray(di);
+    s.ci = (s.ci + 1) % K;
+    for (let c=0;c<di;c++) s.conv[c*K + s.ci] = B.xz[c];
+    for (let c=0;c<di;c++) { let a = p.convB[c];
+      for (let k=0;k<K;k++) { const idx = (s.ci - (K-1-k) + 2*K) % K;
+        a += p.convW[c*K+k] * s.conv[c*K+idx]; }
+      B.xc[c] = silu(a); }
+    matvec(p.xP, B.xc, B.dbc);
+    matvec(p.dtP, B.dbc.subarray(0, C.dt_rank), B.dt);
+    const Bo = C.dt_rank, Co = C.dt_rank + N;
+    for (let c=0;c<di;c++) {
+      const dt = softplus(B.dt[c] + p.dtB[c]), u = B.xc[c];
+      let y = p.D[c]*u; const hb = c*N;
+      for (let n=0;n<N;n++) {
+        const dA = Math.exp(dt * p.A[hb+n]);
+        s.h[hb+n] = dA*s.h[hb+n] + dt*B.dbc[Bo+n]*u;
+        y += s.h[hb+n]*B.dbc[Co+n];
+      }
+      B.y[c] = y * silu(z[c]);
+    }
+    matvec(p.outP, B.y, B.t1);
+    for (let i=0;i<d;i++) B.x[i] += B.t1[i];
+  }
+  layernorm(B.x, M.lnOutW, M.lnOutB, B.h, d);
+  return matvec(M.head, B.h, B.logits);
+}
+
+function newState() {
+  const C = M.cfg, n = C.n_layer;
+  if (M.arch === 'mamba') return { l: Array.from({length:n}, () => ({
+      h:new Float32Array(M.di*C.d_state), conv:new Float32Array(M.di*C.d_conv), ci:0 })),
+      fire:new Float32Array(n) };
+  return { l: Array.from({length:n}, () => ({
+      aa:new Float32Array(C.n_embd), bb:new Float32Array(C.n_embd),
+      pp:new Float32Array(C.n_embd).fill(-60),
+      tmPrev:new Float32Array(C.n_embd), cmPrev:new Float32Array(C.n_embd) })),
+      fire:new Float32Array(n) };
+}
+function newBuf() {
+  const C = M.cfg, d = C.n_embd, di = M.arch === 'mamba' ? M.di : 4*d;
+  return { e:new Float32Array(d), x:new Float32Array(d), h:new Float32Array(d),
+    mk:new Float32Array(d), mv:new Float32Array(d), mr:new Float32Array(d),
+    k:new Float32Array(d), v:new Float32Array(d), r:new Float32Array(Math.max(d,di)),
+    o:new Float32Array(d), t1:new Float32Array(Math.max(d,di)), kk:new Float32Array(di),
+    xz:new Float32Array(2*di), xc:new Float32Array(di), y:new Float32Array(di),
+    dbc:new Float32Array((C.dt_rank||0) + 2*(C.d_state||0)), dt:new Float32Array(di),
+    logits:new Float32Array(C.vocab_size) };
+}
+
+/* ---------- tokenizer / sampling ---------- */
+function makeTokenizer(json) {
+  const vocab = json.vocab, tok2id = new Map(vocab.map((t,i)=>[t,i]));
+  const rank = new Map(json.merges.map((m,r)=>[m[0]+' '+m[1], r]));
+  const PRETOK = / ?[A-Za-z]+| ?[0-9]+| ?[^A-Za-z0-9\s]+|\s+/g;
+  const cache = new Map(), enc = new TextEncoder();
+  function word(w) {
+    if (cache.has(w)) return cache.get(w);
+    let seq = [];
+    for (const ch of w) { if (tok2id.has(ch)) seq.push(ch);
+      else for (const b of enc.encode(ch)) seq.push(`<byte:${b}>`); }
+    for (;;) { let best=null, bi=-1;
+      for (let i=0;i<seq.length-1;i++) { const r = rank.get(seq[i]+' '+seq[i+1]);
+        if (r!==undefined && (best===null || r<best)) { best=r; bi=i; } }
+      if (best===null) break;
+      seq = seq.slice(0,bi).concat([seq[bi]+seq[bi+1]], seq.slice(bi+2)); }
+    const ids = seq.map(t=>tok2id.get(t)).filter(v=>v!==undefined);
+    cache.set(w, ids); return ids;
+  }
+  return { encode: text => { const o=[]; for (const w of text.match(PRETOK)||[]) o.push(...word(w)); return o; },
+    decode: ids => { let s='', pend=[];
+      for (const i of ids) { const t = vocab[i];
+        if (t.startsWith('<byte:')) { pend.push(+t.slice(6,-1)); continue; }
+        if (pend.length) { s += new TextDecoder().decode(new Uint8Array(pend)); pend=[]; }
+        s += t; }
+      if (pend.length) s += new TextDecoder().decode(new Uint8Array(pend));
+      return s; } };
+}
+function mulberry32(a) { return function() { a|=0; a=(a+0x6d2b79f5)|0;
+  let t = Math.imul(a^(a>>>15), 1|a); t = (t + Math.imul(t^(t>>>7), 61|t))^t;
+  return ((t^(t>>>14))>>>0)/4294967296; }; }
+function sample(lg, temp, rnd) {
+  let mx=-Infinity; for (let i=0;i<lg.length;i++) if (lg[i]>mx) mx=lg[i];
+  let z=0; const p=new Float64Array(lg.length);
+  for (let i=0;i<lg.length;i++) { p[i]=Math.exp((lg[i]-mx)/temp); z+=p[i]; }
+  let roll=rnd()*z;
+  for (let i=0;i<p.length;i++) { roll-=p[i]; if (roll<=0) return i; }
+  return p.length-1;
+}
+
+/* ---------- ui ---------- */
+$('load').onclick = async () => {
+  $('load').disabled = true; $('gen').disabled = true;
+  setStatus('fetching ' + sel.name + '…');
+  try {
+    M = await loadModel(sel, f => $('bar').style.width = (f*100)+'%');
+    $('bar').style.width = '100%';
+    const spk = !!M.cfg.spiking;
+    $('firewrap').style.display = spk ? '' : 'none';
+    $('fire').style.display = spk ? 'flex' : 'none';
+    setStatus(`${sel.name} loaded — ${M.cfg.n_layer} blocks × d=${M.cfg.n_embd}` +
+      (spk ? `, ${M.cfg.levels === 1 ? 'binary' : M.cfg.levels+'-level'} spikes` : '') +
+      (M.arch === 'mamba' ? `, d_state=${M.cfg.d_state}` : ''));
+    $('gen').disabled = false;
+  } catch (e) {
+    setStatus('load failed: ' + e.message, true); $('load').disabled = false;
+  }
+};
+$('stop').onclick = () => { stopFlag = true; };
+$('gen').onclick = async () => {
+  if (!M || running) return;
+  running = true; stopFlag = false; $('gen').disabled = true; $('stop').disabled = false;
+  const prompt = $('prompt').value, temp = +$('temp').value, n = +$('ntok').value;
+  const rnd = mulberry32(+$('seed').value + 1);
+  const st = newState(), B = newBuf();
+  const stepFn = M.arch === 'mamba' ? stepMamba : stepRWKV;
+  const ids = M.tok.encode(prompt);
+  $('out').innerHTML = '<span class="prompt"></span><span id="gentext"></span>';
+  $('out').firstChild.textContent = prompt;
+  let lg = null; const t0 = performance.now();
+  for (const id of ids) lg = stepFn(id, st, B);
+  let text = '', made = 0;
+  for (let i=0;i<n && !stopFlag;i++) {
+    const nxt = sample(lg, temp, rnd);
+    text += M.tok.decode([nxt]); $('gentext').textContent = text;
+    lg = stepFn(nxt, st, B); made++;
+    if (i % 4 === 0) {
+      const ms = (performance.now()-t0)/(ids.length+made);
+      $('mms').textContent = ms.toFixed(0); $('mtps').textContent = (1000/ms).toFixed(1);
+      if (M.cfg.spiking) {
+        const f = [...st.fire];
+        $('mfire').textContent = f.map(v=>(v*100).toFixed(0)+'%').join(' ');
+        $('fire').innerHTML = f.map(v=>`<i style="height:${Math.max(1,v*100)}%"></i>`).join('');
+      }
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+  running = false; $('gen').disabled = false; $('stop').disabled = true;
+};
+</script>
+</body>
+</html>
