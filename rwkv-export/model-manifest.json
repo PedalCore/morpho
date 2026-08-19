@@ -1,0 +1,1230 @@
+{
+ "tensors": [
+  {
+   "name": "emb.weight",
+   "shape": [
+    4096,
+    384
+   ],
+   "kind": "int8",
+   "offset": 0,
+   "nbytes": 1572864,
+   "scale_offset": 1572864,
+   "scale_nbytes": 16384
+  },
+  {
+   "name": "ln_in.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1589248,
+   "nbytes": 1536
+  },
+  {
+   "name": "ln_in.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1590784,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1592320,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1593856,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1595392,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1596928,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 1598464,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 1600000,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 1601536,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1603072,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 1604608,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 1606144,
+   "nbytes": 147456,
+   "scale_offset": 1753600,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 1755136,
+   "nbytes": 147456,
+   "scale_offset": 1902592,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 1904128,
+   "nbytes": 147456,
+   "scale_offset": 2051584,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 2053120,
+   "nbytes": 147456,
+   "scale_offset": 2200576,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 2202112,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 2203648,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 2205184,
+   "nbytes": 589824,
+   "scale_offset": 2795008,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.0.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 2801152,
+   "nbytes": 589824,
+   "scale_offset": 3390976,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.0.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3392512,
+   "nbytes": 147456,
+   "scale_offset": 3539968,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3541504,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3543040,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3544576,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3546112,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 3547648,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 3549184,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 3550720,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3552256,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 3553792,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3555328,
+   "nbytes": 147456,
+   "scale_offset": 3702784,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3704320,
+   "nbytes": 147456,
+   "scale_offset": 3851776,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 3853312,
+   "nbytes": 147456,
+   "scale_offset": 4000768,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 4002304,
+   "nbytes": 147456,
+   "scale_offset": 4149760,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 4151296,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 4152832,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 4154368,
+   "nbytes": 589824,
+   "scale_offset": 4744192,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.1.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 4750336,
+   "nbytes": 589824,
+   "scale_offset": 5340160,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.1.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5341696,
+   "nbytes": 147456,
+   "scale_offset": 5489152,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5490688,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5492224,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5493760,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5495296,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 5496832,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 5498368,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 5499904,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5501440,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 5502976,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5504512,
+   "nbytes": 147456,
+   "scale_offset": 5651968,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5653504,
+   "nbytes": 147456,
+   "scale_offset": 5800960,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5802496,
+   "nbytes": 147456,
+   "scale_offset": 5949952,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 5951488,
+   "nbytes": 147456,
+   "scale_offset": 6098944,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 6100480,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 6102016,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 6103552,
+   "nbytes": 589824,
+   "scale_offset": 6693376,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.2.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 6699520,
+   "nbytes": 589824,
+   "scale_offset": 7289344,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.2.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7290880,
+   "nbytes": 147456,
+   "scale_offset": 7438336,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7439872,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7441408,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7442944,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7444480,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 7446016,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 7447552,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 7449088,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7450624,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 7452160,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7453696,
+   "nbytes": 147456,
+   "scale_offset": 7601152,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7602688,
+   "nbytes": 147456,
+   "scale_offset": 7750144,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7751680,
+   "nbytes": 147456,
+   "scale_offset": 7899136,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 7900672,
+   "nbytes": 147456,
+   "scale_offset": 8048128,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 8049664,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 8051200,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 8052736,
+   "nbytes": 589824,
+   "scale_offset": 8642560,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.3.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 8648704,
+   "nbytes": 589824,
+   "scale_offset": 9238528,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.3.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9240064,
+   "nbytes": 147456,
+   "scale_offset": 9387520,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9389056,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9390592,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9392128,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9393664,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9395200,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9396736,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9398272,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9399808,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 9401344,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9402880,
+   "nbytes": 147456,
+   "scale_offset": 9550336,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9551872,
+   "nbytes": 147456,
+   "scale_offset": 9699328,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9700864,
+   "nbytes": 147456,
+   "scale_offset": 9848320,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 9849856,
+   "nbytes": 147456,
+   "scale_offset": 9997312,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 9998848,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 10000384,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 10001920,
+   "nbytes": 589824,
+   "scale_offset": 10591744,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.4.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 10597888,
+   "nbytes": 589824,
+   "scale_offset": 11187712,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.4.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11189248,
+   "nbytes": 147456,
+   "scale_offset": 11336704,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln1.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11338240,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln1.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11339776,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln2.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11341312,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.ln2.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11342848,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11344384,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.mix_v",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11345920,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11347456,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.time_decay",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11348992,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.time_first",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 11350528,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.key.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11352064,
+   "nbytes": 147456,
+   "scale_offset": 11499520,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.value.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11501056,
+   "nbytes": 147456,
+   "scale_offset": 11648512,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11650048,
+   "nbytes": 147456,
+   "scale_offset": 11797504,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.tm.output.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11799040,
+   "nbytes": 147456,
+   "scale_offset": 11946496,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.mix_k",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11948032,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.mix_r",
+   "shape": [
+    1,
+    1,
+    384
+   ],
+   "kind": "float32",
+   "offset": 11949568,
+   "nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.key.weight",
+   "shape": [
+    1536,
+    384
+   ],
+   "kind": "int8",
+   "offset": 11951104,
+   "nbytes": 589824,
+   "scale_offset": 12540928,
+   "scale_nbytes": 6144
+  },
+  {
+   "name": "blocks.5.cm.value.weight",
+   "shape": [
+    384,
+    1536
+   ],
+   "kind": "int8",
+   "offset": 12547072,
+   "nbytes": 589824,
+   "scale_offset": 13136896,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "blocks.5.cm.receptance.weight",
+   "shape": [
+    384,
+    384
+   ],
+   "kind": "int8",
+   "offset": 13138432,
+   "nbytes": 147456,
+   "scale_offset": 13285888,
+   "scale_nbytes": 1536
+  },
+  {
+   "name": "ln_out.weight",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 13287424,
+   "nbytes": 1536
+  },
+  {
+   "name": "ln_out.bias",
+   "shape": [
+    384
+   ],
+   "kind": "float32",
+   "offset": 13288960,
+   "nbytes": 1536
+  },
+  {
+   "name": "head.weight",
+   "shape": [
+    4096,
+    384
+   ],
+   "kind": "int8",
+   "offset": 13290496,
+   "nbytes": 1572864,
+   "scale_offset": 14863360,
+   "scale_nbytes": 16384
+  }
+ ],
+ "dtype_small": "float32",
+ "recipe": "w = int8_row * scale_row",
+ "config": {
+  "n_layer": 6,
+  "n_embd": 384,
+  "ctx": 256,
+  "vocab_size": 4096
+ }
+}

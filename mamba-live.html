@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — mamba, live</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root { --bg:#0d1015; --panel:#12151b; --panel2:#171b23; --line:#242a35;
+          --text:#d7dae2; --muted:#9aa1ad; --amber:#e2a13f; --green:#7bd8a5; --red:#d96c6c; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font:16px/1.65 -apple-system,"Segoe UI",sans-serif; padding:48px 20px 80px; }
+  article { max-width:46em; margin:0 auto; }
+  h1 { font-size:26px; font-weight:600; letter-spacing:.02em; margin-bottom:6px; }
+  h1 span { color:var(--amber); }
+  .sub { color:var(--muted); margin-bottom:22px; }
+  h2 { font-size:19px; font-weight:600; margin:36px 0 10px; color:var(--amber); }
+  p { margin:10px 0; color:#c4c9d4; }
+  a { color:var(--amber); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:ui-monospace,"SF Mono",monospace; font-size:14px;
+         background:var(--panel2); padding:1px 6px; border-radius:4px; }
+  pre { font-family:ui-monospace,"SF Mono",monospace; font-size:12.5px; line-height:1.45;
+        background:var(--panel); border:1px solid var(--line); border-radius:8px;
+        padding:14px 16px; overflow-x:auto; margin:14px 0; color:#c4c9d4; }
+  table { border-collapse:collapse; margin:14px 0; width:100%; font-size:14.5px; }
+  th,td { text-align:left; padding:6px 12px 6px 0; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase;
+       letter-spacing:.05em; }
+  td b { color:var(--green); }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0 6px; }
+  .links a { border:1px solid var(--line); border-radius:8px; padding:7px 14px; }
+  .links a:hover { border-color:var(--amber); text-decoration:none; }
+  .runner { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+            padding:18px 20px; margin:16px 0; }
+  button { background:var(--panel2); color:var(--text); border:1px solid var(--line);
+           border-radius:7px; padding:7px 15px; font:13.5px inherit; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--amber); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.primary { border-color:var(--amber); color:var(--amber); }
+  label { color:var(--muted); font-size:13px; display:inline-flex; align-items:center; gap:6px; }
+  input[type=range] { accent-color:var(--amber); }
+  input[type=text] { background:var(--panel2); color:var(--text); border:1px solid var(--line);
+                     border-radius:6px; padding:7px 10px; font:14px inherit; width:100%; }
+  .ctl { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .bar { height:5px; background:var(--panel2); border-radius:3px; overflow:hidden; margin:10px 0; }
+  .bar div { height:100%; width:0; background:var(--amber); transition:width .2s; }
+  .status { font:13px ui-monospace,monospace; color:var(--muted); }
+  .status.err { color:var(--red); }
+  .out { background:#0a0d11; border:1px solid var(--line); border-radius:8px; padding:14px;
+         margin-top:14px; min-height:7em; white-space:pre-wrap; font-size:15px; line-height:1.6; }
+  .out .prompt { color:var(--muted); }
+  .meters { display:flex; gap:18px; flex-wrap:wrap; font:12.5px ui-monospace,monospace;
+            color:var(--muted); margin-top:10px; }
+  .meters b { color:var(--green); font-weight:600; }
+  .foot { color:#6a7280; font-size:13.5px; margin-top:44px; border-top:1px solid var(--line);
+          padding-top:16px; }
+</style>
+</head>
+<body>
+<article>
+  <h1>mamba, <span>live</span></h1>
+  <p class="sub">A 13.1M-parameter selective state-space model (Mamba/S6) generating text in
+  this page, from a 15.5&nbsp;MB int8 export — no server, no framework, no libraries. The
+  companion to <a href="rwkv-live.html">rwkv, live</a>: same tokenizer, same data, same
+  parameter count, a different recurrence.</p>
+
+  <div class="links">
+    <a href="rwkv-live.html">← rwkv, live</a>
+    <a href="https://soundlark.studio/mamba-cell.html">the s6 cell as a circuit</a>
+    <a href="https://soundlark.studio/spikelm.html">the training story</a>
+  </div>
+
+  <div class="runner">
+    <div class="status" id="status">weights not loaded</div>
+    <div class="bar"><div id="bar"></div></div>
+    <div class="ctl">
+      <button class="primary" id="load">load model (15.5 MB)</button>
+    </div>
+    <div style="margin-top:14px">
+      <input type="text" id="prompt" value="Once upon a time, there was a little girl named" />
+    </div>
+    <div class="ctl">
+      <button id="gen" disabled>generate</button>
+      <button id="stop" disabled>stop</button>
+      <label>temp <input type="range" id="temp" min="0.1" max="1.5" step="0.05" value="0.8">
+        <span id="tempv">0.80</span></label>
+      <label>tokens <input type="range" id="ntok" min="32" max="400" step="8" value="200">
+        <span id="ntokv">200</span></label>
+      <label>seed <input type="range" id="seed" min="0" max="99" step="1" value="1">
+        <span id="seedv">1</span></label>
+    </div>
+    <div class="out" id="out">output appears here</div>
+    <div class="meters">
+      <span>state: <b id="mstate">—</b></span>
+      <span>tok/s: <b id="mtps">—</b></span>
+      <span>ms/token: <b id="mms">—</b></span>
+    </div>
+  </div>
+
+  <h2>what is actually running</h2>
+  <p>
+    Every operation transcribed from <code>spikelm/mamba.py</code>, in the streaming form —
+    one token in, one token out, constant work per token regardless of how much text came
+    before. That is the property this architecture exists for, and it is why the page needs
+    no growing cache:
+  </p>
+<pre>x = emb[token]
+for each of 6 blocks:
+  h        = LayerNorm(x)
+  [xin, z] = in_proj(h)                    # 384 → 2 × 1536
+  xc       = SiLU( depthwise_conv4(xin) )  # 4-tap causal, per channel
+  [dt,B,C] = x_proj(xc)                    # 1536 → 24 + 16 + 16
+  dt       = softplus( dt_proj(dt) )       # > 0, per inner channel
+  A        = −exp(A_log)                   # &lt; 0, shape 1536 × 16
+  h_ssm    = exp(dt·A) · h_ssm + (dt·B)·xc # THE recurrence
+  y        = ⟨h_ssm, C⟩ + D·xc
+  x       += out_proj( y · SiLU(z) )
+logits = head( LayerNorm_out(x) )           # head tied to the embedding</pre>
+  <p>
+    The whole model's memory is <code>h_ssm</code> — 1,536 channels × 16 states × 6
+    blocks = <b>147,456 numbers</b>, plus a 3-token convolution history per channel. It
+    never grows. Compare a transformer, which must keep every past key and value.
+  </p>
+
+  <h2>the numbers</h2>
+  <table>
+    <tr><th>model (identical data, tokenizer, steps)</th><th>params</th><th>held-out perplexity</th></tr>
+    <tr><td>RWKV-mini (fixed decay, normalized)</td><td>13.10M</td><td><b>6.84</b></td></tr>
+    <tr><td>Mamba-mini (selective decay, no division)</td><td>13.14M</td><td>7.83</td></tr>
+    <tr><td>Mamba-mini, int8 weights (this page)</td><td>13.14M</td><td>7.83 (+0.02%)</td></tr>
+  </table>
+  <p>
+    <b>The caveat that matters:</b> Mamba trained at batch 8 against RWKV's 16, so at equal
+    step counts it saw half the tokens — 2.8M against 5.6M. The 14% gap is therefore not a
+    fair architecture verdict, and we say so rather than quoting it as one. The int8
+    comparison <em>is</em> exact: same weights, quantized.
+  </p>
+
+  <h2>why both pages exist</h2>
+  <p>
+    The point is portability, not a contest. Two architectures with different recurrences,
+    trained in the same harness, exported by the same script into the same manifest format,
+    and run by two small pieces of plain JavaScript that share a loader. If a model's
+    weights are a flat binary and its forward pass is a page of arithmetic, it runs
+    anywhere — which is the same argument the hardware track makes with gate counts instead
+    of browsers. The <a href="https://soundlark.studio/mamba-cell.html">S6 cell page</a> carries that across:
+    both recurrences reduce to <code>h ← a·h + b·x</code> with <code>a = 2^(negative)</code>.
+  </p>
+
+  <p class="foot">
+    Weights: <code>mamba-export/</code> beside this page — per-row symmetric int8
+    (<code>w = int8_row × scale_row</code>), A_log kept in float32 because
+    <code>exp()</code> of it is precision-sensitive. Trained by
+    <code>spikelm/</code> on TinyStories, exported and validated by
+    <code>export_weights.py</code>. If the binary is unreachable the loader says so
+    plainly rather than pretending.
+  </p>
+</article>
+
+<script>
+'use strict';
+const BASE = 'mamba-export/';
+const $ = id => document.getElementById(id);
+const M = { ready:false, t:{} };
+let running = false, stopFlag = false;
+
+const setStatus = (s, err) => { $('status').textContent = s; $('status').className = 'status' + (err?' err':''); };
+$('temp').oninput = e => $('tempv').textContent = (+e.target.value).toFixed(2);
+$('ntok').oninput = e => $('ntokv').textContent = e.target.value;
+$('seed').oninput = e => $('seedv').textContent = e.target.value;
+
+/* ---------- loader (same manifest format as rwkv-live) ---------- */
+async function fetchBinary(url, onProgress) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('weights missing (HTTP ' + r.status + ')');
+  const total = +r.headers.get('content-length') || 0;
+  const reader = r.body.getReader();
+  const chunks = []; let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); got += value.length;
+    if (total) onProgress(got / total);
+  }
+  const buf = new Uint8Array(got); let off = 0;
+  for (const c of chunks) { buf.set(c, off); off += c.length; }
+  return buf.buffer;
+}
+function tensor(name) {
+  const t = M.t[name];
+  if (!t) throw new Error('missing tensor ' + name);
+  return t;
+}
+async function loadModel(onProgress) {
+  setStatus('fetching manifest…');
+  const [manifest, tokjson] = await Promise.all([
+    fetch(BASE + 'model-manifest.json').then(r => { if (!r.ok) throw new Error('manifest missing (HTTP '+r.status+')'); return r.json(); }),
+    fetch(BASE + 'tokenizer.json').then(r => { if (!r.ok) throw new Error('tokenizer missing (HTTP '+r.status+')'); return r.json(); }),
+  ]);
+  M.cfg = manifest.config;
+  if (M.cfg.arch !== 'mamba') throw new Error('manifest is not a mamba export');
+  M.tok = makeTokenizer(tokjson);
+  setStatus('fetching weights (15.5 MB)…');
+  const bin = await fetchBinary(BASE + 'model-int8.bin', onProgress);
+  setStatus('unpacking tensors…');
+  for (const rec of manifest.tensors) {
+    if (rec.kind === 'int8') {
+      M.t[rec.name] = { shape: rec.shape, kind:'int8',
+        i8: new Int8Array(bin, rec.offset, rec.nbytes),
+        scales: new Float32Array(bin.slice(rec.scale_offset, rec.scale_offset + rec.scale_nbytes)) };
+    } else {
+      M.t[rec.name] = { shape: rec.shape, kind:'float32',
+        f32: new Float32Array(bin.slice(rec.offset, rec.offset + rec.nbytes)) };
+    }
+  }
+  const C = M.cfg;
+  M.di = C.expand * C.n_embd;
+  M.layers = [];
+  for (let L = 0; L < C.n_layer; L++) {
+    const f = n => tensor(`blocks.${L}.${n}`).f32;
+    const A_log = tensor(`blocks.${L}.A_log`).f32;
+    const A = new Float32Array(A_log.length);
+    for (let i = 0; i < A.length; i++) A[i] = -Math.exp(A_log[i]);
+    M.layers.push({
+      nw: f('norm.weight'), nb: f('norm.bias'),
+      inP: tensor(`blocks.${L}.in_proj.weight`),
+      convW: f('conv.weight'), convB: f('conv.bias'),
+      xP: tensor(`blocks.${L}.x_proj.weight`),
+      dtP: tensor(`blocks.${L}.dt_proj.weight`), dtB: f('dt_proj.bias'),
+      A, D: f('D'),
+      outP: tensor(`blocks.${L}.out_proj.weight`),
+    });
+  }
+  M.lnOutW = tensor('ln_out.weight').f32; M.lnOutB = tensor('ln_out.bias').f32;
+  M.emb = tensor('emb.weight'); M.head = tensor('head.weight');
+  M.ready = true;
+}
+
+/* ---------- kernels ---------- */
+function matvec(T, x, out) {                 // out[j] = sum_i W[j][i] * x[i]
+  const [rows, cols] = T.shape;
+  out.fill(0);
+  if (T.kind === 'int8') {
+    const w = T.i8, s = T.scales;
+    for (let j = 0; j < rows; j++) {
+      let acc = 0; const base = j * cols;
+      for (let i = 0; i < cols; i++) acc += w[base + i] * x[i];
+      out[j] = acc * s[j];
+    }
+  } else {
+    const w = T.f32;
+    for (let j = 0; j < rows; j++) {
+      let acc = 0; const base = j * cols;
+      for (let i = 0; i < cols; i++) acc += w[base + i] * x[i];
+      out[j] = acc;
+    }
+  }
+  return out;
+}
+function layernorm(x, w, b, out) {
+  const n = x.length; let m = 0;
+  for (let i = 0; i < n; i++) m += x[i];
+  m /= n;
+  let v = 0;
+  for (let i = 0; i < n; i++) { const d = x[i] - m; v += d * d; }
+  const inv = 1 / Math.sqrt(v / n + 1e-5);
+  for (let i = 0; i < n; i++) out[i] = (x[i] - m) * inv * w[i] + b[i];
+  return out;
+}
+const silu = v => v / (1 + Math.exp(-v));
+const softplus = v => v > 20 ? v : Math.log1p(Math.exp(v));
+
+/* ---------- state ---------- */
+function newState() {
+  const C = M.cfg, di = M.di;
+  return M.layers.map(() => ({
+    h: new Float32Array(di * C.d_state),
+    conv: new Float32Array(di * C.d_conv),      // ring of the last d_conv inputs
+    ci: 0,
+  }));
+}
+
+/* ---------- one token, constant work ---------- */
+function step(token, st, buf) {
+  const C = M.cfg, di = M.di, N = C.d_state, K = C.d_conv, d = C.n_embd;
+  const x = buf.x, emb = M.emb;
+  if (emb.kind === 'int8') {
+    for (let i = 0; i < d; i++) x[i] = emb.i8[token * d + i] * emb.scales[token];
+  } else {
+    for (let i = 0; i < d; i++) x[i] = emb.f32[token * d + i];
+  }
+  for (let L = 0; L < C.n_layer; L++) {
+    const p = M.layers[L], s = st[L];
+    layernorm(x, p.nw, p.nb, buf.hn);
+    matvec(p.inP, buf.hn, buf.xz);                       // 2*di
+    const xin = buf.xz, z = buf.xz.subarray(di);
+    // depthwise causal conv over the last K tokens
+    s.ci = (s.ci + 1) % K;
+    for (let c = 0; c < di; c++) s.conv[c * K + s.ci] = xin[c];
+    for (let c = 0; c < di; c++) {
+      let acc = p.convB[c];
+      for (let k = 0; k < K; k++) {
+        const idx = (s.ci - (K - 1 - k) + K * 2) % K;
+        acc += p.convW[c * K + k] * s.conv[c * K + idx];
+      }
+      buf.xc[c] = silu(acc);
+    }
+    matvec(p.xP, buf.xc, buf.dbc);                       // dt_rank + 2N
+    matvec(p.dtP, buf.dbc.subarray(0, C.dt_rank), buf.dt);
+    const Boff = C.dt_rank, Coff = C.dt_rank + N;
+    for (let c = 0; c < di; c++) {
+      const dt = softplus(buf.dt[c] + p.dtB[c]);
+      const u = buf.xc[c];
+      let y = p.D[c] * u;
+      const hb = c * N, ab = c * N;
+      for (let n = 0; n < N; n++) {
+        const dA = Math.exp(dt * p.A[ab + n]);           // A < 0, dt > 0  →  ≤ 1
+        s.h[hb + n] = dA * s.h[hb + n] + dt * buf.dbc[Boff + n] * u;
+        y += s.h[hb + n] * buf.dbc[Coff + n];
+      }
+      buf.y[c] = y * silu(z[c]);
+    }
+    matvec(p.outP, buf.y, buf.o);
+    for (let i = 0; i < d; i++) x[i] += buf.o[i];
+  }
+  layernorm(x, M.lnOutW, M.lnOutB, buf.hn);
+  return matvec(M.head, buf.hn, buf.logits);
+}
+function newBuffers() {
+  const C = M.cfg, di = M.di;
+  return { x:new Float32Array(C.n_embd), hn:new Float32Array(C.n_embd),
+           xz:new Float32Array(2*di), xc:new Float32Array(di), y:new Float32Array(di),
+           o:new Float32Array(C.n_embd), dbc:new Float32Array(C.dt_rank + 2*C.d_state),
+           dt:new Float32Array(di), logits:new Float32Array(C.vocab_size) };
+}
+
+/* ---------- tokenizer (mirrors spikelm/tokenizer.py) ---------- */
+function makeTokenizer(json) {
+  const vocab = json.vocab;
+  const tok2id = new Map(vocab.map((t, i) => [t, i]));
+  const rank = new Map(json.merges.map((m, r) => [m[0] + ' ' + m[1], r]));
+  const PRETOK = / ?[A-Za-z]+| ?[0-9]+| ?[^A-Za-z0-9\s]+|\s+/g;
+  const cache = new Map(), enc = new TextEncoder();
+  function encodeWord(word) {
+    if (cache.has(word)) return cache.get(word);
+    let seq = [];
+    for (const ch of word) {
+      if (tok2id.has(ch)) seq.push(ch);
+      else for (const b of enc.encode(ch)) seq.push(`<byte:${b}>`);
+    }
+    for (;;) {
+      let best = null, bi = -1;
+      for (let i = 0; i < seq.length - 1; i++) {
+        const r = rank.get(seq[i] + ' ' + seq[i + 1]);
+        if (r !== undefined && (best === null || r < best)) { best = r; bi = i; }
+      }
+      if (best === null) break;
+      seq = seq.slice(0, bi).concat([seq[bi] + seq[bi + 1]], seq.slice(bi + 2));
+    }
+    const ids = seq.map(t => tok2id.get(t)).filter(v => v !== undefined);
+    cache.set(word, ids);
+    return ids;
+  }
+  return {
+    encode(text) { const out = []; for (const w of text.match(PRETOK) || []) out.push(...encodeWord(w)); return out; },
+    decode(ids) {
+      let s = '', pending = [];
+      for (const i of ids) {
+        const t = vocab[i];
+        if (t.startsWith('<byte:')) { pending.push(+t.slice(6, -1)); continue; }
+        if (pending.length) { s += new TextDecoder().decode(new Uint8Array(pending)); pending = []; }
+        s += t;
+      }
+      if (pending.length) s += new TextDecoder().decode(new Uint8Array(pending));
+      return s;
+    },
+  };
+}
+
+/* ---------- sampling ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function sample(logits, temp, rnd) {
+  let mx = -Infinity;
+  for (let i = 0; i < logits.length; i++) if (logits[i] > mx) mx = logits[i];
+  let z = 0;
+  const p = new Float64Array(logits.length);
+  for (let i = 0; i < logits.length; i++) { p[i] = Math.exp((logits[i] - mx) / temp); z += p[i]; }
+  let roll = rnd() * z;
+  for (let i = 0; i < p.length; i++) { roll -= p[i]; if (roll <= 0) return i; }
+  return p.length - 1;
+}
+
+/* ---------- ui ---------- */
+$('load').onclick = async () => {
+  $('load').disabled = true;
+  try {
+    await loadModel(f => $('bar').style.width = (f * 100) + '%');
+    $('bar').style.width = '100%';
+    const st = M.cfg;
+    setStatus(`loaded: ${st.n_layer} blocks × d=${st.n_embd}, d_state=${st.d_state}, vocab ${st.vocab_size} — ready`);
+    $('mstate').textContent = (M.di * st.d_state * st.n_layer).toLocaleString() + ' numbers (constant)';
+    $('gen').disabled = false;
+  } catch (e) {
+    setStatus('load failed: ' + e.message + ' — the binary must sit at ' + BASE + 'model-int8.bin', true);
+    $('load').disabled = false; $('bar').style.width = '0%';
+  }
+};
+$('stop').onclick = () => { stopFlag = true; };
+$('gen').onclick = async () => {
+  if (!M.ready || running) return;
+  running = true; stopFlag = false;
+  $('gen').disabled = true; $('stop').disabled = false;
+  const prompt = $('prompt').value;
+  const temp = +$('temp').value, n = +$('ntok').value;
+  const rnd = mulberry32(+$('seed').value + 1);
+  const st = newState(), buf = newBuffers();
+  const ids = M.tok.encode(prompt);
+  $('out').innerHTML = '<span class="prompt"></span><span id="gentext"></span>';
+  $('out').firstChild.textContent = prompt;
+  let logits = null;
+  const t0 = performance.now();
+  for (const id of ids) logits = step(id, st, buf);        // prime
+  let produced = 0, text = '';
+  for (let i = 0; i < n && !stopFlag; i++) {
+    const nxt = sample(logits, temp, rnd);
+    text += M.tok.decode([nxt]);
+    $('gentext').textContent = text;
+    logits = step(nxt, st, buf);
+    produced++;
+    if (i % 4 === 0) {
+      const ms = (performance.now() - t0) / (ids.length + produced);
+      $('mms').textContent = ms.toFixed(0);
+      $('mtps').textContent = (1000 / ms).toFixed(1);
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+  running = false; $('gen').disabled = false; $('stop').disabled = true;
+};
+</script>
+</body>
+</html>

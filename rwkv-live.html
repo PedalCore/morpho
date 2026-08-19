@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — rwkv, live</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+        line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+        border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 12px 0;
+        color: #b9c7bf; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { margin-top: 0; }
+  .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button.primary { border-color: var(--amber); color: var(--amber); }
+  button:disabled { opacity: .45; cursor: default; }
+  button:disabled:hover { border-color: var(--line); }
+  input[type=range] { accent-color: var(--amber); }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 6px; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .selbox { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+            border-radius: 7px; padding: 5px 8px; font: 13px inherit; }
+  textarea { width: 100%; background: #0a0d11; color: var(--text);
+             border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+             font: 14px/1.5 ui-monospace, "SF Mono", monospace; resize: vertical; }
+  input[type=number] { width: 70px; background: var(--panel2); color: var(--text);
+                       border: 1px solid var(--line); border-radius: 7px;
+                       padding: 5px 8px; font: 13px inherit; }
+  .bar { height: 8px; background: #0a0d11; border: 1px solid var(--line);
+         border-radius: 5px; overflow: hidden; margin: 10px 0 4px; }
+  .bar > div { height: 100%; width: 0%; background: var(--amber); transition: width .15s; }
+  #status { font: 13px ui-monospace, monospace; color: var(--muted); min-height: 1.4em; }
+  #status.err { color: var(--red); }
+  #out { min-height: 10em; white-space: pre-wrap; word-break: break-word;
+         font-size: 14.5px; line-height: 1.7; color: #cfd6cf; }
+  #out .prompt { color: var(--amber); }
+  #out .cursor { display: inline-block; width: .55em; height: 1.05em;
+                 background: var(--amber); vertical-align: -0.15em;
+                 animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #out .cursor { animation: none; } }
+  .note { border-left: 3px solid var(--amber); padding: 2px 0 2px 14px;
+          color: var(--muted); font-size: 14px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<article>
+<h1>rwkv, <span>live</span></h1>
+<p class="sub">The trained six-block RWKV model — the same one the wkv circuit
+was validated against — running token by token in this page, from the 14.9&nbsp;MB
+int8 export. No server, no framework: a manifest, a tokenizer, a flat binary of
+per-row-quantized weights, and the recurrence written out longhand in JavaScript.</p>
+
+<div class="links">
+  <a href="https://soundlark.studio/wkv-cell.html">← the wkv cell</a>
+  <a href="https://soundlark.studio/rwkv-atlas.html">← the model atlas</a>
+</div>
+
+<div class="demo">
+  <h3>the runner</h3>
+  <p class="teach">Load fetches the weights (14.9&nbsp;MB, once) and dequantizes
+  per the manifest recipe <code>w = int8_row × scale_row</code>. Generation runs
+  the exact training-time semantics: layernorm → token-shift time-mix with the
+  numerically-stable wkv recurrence → squared-ReLU channel-mix, six blocks, tied
+  head. Switch the wkv state to <b>Q8.8 circuit numerics</b> to route every
+  time-mix through the fixed-point path the hardware sweep validated
+  (base-2, 32-entry LUT + interpolation, saturating registers).</p>
+  <div class="bar"><div id="loadbar"></div></div>
+  <div id="status">weights not loaded</div>
+  <div class="controls">
+    <button id="loadbtn" class="primary">load model (14.9 MB)</button>
+    <label>wkv numerics
+      <select id="numerics" class="selbox">
+        <option value="float">float (reference)</option>
+        <option value="q88">Q8.8 circuit (LUT32 + interp)</option>
+      </select>
+    </label>
+  </div>
+  <div style="margin-top:14px">
+    <textarea id="prompt" rows="2">Once upon a time, there was a little girl named</textarea>
+  </div>
+  <div class="controls">
+    <button id="genbtn" disabled>generate</button>
+    <button id="stopbtn" disabled>stop</button>
+    <label>temp <input type="range" id="temp" min="0" max="1.5" step="0.05" value="0.8">
+      <span class="readout" id="tempval">0.80</span></label>
+    <label>top-p <input type="range" id="topp" min="0.5" max="1" step="0.01" value="0.9">
+      <span class="readout" id="toppval">0.90</span></label>
+    <label>tokens <input type="number" id="maxnew" value="180" min="1" max="600"></label>
+    <label>seed <input type="number" id="seed" value="1000"></label>
+    <span class="readout" id="speed"></span>
+  </div>
+  <div style="background:#0a0d11;border:1px solid var(--line);border-radius:8px;
+              padding:12px 14px;margin-top:14px">
+    <div id="out"><span style="color:var(--muted)">output appears here</span></div>
+  </div>
+</div>
+
+<h2>what exactly is running</h2>
+<p>Everything the training code does, transcribed operation for operation from
+<code>spikelm/model.py</code>:</p>
+<pre>x = LN_in(emb[token])
+for each of 6 blocks:
+    xx = LN1(x)                                   # time-mix
+    k,v,r = W·(xx·μ + xx_prev·(1−μ))              # token-shift mixing
+    wkv   = aa/bb/pp recurrence  (w = −e^decay, u = time_first)
+    x    += W_out · (σ(r) · wkv)
+    yy = LN2(x)                                   # channel-mix
+    x += σ(W_r·mix) · W_v · relu(W_k·mix)²        # 384 → 1536 → 384
+logits = head · LN_out(x)        # head tied to the embedding</pre>
+<p>The wkv recurrence keeps the same three registers per channel that the
+<a href="https://soundlark.studio/wkv-cell.html">circuit page</a> simulates — a value accumulator
+<code>aa</code>, a weight accumulator <code>bb</code>, and the running maximum
+exponent <code>pp</code> that keeps every exponential argument ≤ 0. In float
+mode those are IEEE doubles; in Q8.8 mode they are saturating fixed-point
+registers and <code>e^x</code> becomes a barrel shift plus a 32-entry lookup
+with 3-bit interpolation — the same unit that exists as
+<a href="https://soundlark.studio/found-machines.html">compiled Morpho</a>, exhaustively bit-exact over
+all 65,536 inputs.</p>
+
+<h2>the numbers behind the toggle</h2>
+<p>Neither mode is a leap of faith — both halves of the quantization story were
+measured on held-out data before this page existed:</p>
+<table>
+<tr><th>what</th><th>perplexity</th><th>change</th></tr>
+<tr><td>float32 weights (training checkpoint)</td><td>6.4224</td><td>—</td></tr>
+<tr><td><b>int8 weights</b> (this page's binary, per-row scales)</td><td>6.4215</td><td><b>−0.01%</b></td></tr>
+<tr><td>wkv state in Q8.8, LUT32 + interp (weights float)</td><td>6.244*</td><td>parity with float64 wkv</td></tr>
+</table>
+<p style="color:var(--muted);font-size:13.5px">*The wkv-format sweep used its
+own evaluation batch, hence the different absolute number; every format tested
+— Q8.8, Q6.10, Q10.6, no-interp, restoring division — landed on the same
+perplexity to three decimals. Details on the <a href="https://soundlark.studio/wkv-cell.html">wkv cell
+page</a>.</p>
+<p>What this page adds is the two cuts <em>combined</em>: int8 weights
+<em>and</em> fixed-point wkv state at once, generating text you can read. The
+JavaScript recurrence here mirrors the validated emulation exactly — base-2
+reparameterization, saturating Q8.8 quantization after every add and multiply,
+<code>pp</code> initialized to −60, the same ε in the denominator.</p>
+
+<h2>where the weights live</h2>
+<p>The three small files (manifest, tokenizer, validation record) travel with
+the page. The 14.9&nbsp;MB binary is deliberately not in the repository — it is
+staged next to the page at deploy time, and the natural durable home is a
+GitHub release asset on the fork: release downloads are served with
+<code>Access-Control-Allow-Origin: *</code>, so a deployed page can fetch the
+binary straight from the release URL with no copy at all.</p>
+<p class="note">If the binary isn't reachable the loader says so rather than
+pretending — this page makes no claims it can't back with a running model.</p>
+
+<script>
+'use strict';
+
+/* ---------- constants ---------- */
+const BASE = 'rwkv-export/';
+const LOG2E = Math.LOG2E;
+
+/* ---------- model container ---------- */
+const M = { ready: false, cfg: null, t: {}, tok: null };
+
+/* tensor record: {shape, kind, i8, scales} or {shape, f32} */
+function tensor(name) {
+  const t = M.t[name];
+  if (!t) throw new Error('missing tensor ' + name);
+  return t;
+}
+
+/* ---------- loading ---------- */
+async function fetchBinary(url, onprogress) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(url + ' → HTTP ' + resp.status);
+  const total = +resp.headers.get('Content-Length') || 0;
+  const reader = resp.body.getReader();
+  const chunks = []; let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); got += value.length;
+    if (total && onprogress) onprogress(got / total);
+  }
+  const buf = new Uint8Array(got); let off = 0;
+  for (const c of chunks) { buf.set(c, off); off += c.length; }
+  return buf.buffer;
+}
+
+async function loadModel(setStatus, setBar) {
+  setStatus('fetching manifest + tokenizer…');
+  const [manifest, tokjson] = await Promise.all([
+    fetch(BASE + 'model-manifest.json').then(r => {
+      if (!r.ok) throw new Error('manifest missing (HTTP ' + r.status + ')');
+      return r.json();
+    }),
+    fetch(BASE + 'tokenizer.json').then(r => {
+      if (!r.ok) throw new Error('tokenizer missing (HTTP ' + r.status + ')');
+      return r.json();
+    }),
+  ]);
+  M.cfg = manifest.config;
+  M.tok = makeTokenizer(tokjson);
+
+  setStatus('fetching weights (14.9 MB)…');
+  const bin = await fetchBinary(BASE + 'model-int8.bin', f => setBar(f * 100));
+  setStatus('unpacking tensors…');
+
+  for (const rec of manifest.tensors) {
+    if (rec.kind === 'int8') {
+      const rows = rec.shape[0];
+      M.t[rec.name] = {
+        shape: rec.shape, kind: 'int8',
+        i8: new Int8Array(bin, rec.offset, rec.nbytes),
+        scales: new Float32Array(bin.slice(rec.scale_offset,
+                                           rec.scale_offset + rec.scale_nbytes)),
+      };
+      if (M.t[rec.name].scales.length !== rows)
+        throw new Error(rec.name + ': scale count mismatch');
+    } else {
+      M.t[rec.name] = {
+        shape: rec.shape, kind: 'float32',
+        f32: new Float32Array(bin.slice(rec.offset, rec.offset + rec.nbytes)),
+      };
+    }
+  }
+  /* precompute per-layer parameter bundles */
+  M.layers = [];
+  for (let L = 0; L < M.cfg.n_layer; L++) {
+    const p = n => tensor(`blocks.${L}.${n}`).f32;
+    const decay = p('tm.time_decay');
+    const w = new Float64Array(decay.length);
+    for (let i = 0; i < w.length; i++) w[i] = -Math.exp(decay[i]);
+    M.layers.push({
+      ln1w: p('ln1.weight'), ln1b: p('ln1.bias'),
+      ln2w: p('ln2.weight'), ln2b: p('ln2.bias'),
+      mixK: p('tm.mix_k'), mixV: p('tm.mix_v'), mixR: p('tm.mix_r'),
+      w, u: p('tm.time_first'),
+      Wk: tensor(`blocks.${L}.tm.key.weight`),
+      Wv: tensor(`blocks.${L}.tm.value.weight`),
+      Wr: tensor(`blocks.${L}.tm.receptance.weight`),
+      Wo: tensor(`blocks.${L}.tm.output.weight`),
+      cmixK: p('cm.mix_k'), cmixR: p('cm.mix_r'),
+      CWk: tensor(`blocks.${L}.cm.key.weight`),
+      CWv: tensor(`blocks.${L}.cm.value.weight`),
+      CWr: tensor(`blocks.${L}.cm.receptance.weight`),
+    });
+  }
+  M.lnInW = tensor('ln_in.weight').f32;  M.lnInB = tensor('ln_in.bias').f32;
+  M.lnOutW = tensor('ln_out.weight').f32; M.lnOutB = tensor('ln_out.bias').f32;
+  M.emb = tensor('emb.weight');
+  M.head = tensor('head.weight');
+  M.ready = true;
+}
+
+/* ---------- tokenizer (mirrors spikelm/tokenizer.py) ---------- */
+function makeTokenizer(json) {
+  const vocab = json.vocab;
+  const tok2id = new Map(vocab.map((t, i) => [t, i]));
+  const rank = new Map(json.merges.map((m, r) => [m[0] + ' ' + m[1], r]));
+  const cache = new Map();
+  const PRETOK = / ?[A-Za-z]+| ?[0-9]+| ?[^A-Za-z0-9\s]+|\s+/g;
+  const enc = new TextEncoder();
+
+  function encodeWord(word) {
+    if (cache.has(word)) return cache.get(word);
+    let seq = [];
+    for (const ch of word) {
+      if (tok2id.has(ch)) seq.push(ch);
+      else for (const b of enc.encode(ch)) seq.push('<byte:' + b + '>');
+    }
+    for (;;) {
+      let best = null, bi = -1;
+      for (let i = 0; i < seq.length - 1; i++) {
+        const r = rank.get(seq[i] + ' ' + seq[i + 1]);
+        if (r !== undefined && (best === null || r < best)) { best = r; bi = i; }
+      }
+      if (best === null) break;
+      seq = seq.slice(0, bi)
+               .concat([seq[bi] + seq[bi + 1]])
+               .concat(seq.slice(bi + 2));
+    }
+    const ids = seq.map(t => tok2id.get(t));
+    if (ids.some(i => i === undefined))
+      throw new Error('tokenizer: unencodable fragment in "' + word + '"');
+    cache.set(word, ids);
+    return ids;
+  }
+  const dec = new TextDecoder('utf-8', { fatal: false });
+  return {
+    encode(text) {
+      const out = [];
+      for (const w of text.match(PRETOK) || []) out.push(...encodeWord(w));
+      return out;
+    },
+    decodeOne(id, pendingBytes) {
+      /* streaming decode: byte tokens accumulate in pendingBytes (an array),
+         complete strings flush; returns text emitted now */
+      const t = vocab[id];
+      if (t.startsWith('<byte:')) {
+        pendingBytes.push(+t.slice(6, -1));
+        /* try to decode; emit only when valid UTF-8 so far */
+        const s = dec.decode(new Uint8Array(pendingBytes));
+        if (!s.includes('�')) { pendingBytes.length = 0; return s; }
+        return '';
+      }
+      let pre = '';
+      if (pendingBytes.length) {
+        pre = dec.decode(new Uint8Array(pendingBytes));
+        pendingBytes.length = 0;
+      }
+      return pre + t;
+    },
+  };
+}
+
+/* ---------- linear algebra ---------- */
+function matvec(t, x, out) {
+  /* t: int8 tensor [R,C] with per-row scales; x: Float64Array(C) */
+  const R = t.shape[0], C = t.shape[1], w = t.i8, s = t.scales;
+  for (let r = 0; r < R; r++) {
+    const base = r * C;
+    let acc = 0;
+    for (let c = 0; c < C; c++) acc += w[base + c] * x[c];
+    out[r] = acc * s[r];
+  }
+  return out;
+}
+
+function layernorm(x, w, b, out) {
+  const n = x.length;
+  let m = 0;
+  for (let i = 0; i < n; i++) m += x[i];
+  m /= n;
+  let v = 0;
+  for (let i = 0; i < n; i++) { const d = x[i] - m; v += d * d; }
+  v /= n;
+  const inv = 1 / Math.sqrt(v + 1e-5);
+  for (let i = 0; i < n; i++) out[i] = (x[i] - m) * inv * w[i] + b[i];
+  return out;
+}
+
+const sigmoid = z => 1 / (1 + Math.exp(-z));
+
+/* ---------- wkv numerics: float reference & Q8.8 circuit ---------- */
+/* Q8.8 config, mirroring quantwkv.QConfig(8, 8, 32, True) */
+const Q = (() => {
+  const m = 8, n = 8, L = 32;
+  const res = 2 ** -n, hi = 2 ** (m - 1) - res, lo = -(2 ** (m - 1));
+  const lut = new Float64Array(L + 1);
+  for (let i = 0; i <= L; i++) lut[i] = 2 ** (-i / L);
+  const quant = x => {
+    const q = Math.round(x / res) * res;
+    return q > hi ? hi : q < lo ? lo : q;
+  };
+  const exp2neg = x => {                    /* 2^x for x <= 0 */
+    const a = Math.max(0, -x);
+    const i = Math.floor(a), f = a - i;
+    const pos = f * L, idx = Math.min(L - 1, Math.floor(pos));
+    const v0 = lut[idx];
+    const v = v0 + (pos - idx) * (lut[idx + 1] - v0);
+    return v * 2 ** (-Math.min(i, 40));
+  };
+  return { quant, exp2neg };
+})();
+
+/* per-layer recurrent state */
+function freshState(mode) {
+  const C = M.cfg.n_embd, ppInit = mode === 'q88' ? -60.0 : -1e38;
+  return M.layers.map(() => ({
+    tmPrev: new Float64Array(C), cmPrev: new Float64Array(C),
+    aa: new Float64Array(C), bb: new Float64Array(C),
+    pp: new Float64Array(C).fill(ppInit),
+  }));
+}
+
+/* ---------- forward pass (one token) ---------- */
+const D = 384, FFN = 1536, V = 4096;
+const buf = {
+  x: new Float64Array(D), xx: new Float64Array(D), mix: new Float64Array(D),
+  k: new Float64Array(D), v: new Float64Array(D), r: new Float64Array(D),
+  wkv: new Float64Array(D), tmp: new Float64Array(D),
+  ff: new Float64Array(FFN), logits: new Float64Array(V),
+};
+
+function forward(token, state, mode) {
+  const { x, xx, mix, k, v, r, wkv, tmp, ff, logits } = buf;
+  /* embedding row, dequantized */
+  {
+    const t = M.emb, base = token * D, s = t.scales[token];
+    for (let i = 0; i < D; i++) tmp[i] = t.i8[base + i] * s;
+    layernorm(tmp, M.lnInW, M.lnInB, x);
+  }
+  const q88 = mode === 'q88';
+  for (let L = 0; L < M.layers.length; L++) {
+    const P = M.layers[L], S = state[L];
+    /* ---- time-mix ---- */
+    layernorm(x, P.ln1w, P.ln1b, xx);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.mixK[i] + S.tmPrev[i] * (1 - P.mixK[i]);
+    matvec(P.Wk, mix, k);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.mixV[i] + S.tmPrev[i] * (1 - P.mixV[i]);
+    matvec(P.Wv, mix, v);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.mixR[i] + S.tmPrev[i] * (1 - P.mixR[i]);
+    matvec(P.Wr, mix, r);
+    S.tmPrev.set(xx);
+    if (!q88) {
+      /* training semantics: base-e, pp init -1e38, eps 1e-9 */
+      for (let i = 0; i < D; i++) {
+        const kt = k[i], vt = v[i], aa = S.aa[i], bb = S.bb[i], pp = S.pp[i];
+        const ww = P.u[i] + kt;
+        const p = Math.max(pp, ww);
+        const e1 = Math.exp(pp - p), e2 = Math.exp(ww - p);
+        wkv[i] = (e1 * aa + e2 * vt) / (e1 * bb + e2 + 1e-9);
+        const ww2 = pp + P.w[i];
+        const p2 = Math.max(ww2, kt);
+        const f1 = Math.exp(ww2 - p2), f2 = Math.exp(kt - p2);
+        S.aa[i] = f1 * aa + f2 * vt;
+        S.bb[i] = f1 * bb + f2;
+        S.pp[i] = p2;
+      }
+    } else {
+      /* circuit semantics: quantwkv.QConfig(8,8,32,interp) exactly —
+         base-2 reparameterization, saturating quantize, LUT32+interp,
+         eps 1e-4, pp init -60 */
+      for (let i = 0; i < D; i++) {
+        const kt = Q.quant(k[i] * LOG2E), vt = Q.quant(v[i]);
+        const w2 = Q.quant(P.w[i] * LOG2E), u2 = Q.quant(P.u[i] * LOG2E);
+        const aa = S.aa[i], bb = S.bb[i], pp = S.pp[i];
+        const ww = Q.quant(u2 + kt);
+        const p = Math.max(pp, ww);
+        const e1 = Q.exp2neg(pp - p), e2 = Q.exp2neg(ww - p);
+        const num = Q.quant(e1 * aa + e2 * vt);
+        const den = Q.quant(e1 * bb + e2 + 1e-4);
+        wkv[i] = num / den;
+        const ww2 = Q.quant(pp + w2);
+        const p2 = Math.max(ww2, kt);
+        const f1 = Q.exp2neg(ww2 - p2), f2 = Q.exp2neg(kt - p2);
+        S.aa[i] = Q.quant(f1 * aa + f2 * vt);
+        S.bb[i] = Q.quant(f1 * bb + f2);
+        S.pp[i] = p2;
+      }
+    }
+    for (let i = 0; i < D; i++) tmp[i] = sigmoid(r[i]) * wkv[i];
+    matvec(P.Wo, tmp, mix);
+    for (let i = 0; i < D; i++) x[i] += mix[i];
+    /* ---- channel-mix ---- */
+    layernorm(x, P.ln2w, P.ln2b, xx);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.cmixK[i] + S.cmPrev[i] * (1 - P.cmixK[i]);
+    matvec(P.CWk, mix, ff);
+    for (let i = 0; i < FFN; i++) { const z = Math.max(0, ff[i]); ff[i] = z * z; }
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.cmixR[i] + S.cmPrev[i] * (1 - P.cmixR[i]);
+    matvec(P.CWr, mix, r);
+    S.cmPrev.set(xx);
+    matvec(P.CWv, ff, tmp);
+    for (let i = 0; i < D; i++) x[i] += sigmoid(r[i]) * tmp[i];
+  }
+  layernorm(x, M.lnOutW, M.lnOutB, tmp);
+  matvec(M.head, tmp, logits);
+  return logits;
+}
+
+/* ---------- sampling ---------- */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function sample(logits, temp, topp, rnd) {
+  if (temp <= 0) {
+    let best = 0;
+    for (let i = 1; i < logits.length; i++) if (logits[i] > logits[best]) best = i;
+    return best;
+  }
+  const n = logits.length;
+  let mx = -Infinity;
+  for (let i = 0; i < n; i++) if (logits[i] > mx) mx = logits[i];
+  const probs = new Float64Array(n);
+  let z = 0;
+  for (let i = 0; i < n; i++) { probs[i] = Math.exp((logits[i] - mx) / temp); z += probs[i]; }
+  for (let i = 0; i < n; i++) probs[i] /= z;
+  /* top-p: sort indices by prob desc, keep smallest prefix with mass >= topp */
+  const idx = Array.from(probs.keys()).sort((a, b) => probs[b] - probs[a]);
+  let mass = 0, cut = n;
+  for (let j = 0; j < n; j++) { mass += probs[idx[j]]; if (mass >= topp) { cut = j + 1; break; } }
+  let z2 = 0;
+  for (let j = 0; j < cut; j++) z2 += probs[idx[j]];
+  let u = rnd() * z2;
+  for (let j = 0; j < cut; j++) {
+    u -= probs[idx[j]];
+    if (u <= 0) return idx[j];
+  }
+  return idx[cut - 1];
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+const statusEl = $('status'), loadbar = $('loadbar');
+let running = false, stopFlag = false;
+
+function setStatus(s, err) {
+  statusEl.textContent = s;
+  statusEl.className = err ? 'err' : '';
+}
+
+$('temp').oninput = e => $('tempval').textContent = (+e.target.value).toFixed(2);
+$('topp').oninput = e => $('toppval').textContent = (+e.target.value).toFixed(2);
+
+$('loadbtn').onclick = async () => {
+  $('loadbtn').disabled = true;
+  try {
+    await loadModel(setStatus, f => loadbar.style.width = f + '%');
+    loadbar.style.width = '100%';
+    setStatus('model loaded: 6 blocks × d=384, vocab 4096 — ready');
+    $('genbtn').disabled = false;
+  } catch (e) {
+    setStatus('load failed: ' + e.message +
+      ' — the binary must sit next to this page at rwkv-export/model-int8.bin', true);
+    $('loadbtn').disabled = false;
+    loadbar.style.width = '0%';
+  }
+};
+
+$('stopbtn').onclick = () => { stopFlag = true; };
+
+$('genbtn').onclick = async () => {
+  if (!M.ready || running) return;
+  running = true; stopFlag = false;
+  $('genbtn').disabled = true; $('stopbtn').disabled = false;
+  const mode = $('numerics').value;
+  const temp = +$('temp').value, topp = +$('topp').value;
+  const maxNew = Math.max(1, Math.min(600, +$('maxnew').value || 180));
+  const rnd = mulberry32(+$('seed').value || 0);
+  const promptText = $('prompt').value;
+  const out = $('out');
+  out.innerHTML = '';
+  const promptSpan = document.createElement('span');
+  promptSpan.className = 'prompt';
+  promptSpan.textContent = promptText;
+  const genSpan = document.createElement('span');
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  out.append(promptSpan, genSpan, cursor);
+
+  const state = freshState(mode);
+  const ids = M.tok.encode(promptText);
+  if (!ids.length) { setStatus('empty prompt', true); running = false;
+    $('genbtn').disabled = false; $('stopbtn').disabled = true; return; }
+
+  setStatus(`prefilling ${ids.length} prompt tokens…`);
+  const t0 = performance.now();
+  let logits = null;
+  for (let i = 0; i < ids.length; i++) {
+    logits = forward(ids[i], state, mode);
+    if (i % 8 === 7) await new Promise(r => setTimeout(r));
+    if (stopFlag) break;
+  }
+  const pending = [];
+  let made = 0;
+  const tGen = performance.now();
+  while (!stopFlag && made < maxNew) {
+    const id = sample(logits, temp, topp, rnd);
+    genSpan.textContent += M.tok.decodeOne(id, pending);
+    logits = forward(id, state, mode);
+    made++;
+    if (made % 2 === 0) {
+      const tps = made / ((performance.now() - tGen) / 1000);
+      $('speed').textContent = tps.toFixed(1) + ' tok/s';
+      await new Promise(r => setTimeout(r));
+    }
+  }
+  cursor.remove();
+  const dt = ((performance.now() - t0) / 1000).toFixed(1);
+  setStatus(`done: ${ids.length} prompt + ${made} generated in ${dt}s ` +
+            `(${mode === 'q88' ? 'Q8.8 circuit wkv' : 'float wkv'})`);
+  running = false;
+  $('genbtn').disabled = false; $('stopbtn').disabled = true;
+};
+</script>
+</article>
+</body>
+</html>
