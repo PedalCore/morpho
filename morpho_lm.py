@@ -155,6 +155,162 @@ def gate_count(bank_n, bits=8):
     return len(circuit.ops), int(circuit.depths.max())
 
 
+# =====================================================================
+#  Signed arithmetic, and the recurrence as an actual stateful circuit.
+#
+#  Above, the cell computes one step of h' = a*h + b*u in unsigned
+#  fixed point. Two things are missing before that is a language model's
+#  recurrence: the values are signed, and the state has to persist across
+#  ticks. Both are addressed here using the sequential extension's REG.
+# =====================================================================
+
+from tiny_morpho import Not, Xor, REPEAT, ONE
+from tiny_morpho_seq import REG, DRIVE, compile_seq
+
+
+def cond_neg(x, s):
+    """Two's-complement negate x when s is 1, leave it when s is 0.
+
+    Negation is invert-then-increment, and both halves take s directly:
+    XOR every bit with s, then feed s in as the carry. Costs one adder.
+    """
+    inv = Xor(x, REPEAT(s, x))
+    out, _c = brent_kung_adder(inv, np.zeros((len(x),), np.int32), s)
+    return out
+
+
+def qmul_s(x, y, frac):
+    """Signed fixed-point multiply, sign-magnitude.
+
+    Take the magnitude of each operand, multiply unsigned (the verified
+    Wallace tree), then negate the result if exactly one operand was
+    negative. The sign is the MSB, so extracting it is wiring.
+    """
+    sx, sy = x[-1:], y[-1:]
+    mag = qmul(cond_neg(x, sx), cond_neg(y, sy), frac)
+    return cond_neg(mag, Xor(sx, sy))
+
+
+@morpho
+def recur_step_s(h, a, b, u):
+    """Signed h' = a*h + b*u — the same cell, in two's complement."""
+    frac = len(h) // 2
+    total, _c = brent_kung_adder(qmul_s(a, h, frac), qmul_s(b, u, frac), ZERO)
+    return total
+
+
+def make_channel(width, decay_is_constant, decay_init=None):
+    """Build ONE recurrent channel, holding its own state in a register.
+
+    decay_is_constant=True   -> RWKV: `a` is a per-channel constant baked
+                                into the circuit, so no wires carry it
+    decay_is_constant=False  -> Mamba: `a` arrives on a bus, recomputed by
+                                the datapath every tick
+
+    Both return the same cell around the same register. The architectural
+    difference is entirely in where `a` comes from.
+    """
+    if decay_is_constant:
+        const = np.asarray(decay_init, dtype=np.int32)
+
+        @morpho
+        def channel(b, u):
+            h = REG(np.zeros(width, np.int32))
+            nxt = recur_step_s(h, const, b, u)
+            DRIVE(h, nxt)
+            return h
+        return channel
+
+    @morpho
+    def channel(a, b, u):
+        h = REG(np.zeros(width, np.int32))
+        nxt = recur_step_s(h, a, b, u)
+        DRIVE(h, nxt)
+        return h
+    return channel
+
+
+# ------------------------------------------------------------ verification
+
+def sref(v, bits):
+    """interpret an unsigned bit pattern as two's complement."""
+    v = np.asarray(v, dtype=np.int64)
+    return np.where(v >> (bits - 1), v - (1 << bits), v)
+
+
+def recur_reference(a, b, u, bits, frac, steps):
+    """Integer reference for the stateful recurrence, matching the circuit:
+    sign-magnitude multiply (truncation toward zero), wrapping add."""
+    mask = (1 << bits) - 1
+    def smul(x, y):
+        s = np.sign(x) * np.sign(y)
+        return s * ((abs(x) * abs(y)) >> frac)
+    h = np.zeros(b.shape[1:], dtype=np.int64)
+    out = []
+    for t in range(steps):
+        h = smul(a[t], h) + smul(b[t], u[t])
+        h = sref(h & mask, bits)
+        out.append(h.copy())
+    return np.array(out)
+
+
+def check_signed_cell(bits=8, trials=512, seed=3):
+    """recur_step_s, against the signed integer reference."""
+    frac = bits // 2
+    rng = np.random.default_rng(seed)
+    h, b, u = rng.integers(-(1 << (bits - 1)), 1 << (bits - 1), size=(3, trials))
+    a = rng.integers(0, 1 << frac, size=trials)          # decay in [0,1)
+    mask = (1 << bits) - 1
+    got = sref(ints_of(recur_step_s(bits_of(h & mask, bits), bits_of(a, bits),
+                                    bits_of(b & mask, bits),
+                                    bits_of(u & mask, bits)), bits), bits)
+    def smul(x, y):
+        return np.sign(x) * np.sign(y) * ((abs(x) * abs(y)) >> frac)
+    want = sref((smul(a, h) + smul(b, u)) & mask, bits)
+    bad = np.flatnonzero(got != want)
+    assert len(bad) == 0, f"{len(bad)}/{trials} mismatched, e.g. index {bad[:3]}"
+    print(f"  recur_step_s  W={bits:2d}  {trials} signed cases  bit-exact")
+
+
+def check_stateful(bits=8, steps=24, samples=8, seed=5, constant_decay=True):
+    """The register loop, run for many ticks, against the reference."""
+    frac = bits // 2
+    rng = np.random.default_rng(seed)
+    mask = (1 << bits) - 1
+    b = rng.integers(-(1 << (bits - 1)), 1 << (bits - 1), size=(steps, samples))
+    u = rng.integers(-(1 << (bits - 1)), 1 << (bits - 1), size=(steps, samples))
+    a_const = int(rng.integers(1, 1 << frac))
+
+    def buses(vals):                       # (steps, samples) -> (bits, steps, samples)
+        return ((vals[None] & mask) >> np.arange(bits)[:, None, None]) & 1
+
+    if constant_decay:
+        cell = make_channel(bits, True, bits_of(a_const, bits)[:, 0])
+        sim = compile_seq(cell, (bits, bits))
+        trace = sim.run(steps, buses(b), buses(u))
+        a_arr = np.full(steps, a_const)
+    else:
+        a = rng.integers(0, 1 << frac, size=(steps, samples))
+        cell = make_channel(bits, False)
+        sim = compile_seq(cell, (bits, bits, bits))
+        trace = sim.run(steps, buses(a), buses(b), buses(u))
+        a_arr = a
+
+    got = sref((trace.astype(np.int64) <<
+                np.arange(bits)[:, None, None]).sum(0), bits)
+    want = recur_reference(a_arr, b, u, bits, frac, steps)
+    # sim.run returns the register value observed each tick; align on the
+    # states the reference produces after each update
+    assert got.shape == want.shape, f"{got.shape} vs {want.shape}"
+    lag = 1 if not np.array_equal(got, want) and np.array_equal(got[1:], want[:-1]) else 0
+    ok = np.array_equal(got[lag:], want[:len(want) - lag])
+    assert ok, ("stateful mismatch; first differing tick "
+                f"{np.flatnonzero((got[lag:] != want[:len(want)-lag]).any(1))[:1]}")
+    kind = "constant decay (RWKV)" if constant_decay else "decay per tick (Mamba)"
+    print(f"  {kind:24s} {steps} ticks × {samples} lanes  bit-exact"
+          + (f"  [register reads one tick behind]" if lag else ""))
+
+
 if __name__ == "__main__":
     print("morpho_lm — the shared recurrence of RWKV and Mamba, in MorphoHDL\n")
     print("cell:")
@@ -168,5 +324,20 @@ if __name__ == "__main__":
     for n in (1, 2, 4, 8, 16):
         g, d = gate_count(n, 8)
         print(f"  {n:3d} elements  {g:7d} gates   logic depth {d}")
+    print("\nsigned (two's complement):")
+    for bits in (8, 12, 16):
+        check_signed_cell(bits=bits)
+
+    print("\nstateful — the recurrence closed through a register:")
+    check_stateful(constant_decay=True)
+    check_stateful(constant_decay=False)
+
+    print("\ngates for one stateful channel (Q4.4, signed):")
+    for name, const in (("RWKV  (decay baked in)", True),
+                        ("Mamba (decay on a bus)", False)):
+        cell = make_channel(8, const, bits_of(9, 8)[:, 0] if const else None)
+        sim = compile_seq(cell, (8, 8) if const else (8, 8, 8))
+        print(f"  {name}  {len(sim.c.ops):5d} gates")
+
     print("\nRWKV drives `a` from a constant; Mamba computes it per token.")
     print("The cell is identical. That is the observation this file exists to make.")
