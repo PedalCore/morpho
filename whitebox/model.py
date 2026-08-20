@@ -56,6 +56,7 @@ class Config:
     # ---- M2: spike-driven weight paths (see M2.md) ----
     m2: str = ''               # '' | 'a' (codes into U, D, head) | 'b' (+ ternary error codes)
     m2_identity: bool = False  # control: reordered wiring, identity quantizer
+    attn: str = 'mssa'         # 'mssa' | 'tssa' (M3 statistics attention)
 
 
 class SpikeProx(nn.Module):
@@ -290,6 +291,67 @@ def _coding_rate_impl(z, attn, eps_sq):
     return (ld.sum(dim=1) * p / (2 * T)).mean().float()
 
 
+class TSSA(nn.Module):
+    """M3 statistics attention (M3.md): no token pairs, no softmax.
+    Per head, a causally decayed activity statistic gates the projected
+    coordinates by their marginal coding price:
+
+        c_{h,t} = rho_h c_{h,t-1} + h_{h,t}^2      (decaying counters)
+        d = f'(c) = 1/(1+c)                        (f = log1p, continuous
+                                                    control version; the
+                                                    comparator staircase is
+                                                    M3-step-rate)
+        out = -scale * U^T [d ⊙ h]                 (descent form; training
+                                                    decides what to do with
+                                                    the sign — the aligned
+                                                    dR^c metric will tell us)
+
+    Heads carry a fixed dyadic ladder of horizons m ∈ {3,4,5,6}
+    (time constants 8/16/32/64 tokens — the RWKV timescale lesson).
+    Chunked parallel scan: exact cumsum inside 32-token chunks (bounded
+    exponents, float32-safe even at m=3), recurrent carry across chunks."""
+
+    CHUNK = 32
+
+    def __init__(self, cfg):
+        super().__init__()
+        d, K = cfg.n_embd, cfg.n_head
+        self.K, self.p = K, d // K
+        self.U = nn.Linear(d, d, bias=False)
+        self.tied = cfg.tied
+        if not cfg.tied:
+            self.out = nn.Linear(d, d, bias=False)
+        self.scale = nn.Parameter(torch.tensor(cfg.mssa_scale))
+        ms = [3 + (k % 4) for k in range(K)]
+        self.register_buffer('rho', torch.tensor(
+            [1.0 - 2.0 ** (-m) for m in ms]).float())
+
+    def forward(self, x):                          # (B, T, d)
+        B, T, d = x.shape
+        h = self.U(x).view(B, T, self.K, self.p).permute(0, 2, 1, 3)
+        rho = self.rho.view(1, self.K, 1, 1)
+        C = self.CHUNK
+        n_chunks = (T + C - 1) // C
+        cs = []
+        carry = torch.zeros(B, self.K, 1, self.p, device=x.device,
+                            dtype=h.dtype)
+        for ci in range(n_chunks):
+            hc = h[:, :, ci * C:(ci + 1) * C]
+            L = hc.shape[2]
+            t = torch.arange(L, device=x.device, dtype=h.dtype).view(1, 1, L, 1)
+            down = rho ** (t + 1)                  # rho^{t+1} for the carry
+            local = (rho ** t) * torch.cumsum(hc * hc * (rho ** (-t)), dim=2)
+            c = down * carry + local
+            cs.append(c)
+            carry = c[:, :, -1:]
+        c = torch.cat(cs, dim=2)
+        dcoef = 1.0 / (1.0 + c)
+        agg = (dcoef * h).permute(0, 2, 1, 3).reshape(B, T, d)
+        out = (F.linear(agg, self.U.weight.t()) if self.tied
+               else self.out(agg))
+        return -self.scale * out
+
+
 # ------------------------------------------------------- M2: spike-driven paths
 
 class BlockM2(nn.Module):
@@ -301,7 +363,7 @@ class BlockM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = MSSA(cfg)
+        self.attn = (TSSA if cfg.attn == 'tssa' else MSSA)(cfg)
         self.ln = nn.LayerNorm(d)
         self.D = nn.Parameter(torch.empty(d, d))
         nn.init.orthogonal_(self.D)
