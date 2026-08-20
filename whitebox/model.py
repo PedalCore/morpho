@@ -46,6 +46,8 @@ class Config:
     n_head: int = 8
     ctx: int = 256
     tied: bool = True          # aggregate heads with U^T (the derivation)
+    mssa_scale: float = 0.1    # init of the learnable step size — the derived
+                               # kappa*p/(N*eps^2) is SMALL; 1.0 collapses L0
     ista_eta: float = 0.1
     ista_lambda: float = 0.1
     spike_prox: bool = False   # integer-quantizer prox instead of soft-thresh
@@ -88,7 +90,7 @@ class MSSA(nn.Module):
         self.tied = cfg.tied
         if not cfg.tied:
             self.out = nn.Linear(d, d, bias=False)
-        self.scale = nn.Parameter(torch.tensor(1.0))  # learnable step size
+        self.scale = nn.Parameter(torch.tensor(cfg.mssa_scale))
         mask = torch.triu(torch.full((cfg.ctx, cfg.ctx), float('-inf')), 1)
         self.register_buffer('causal', mask)
 
