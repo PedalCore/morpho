@@ -55,6 +55,15 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 | causal CRATE + spiking prox (warm-started from M0) | 5.2M | **17.05** |
 | causal CRATE, larger (d=576, L=12) | 10.5M | **12.89** |
 
+| M2-control (reordered wiring, identity quantizer) | 5.2M | **14.22** |
+
+M2-control verdict: the reorder is an IMPROVEMENT over M0 (14.22 vs
+15.37), not a cost — the ablation ladder's first rung passes with margin.
+Note for the diagnostics: this wiring trains with persistently positive
+ΔR^c (fluent text without attention-compression under the M0-convention
+metric); the diagnostic's interpretation must be re-derived for the new
+unroll point before judging the spiking arms' health by it.
+
 Size-control verdict: doubling parameters bought 2.5 ppl (15.37 → 12.89
 at 5,500 steps). The remaining gap to RWKV-mini is architectural, not
 just size — consistent with published CRATE trailing engineered
