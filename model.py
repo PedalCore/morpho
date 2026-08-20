@@ -214,7 +214,10 @@ class CausalCRATE(nn.Module):
             z = b.ln1(x)
             rc_before = self._coding_rate(z, b.attn, eps_sq)
             x_mid = x + b.attn(z)
-            rc_after = self._coding_rate(b.ln1(x_mid), b.attn, eps_sq)
+            # ALIGNED substep (post-autopsy convention): z vs z + attn(z),
+            # same basis and scaling — the LN'd form logged before the
+            # autopsy commit is labeled as the old convention
+            rc_after = self._coding_rate(z + b.attn(z), b.attn, eps_sq)
             x = b.ista(b.ln2(x_mid))
             out.append(dict(layer=li,
                             rc_before=float(rc_before),
