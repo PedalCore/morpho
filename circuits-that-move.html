@@ -877,7 +877,8 @@ function ticker(period, fn) {                 // returns {toggle, running, set}
     seed();
   };
   drawLut(); seed();
-  if (!reduced) setRun(true);
+  // deliberately NOT auto-started: it would already be running when the
+  // visitor first enables sound, and they would hear a demo they never began.
 }
 
 /* ============ travelling-wave tentacle (logic becomes motion) ============ */
