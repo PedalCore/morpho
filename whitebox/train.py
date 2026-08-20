@@ -27,7 +27,7 @@ sys.path.insert(0, SPIKELM)
 
 from spikelm.data import get_tokenizer, load_split, get_batch  # noqa: E402
 from spikelm.evaluate import generate  # noqa: E402
-from whitebox.model import Config, CausalCRATE  # noqa: E402
+from whitebox.model import Config, CausalCRATE, CausalCRATEM2  # noqa: E402
 
 
 def pick_device():
@@ -64,6 +64,11 @@ def main():
                          'annealing lesson: quantized variants fine-tune '
                          'from float rather than train from scratch)')
     ap.add_argument('--cpu', action='store_true')
+    ap.add_argument('--m2', choices=['a', 'b'], default=None)
+    ap.add_argument('--m2-identity', action='store_true',
+                    help='M2 control: reordered wiring, identity quantizer')
+    ap.add_argument('--anneal', default=None,
+                    help='level schedule, e.g. "2500:2,4000:1"')
     ap.add_argument('--name', default=None)
     args = ap.parse_args()
 
@@ -72,15 +77,22 @@ def main():
     cfg = Config(vocab_size=tok.vocab_size, n_layer=args.layers,
                  n_embd=args.width,
                  tied=not args.untied, spike_prox=args.spike_prox,
-                 mssa_scale=args.scale_init)
-    model = CausalCRATE(cfg).to(device)
+                 mssa_scale=args.scale_init,
+                 m2=args.m2 or '', m2_identity=args.m2_identity)
+    model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
+    anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))
+               for s in args.anneal.split(',')] if args.anneal else [])
     name = args.name or ('crate-spike' if args.spike_prox else 'crate') + \
         f'-d{cfg.n_embd}L{cfg.n_layer}'
     run_dir = pathlib.Path(__file__).parent / 'runs' / name
     run_dir.mkdir(parents=True, exist_ok=True)
     if args.init_from:
         src = torch.load(args.init_from, map_location=device)
-        missing, unexpected = model.load_state_dict(src['model'], strict=False)
+        sd = src['model']
+        if args.m2:      # remap M0 module names onto the M2 wiring
+            sd = {k.replace('.ista.D', '.D').replace('.ln2.', '.ln.'): v
+                  for k, v in sd.items()}
+        missing, unexpected = model.load_state_dict(sd, strict=False)
         print(f'warm-start from {args.init_from}: '
               f'{len(missing)} new params, {len(unexpected)} dropped')
     print(f'{name}: {model.num_params() / 1e6:.1f}M params on {device}')
@@ -100,6 +112,10 @@ def main():
     log = open(run_dir / 'log.jsonl', 'a')
     t0 = time.time()
     for step in range(args.steps):
+        for at_step, lv in anneal:
+            if step == at_step:
+                model.set_levels(lv)
+                print(f'annealed to levels={lv} at step {step}', flush=True)
         for g in opt.param_groups:
             g['lr'] = lr_at(step)
         x, y = get_batch(train_data, args.batch, cfg.ctx, rng, device)
@@ -118,10 +134,16 @@ def main():
             rec = dict(step=step, train_loss=round(float(loss), 4),
                        val_ppl=round(ppl, 3),
                        elapsed=round(time.time() - t0),
+                       thr_grads=[round(float(p.grad.norm()), 5)
+                                  for n2, p in model.named_parameters()
+                                  if 'log_threshold' in n2 and p.grad is not None],
                        layers=[dict(l=m['layer'],
                                     drc=round(m['rc_after'] - m['rc_before'], 3),
                                     r=round(m['r_total'], 2),
-                                    sp=round(m['sparsity'], 3))
+                                    sp=round(m['sparsity'], 3),
+                                    **({'ent': m['entropy'], 'mag': m['mag'],
+                                        'er': m['err_rate']}
+                                       if 'entropy' in m else {}))
                                for m in metrics])
             log.write(json.dumps(rec) + '\n')
             log.flush()
