@@ -58,6 +58,14 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 | M2-control (reordered wiring, identity quantizer) | 5.2M | **14.22** |
 | M2-spike (warm from M0, uncalibrated grid) | 5.2M | 82.35 — preregistered negative (dead-zone start: 96% silenced at step 0) |
 | M2-annealed (4→2→1, uncalibrated) | 5.2M | 2,472 — doubly-confirmed negative: BOTH coarsenings re-injured (113→2,926 at 4→2; 134→2,401 at 2→1, then TRAPPED at binary) |
+| M2-calibrated (rescue: quantile thresholds + blend ramp from M2-control) | 5.2M | 36.80 — mechanism gate PASSED (no extinction; activity healthy throughout), capability gate FAILED (59.7% NLL recovery, plateaued) |
+
+**M2 VERDICT (by the frozen rule): closed.** Calibration prevents
+extinction but does not recover sufficient capability. The codes stay
+active, entropic, and trainable while remaining semantically misaligned
+with the inherited consumers — "spikes are active" ≠ "spikes encode what
+the network expects." M3 proceeds from the M2-control parent (14.22);
+hard conversion is a separate, currently unresolved axis.
 
 M2-control verdict: the reorder is an IMPROVEMENT over M0 (14.22 vs
 15.37), not a cost — the ablation ladder's first rung passes with margin.
