@@ -69,4 +69,26 @@ def calibrate(model, batches, rate_envelope=None, err_rate=ERR_RATE_TARGET):
         if b.eprox is not None:
             got = set_thr(b.eprox, caps[f'r{li}'], err_rate, signed=True)
             report.append((li, 'eprox', err_rate, round(got, 3)))
+
+    # second round: recalibrate the ERROR prox on the HARD model's residual
+    # distribution — quantized z makes reconstruction errors larger, so
+    # float-calibrated eprox thresholds overfire (observed 0.42 vs 0.20)
+    if any(b.eprox is not None for b in model.blocks):
+        from whitebox.model import SpikeProx, SignedProx
+        for m in model.modules():
+            if isinstance(m, (SpikeProx, SignedProx)):
+                m.blend = 1.0
+        caps2 = {f'r{li}': [] for li in range(len(model.blocks))}
+        for idx in batches:
+            idx = idx.to(dev)
+            z = model._embed(idx)
+            for li, b in enumerate(model.blocks):
+                u = b.ln(z + b.attn(z))
+                r = u - z @ b.D.t()
+                caps2[f'r{li}'].append(r.reshape(-1, r.shape[-1]).cpu())
+                z = b(z)
+        for li, b in enumerate(model.blocks):
+            if b.eprox is not None:
+                got = set_thr(b.eprox, caps2[f'r{li}'], err_rate, signed=True)
+                report.append((li, 'eprox-hard', err_rate, round(got, 3)))
     return report

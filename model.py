@@ -104,7 +104,9 @@ class SignedProx(nn.Module):
         self.last_rate = (n.detach() != 0).float().mean()
         mask = (r.abs() < thr * (self.levels + 0.5)).to(r.dtype)
         ste = r * mask
-        return (s * n).detach() * thr + (ste - ste.detach())
+        q = (s * n).detach() * thr + (ste - ste.detach())
+        a = getattr(self, 'blend', 1.0)    # same blend contract as SpikeProx
+        return q if a >= 1.0 else (1.0 - a) * r + a * q
 
 
 class MSSA(nn.Module):
@@ -249,22 +251,42 @@ class CausalCRATE(nn.Module):
         g = z.transpose(-2, -1) @ z                        # B,d,d
         alpha = d / (T * eps_sq)
         eye = torch.eye(d, device=z.device)
-        return (torch.logdet(eye + alpha * g) / 2).mean()
+        return (_chol_logdet(eye.double() + alpha * g.double()) / 2).mean().float()
 
     @staticmethod
     def _coding_rate(z, attn, eps_sq):
         return _coding_rate_impl(z, attn, eps_sq)
 
 
+def _chol_logdet(M):
+    """Overflow-robust logdet: float64, symmetrized, Cholesky
+    (logdet = 2 sum log L_ii), escalating diagnostic jitter."""
+    M = M.double()
+    M = 0.5 * (M + M.transpose(-2, -1))
+    eye = torch.eye(M.shape[-1], dtype=M.dtype, device=M.device)
+    for jitter in (0.0, 1e-8, 1e-6, 1e-4):
+        try:
+            L = torch.linalg.cholesky(M + jitter * eye)
+            return 2.0 * torch.log(torch.diagonal(L, dim1=-2, dim2=-1)).sum(-1)
+        except Exception:
+            continue
+    return torch.full(M.shape[:-2], float('nan'), dtype=M.dtype)
+
+
 def _coding_rate_impl(z, attn, eps_sq):
-    """R^c = sum_k p/(2N) logdet(I + p/(N eps^2) H_k H_k^T), H_k = U_k^T Z."""
+    """R^c = sum_k p/(2N) logdet(I + p/(N eps^2) H_k H_k^T), H_k = U_k^T Z.
+    (autograd path used by autopsy keeps torch.logdet; the robust Cholesky
+    path serves the no-grad metrics)."""
     B, T, d = z.shape
     K, p = attn.K, attn.p
     h = attn.U(z).view(B, T, K, p).transpose(1, 2)     # B,K,T,p
     g = h.transpose(-2, -1) @ h                        # B,K,p,p
     alpha = p / (T * eps_sq)
     eye = torch.eye(p, device=z.device)
-    return (torch.logdet(eye + alpha * g).sum(dim=1) * p / (2 * T)).mean()
+    if torch.is_grad_enabled() and z.requires_grad:
+        return (torch.logdet(eye + alpha * g).sum(dim=1) * p / (2 * T)).mean()
+    ld = _chol_logdet(eye.double() + alpha * g.double())
+    return (ld.sum(dim=1) * p / (2 * T)).mean().float()
 
 
 # ------------------------------------------------------- M2: spike-driven paths
@@ -354,6 +376,7 @@ class CausalCRATEM2(nn.Module):
                             sparsity=1.0 - stats['rate'],
                             entropy=stats['entropy'],
                             mag=round(stats['mag'], 4),
+                            zmax=round(float(z.detach().abs().max()), 2),
                             err_rate=(float(b.eprox.last_rate)
                                       if b.eprox is not None and
                                       b.eprox.last_rate is not None else None)))

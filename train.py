@@ -127,21 +127,53 @@ def main():
         print('calibrated thresholds:',
               [(li, kind, f'{want}->{got}') for li, kind, want, got in rep[:6]],
               '...', flush=True)
-        # step-0 mechanism-success signature (M2.md) — recorded pre-training
-        ppl0 = evaluate(model, valid_data, args.batch, cfg.ctx, device,
-                        iters=10, rng=np.random.default_rng(7))
+
+        # --- three shadow evaluations BEFORE optimizer step 1 (M2.md) ---
+        # a blend schedule starting at alpha=0 would trivially reproduce the
+        # float parent and zero the threshold gradients by construction; the
+        # meaningful test of calibration is the HARD alpha=1 shadow.
+        def _set_blend_all(a):
+            from whitebox.model import SpikeProx, SignedProx
+            for mm in model.modules():
+                if isinstance(mm, (SpikeProx, SignedProx)):
+                    mm.blend = a
+
+        rng7 = lambda: np.random.default_rng(7)
+        _set_blend_all(0.0)
+        ppl_float = evaluate(model, valid_data, args.batch, cfg.ctx, device,
+                             iters=10, rng=rng7())
+        _set_blend_all(1.0)
+        ppl_hard = evaluate(model, valid_data, args.batch, cfg.ctx, device,
+                            iters=10, rng=rng7())
         xm0, _ = get_batch(valid_data, 8, cfg.ctx,
                            np.random.default_rng(3), device)
         m0 = model.layer_metrics(xm0)
-        sp = np.mean([1 - (1 - mm['sparsity']) for mm in m0])
         rates = [1 - mm['sparsity'] for mm in m0]
         ents = [mm['entropy'] for mm in m0 if mm['entropy'] is not None]
         ers = [mm['err_rate'] for mm in m0 if mm['err_rate'] is not None]
-        print(f'CALIBRATION CHECK (pre-training): ppl {ppl0:.0f} '
-              f'(vs 4086 uncalibrated) | firing rates '
-              f'{min(rates):.2f}-{max(rates):.2f} (envelope 0.35-0.47 target) '
-              f'| entropy {min(ents):.2f}-{max(ents):.2f} | err-rate '
-              f'{np.mean(ers):.2f} (target ~0.20)', flush=True)
+        # probe backward at alpha=1 for threshold-gradient coverage; no
+        # optimizer update, gradients cleared afterwards
+        xb, yb = get_batch(valid_data, args.batch, cfg.ctx,
+                           np.random.default_rng(13), device)
+        _, probe_loss = model(xb, yb)
+        probe_loss.backward()
+        thr = [(n2, float(p.grad.abs().sum()))
+               for n2, p in model.named_parameters()
+               if 'log_threshold' in n2 and p.grad is not None]
+        cov = sum(g > 0 for _, g in thr)
+        opt.zero_grad(set_to_none=True)
+        a0 = min(1.0, 0 / args.blend_steps) if args.blend_steps else 1.0
+        _set_blend_all(a0)
+        ppl_sched = evaluate(model, valid_data, args.batch, cfg.ctx, device,
+                             iters=10, rng=rng7())
+        print(f'SHADOW EVALS (pre-training): float a=0 ppl {ppl_float:.1f} '
+              f'(parent 14.22) | HARD a=1 ppl {ppl_hard:.0f} (uncalibrated '
+              f'was 4086) | scheduled a={a0:.2f} ppl {ppl_sched:.1f}',
+              flush=True)
+        print(f'HARD-MODEL SIGNATURE: firing {min(rates):.2f}-{max(rates):.2f} '
+              f'(envelope 0.35-0.47) | entropy {min(ents):.2f}-{max(ents):.2f} '
+              f'| err-rate {np.mean(ers):.2f} (~0.20) | thr-grad coverage '
+              f'{cov}/{len(thr)}', flush=True)
 
     def set_blend(a):
         from whitebox.model import SpikeProx, SignedProx
