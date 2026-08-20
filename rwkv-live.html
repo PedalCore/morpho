@@ -189,6 +189,12 @@ pretending — this page makes no claims it can't back with a running model.</p>
 
 /* ---------- constants ---------- */
 const BASE = 'rwkv-export/';
+/* The 15MB binary is fetched from jsDelivr, which serves this repo with
+   Access-Control-Allow-Origin: * — GitHub release assets do NOT set CORS
+   headers, so they cannot be fetched by a page. Serving this directory
+   locally (python3 -m http.server) uses the relative path instead. */
+const WEIGHTS = location.protocol === 'file:' ? 'https://cdn.jsdelivr.net/gh/PedalCore/morpho@models/rwkv-export/model-int8.bin'
+                                             : BASE + 'model-int8.bin';
 const LOG2E = Math.LOG2E;
 
 /* ---------- model container ---------- */
@@ -235,7 +241,7 @@ async function loadModel(setStatus, setBar) {
   M.tok = makeTokenizer(tokjson);
 
   setStatus('fetching weights (14.9 MB)…');
-  const bin = await fetchBinary(BASE + 'model-int8.bin', f => setBar(f * 100));
+  const bin = await fetchBinary(WEIGHTS, f => setBar(f * 100));
   setStatus('unpacking tensors…');
 
   for (const rec of manifest.tensors) {

@@ -162,6 +162,12 @@ logits = head( LayerNorm_out(x) )           # head tied to the embedding</pre>
 <script>
 'use strict';
 const BASE = 'mamba-export/';
+/* The 15MB binary is fetched from jsDelivr, which serves this repo with
+   Access-Control-Allow-Origin: * — GitHub release assets do NOT set CORS
+   headers, so they cannot be fetched by a page. Serving this directory
+   locally (python3 -m http.server) uses the relative path instead. */
+const WEIGHTS = location.protocol === 'file:' ? 'https://cdn.jsdelivr.net/gh/PedalCore/morpho@models/mamba-export/model-int8.bin'
+                                             : BASE + 'model-int8.bin';
 const $ = id => document.getElementById(id);
 const M = { ready:false, t:{} };
 let running = false, stopFlag = false;
@@ -203,7 +209,7 @@ async function loadModel(onProgress) {
   if (M.cfg.arch !== 'mamba') throw new Error('manifest is not a mamba export');
   M.tok = makeTokenizer(tokjson);
   setStatus('fetching weights (15.5 MB)…');
-  const bin = await fetchBinary(BASE + 'model-int8.bin', onProgress);
+  const bin = await fetchBinary(WEIGHTS, onProgress);
   setStatus('unpacking tensors…');
   for (const rec of manifest.tensors) {
     if (rec.kind === 'int8') {

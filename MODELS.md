@@ -35,3 +35,26 @@ fixed-point tolerances, is at
 [soundlark.studio/mamba-cell.html](https://soundlark.studio/mamba-cell.html).
 Training, export and validation code:
 [`spikelm/` on the snn-lab branch](https://github.com/PedalCore/morpho/tree/snn-lab/spikelm).
+
+## Getting the weights
+
+The two `*-export/` directories in this branch hold everything: manifest,
+tokenizer, and the int8 binary. Clone and serve locally and the pages work
+unchanged:
+
+```bash
+git clone -b models https://github.com/PedalCore/morpho
+cd morpho && python3 -m http.server
+# then open http://localhost:8000/rwkv-live.html
+```
+
+Opened directly from `file://`, the pages fetch the binary from jsDelivr
+instead, which serves this repository with `Access-Control-Allow-Origin: *`.
+
+A note for anyone trying the same trick: **GitHub release assets do not set
+CORS headers** — we checked, on both `HEAD` and ranged `GET` — so a page
+cannot fetch a model from a release. jsDelivr can, and serves the identical
+bytes (verified by SHA-256 against the local file).
+
+The weights live on this branch rather than `main`, which carries only the
+sequential MorphoHDL extension.
