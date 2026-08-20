@@ -53,7 +53,13 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 | RWKV-mini spiking L4 / binary | ~14M | 6.77 / 6.39 |
 | causal CRATE (d=384, L=12, tied) | 5.2M | **15.37** |
 | causal CRATE + spiking prox (warm-started from M0) | 5.2M | **17.05** |
-| causal CRATE, param-matched (d=576, L=12) | ~14.4M | *(training)* |
+| causal CRATE, larger (d=576, L=12) | 10.5M | **12.89** |
+
+Size-control verdict: doubling parameters bought 2.5 ppl (15.37 → 12.89
+at 5,500 steps). The remaining gap to RWKV-mini is architectural, not
+just size — consistent with published CRATE trailing engineered
+architectures at matched scale. (Tied CRATE blocks are 2d², so d=576 is
+"larger," not an exact param match to RWKV's ~14M.)
 
 M1 lessons: spike-prox from scratch COLLAPSES (the L0 over-compression
 signature again, ppl stuck ~400) — but warm-started from the trained float
