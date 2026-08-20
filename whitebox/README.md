@@ -92,9 +92,13 @@ moves the quantizer to feed the U projection and both dictionary matmuls
 directly, with per-channel thresholds folded into consumer weight columns —
 near-total weight-matmul spike coverage, vs RWKV's 27%.
 
-M0 landed with healthy white-box curves: mean per-layer ΔR^c deepened
-monotonically from +0.9 (init) to −7.8 (trained) — the attention layers
-learn to compress, as derived — with ISTA sparsity settling at 0.62.
+M0 landed with monotone ΔR^c curves (+0.9 → −7.8) under the ORIGINAL
+LOGGING CONVENTION, which the derivation–execution autopsy later showed
+was misaligned (a LayerNorm between the two sides of the comparison).
+Under the aligned substep measurement M0's attention EXPANDS the
+compression term in all layers — see M2.md §5b; the "compresses as
+derived" reading is superseded, not an alternative convention. ISTA
+sparsity settled at 0.62.
 Generated text is recognizable TinyStories with rougher grammar than the
 RWKV baselines, consistent with the perplexity gap. One training lesson,
 found by the instrumentation itself: the derived step-size constant is
@@ -120,9 +124,9 @@ python3 -m whitebox.train                 # M0: causal CRATE baseline
 python3 -m whitebox.train --spike-prox    # M1: spiking proximal step
 ```
 
-Logs: `whitebox/runs/<name>/log.jsonl` — val ppl + per-layer ΔR^c (the
-compression each MSSA achieves; negative = working as derived) and ISTA
-sparsity. Data comes from the spikelm checkout (machine-local path in
+Logs: `whitebox/runs/<name>/log.jsonl` — val ppl + per-layer ΔR^c
+(aligned substep convention post-autopsy; earlier logs used the
+superseded LN'd convention and are labeled as such) and ISTA sparsity. Data comes from the spikelm checkout (machine-local path in
 train.py).
 
 ## Roadmap
