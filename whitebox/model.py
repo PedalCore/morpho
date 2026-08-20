@@ -193,8 +193,19 @@ class CausalCRATE(nn.Module):
             out.append(dict(layer=li,
                             rc_before=float(rc_before),
                             rc_after=float(rc_after),
+                            r_total=float(self._expansion_rate(x, eps_sq)),
                             sparsity=1.0 - float(b.ista.last_rate)))
         return out
+
+    @staticmethod
+    def _expansion_rate(z, eps_sq):
+        """R(Z) — the diversity half of the objective. Deep compression with
+        collapsing R means degenerate token collapse, not good structure."""
+        B, T, d = z.shape
+        g = z.transpose(-2, -1) @ z                        # B,d,d
+        alpha = d / (T * eps_sq)
+        eye = torch.eye(d, device=z.device)
+        return (torch.logdet(eye + alpha * g) / 2).mean()
 
     @staticmethod
     def _coding_rate(z, attn, eps_sq):

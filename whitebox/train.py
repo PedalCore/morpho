@@ -63,10 +63,11 @@ def main():
                     help='warm-start weights from another run ckpt (the '
                          'annealing lesson: quantized variants fine-tune '
                          'from float rather than train from scratch)')
+    ap.add_argument('--cpu', action='store_true')
     ap.add_argument('--name', default=None)
     args = ap.parse_args()
 
-    device = pick_device()
+    device = 'cpu' if args.cpu else pick_device()
     tok = get_tokenizer()
     cfg = Config(vocab_size=tok.vocab_size, n_layer=args.layers,
                  n_embd=args.width,
@@ -119,6 +120,7 @@ def main():
                        elapsed=round(time.time() - t0),
                        layers=[dict(l=m['layer'],
                                     drc=round(m['rc_after'] - m['rc_before'], 3),
+                                    r=round(m['r_total'], 2),
                                     sp=round(m['sparsity'], 3))
                                for m in metrics])
             log.write(json.dumps(rec) + '\n')
