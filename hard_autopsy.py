@@ -61,12 +61,39 @@ def cka(x, y):
 
 
 def main():
-    ckpt = sys.argv[1]
+    """Two-state protocol (M2.md):
+      --mode start  + --reconstruct-from <control_ckpt>:
+          conversion-start state (parent weights + same-seed calibration,
+          rebuilt deterministically). Baseline all-float; intervention
+          HARDENS one site at a time -> localizes the ORIGINAL shock.
+      --mode final  <calibrated_ckpt>:
+          adapted state. Baseline all-hard; intervention SOFTENS one site
+          at a time -> residual quantization cost / hard-geometry
+          dependence. (A full float eval here is NOT a parent comparison.)
+    """
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('ckpt')
+    ap.add_argument('--mode', choices=['start', 'final'], default='final')
+    ap.add_argument('--reconstruct-from', action='store_true',
+                    help='ckpt is the M2-CONTROL parent: rebuild the '
+                         'conversion-start state via same-seed calibration')
+    args = ap.parse_args()
     device = pick_device()
-    ck = torch.load(ckpt, map_location=device)
-    model = CausalCRATEM2(Config(**ck['cfg'])).to(device)
-    model.load_state_dict(ck['model'])
+    ck = torch.load(args.ckpt, map_location=device)
+    cfg = Config(**{**ck['cfg'], 'm2_identity': False})
+    model = CausalCRATEM2(cfg).to(device)
+    model.load_state_dict(ck['model'], strict=False)
+    if args.reconstruct_from:
+        from whitebox.calibrate import calibrate
+        valid0 = load_split('valid')
+        cal = [get_batch(valid0, 8, cfg.ctx,
+                         np.random.default_rng(11 + i), device)[0]
+               for i in range(8)]
+        calibrate(model, cal)          # same seeds/procedure as train.py
+        print('conversion-start state reconstructed (parent + calibration)')
     model.eval()
+    mode = args.mode
     valid = load_split('valid')
     x, y = get_batch(valid, 8, 256, np.random.default_rng(3), device)
 
@@ -108,20 +135,24 @@ def main():
     print(f'   KL(float||hard) {kl:.3f}  correct-token mean rank '
           f'{float(rank_f):.1f} -> {float(rank_h):.1f}')
 
-    print('4. one-layer-at-a-time hard substitution (ppl):')
-    base = evaluate(model, valid, 16, 256, device, iters=8,
-                    rng=np.random.default_rng(7))  # still alpha=1 everywhere
+    base_a, probe_a = (0.0, 1.0) if mode == 'start' else (1.0, 0.0)
+    verb = 'harden' if mode == 'start' else 'soften'
+    print(f'4. one-site-at-a-time {verb} sweep (mode={mode}, ppl):')
+    set_blend(model, 1.0)
+    ppl_h = evaluate(model, valid, 16, 256, device, iters=8,
+                     rng=np.random.default_rng(7))
     set_blend(model, 0.0)
     ppl_f = evaluate(model, valid, 16, 256, device, iters=8,
                      rng=np.random.default_rng(7))
-    print(f'   all-float {ppl_f:.1f} | all-hard {base:.1f}')
+    base = ppl_f if mode == 'start' else ppl_h
+    print(f'   all-float {ppl_f:.1f} | all-hard {ppl_h:.1f} | baseline {base:.1f}')
     for li in [-1] + list(range(len(model.blocks))):
-        set_blend(model, 0.0)
-        set_blend(model, 1.0, layer=li)
+        set_blend(model, base_a)
+        set_blend(model, probe_a, layer=li)
         p = evaluate(model, valid, 16, 256, device, iters=8,
                      rng=np.random.default_rng(7))
         nm = 'emb' if li == -1 else f'L{li}'
-        print(f'   hard@{nm}: {p:.1f} (+{p - ppl_f:.1f})')
+        print(f'   {verb}@{nm}: {p:.1f} ({p - base:+.1f})')
     set_blend(model, 1.0)
 
 
