@@ -56,7 +56,8 @@ class Config:
     # ---- M2: spike-driven weight paths (see M2.md) ----
     m2: str = ''               # '' | 'a' (codes into U, D, head) | 'b' (+ ternary error codes)
     m2_identity: bool = False  # control: reordered wiring, identity quantizer
-    attn: str = 'mssa'         # 'mssa' | 'crsa' ('tssa' accepted as legacy)
+    attn: str = 'mssa'         # 'mssa' | 'crsa' | 'dval' ('tssa' legacy)
+    window: int = 0            # mssa only: banded causal mask (0 = full)
 
 
 class SpikeProx(nn.Module):
@@ -121,6 +122,9 @@ class MSSA(nn.Module):
             self.out = nn.Linear(d, d, bias=False)
         self.scale = nn.Parameter(torch.tensor(cfg.mssa_scale))
         mask = torch.triu(torch.full((cfg.ctx, cfg.ctx), float('-inf')), 1)
+        if cfg.window:                     # sliding-window arm (probe suite)
+            mask = mask + torch.tril(
+                torch.full((cfg.ctx, cfg.ctx), float('-inf')), -cfg.window)
         self.register_buffer('causal', mask)
 
     def forward(self, x):                              # (B, T, d)
@@ -354,6 +358,51 @@ class CRSA(nn.Module):
         return -self.scale * out
 
 
+class DecayedValue(nn.Module):
+    """Probe-suite contrast arm: same params and horizon ladder as CRSA,
+    but the state RETRIEVES past values (s_t = rho s_{t-1} + (1-rho) h_t)
+    instead of pricing current activity by past statistics — the
+    RWKV-style linear-recurrence baseline at comparable rho."""
+
+    CHUNK = 32
+
+    def __init__(self, cfg):
+        super().__init__()
+        d, K = cfg.n_embd, cfg.n_head
+        self.K, self.p = K, d // K
+        self.U = nn.Linear(d, d, bias=False)
+        self.tied = cfg.tied
+        if not cfg.tied:
+            self.out = nn.Linear(d, d, bias=False)
+        self.scale = nn.Parameter(torch.tensor(cfg.mssa_scale))
+        ms = [3 + (k % 4) for k in range(K)]
+        self.register_buffer('rho', torch.tensor(
+            [1.0 - 2.0 ** (-m) for m in ms]).float())
+
+    def forward(self, x):
+        B, T, d = x.shape
+        h = self.U(x).view(B, T, self.K, self.p).permute(0, 2, 1, 3)
+        rho = self.rho.view(1, self.K, 1, 1)
+        C = self.CHUNK
+        cs = []
+        carry = torch.zeros(B, self.K, 1, self.p, device=x.device,
+                            dtype=h.dtype)
+        for ci in range((T + C - 1) // C):
+            hc = h[:, :, ci * C:(ci + 1) * C]
+            t = torch.arange(hc.shape[2], device=x.device,
+                             dtype=h.dtype).view(1, 1, -1, 1)
+            s = ((rho ** (t + 1)) * carry +
+                 (rho ** t) * torch.cumsum((1 - rho) * hc * (rho ** (-t)),
+                                           dim=2))
+            cs.append(s)
+            carry = s[:, :, -1:]
+        s = torch.cat(cs, dim=2)
+        agg = s.permute(0, 2, 1, 3).reshape(B, T, d)
+        out = (F.linear(agg, self.U.weight.t()) if self.tied
+               else self.out(agg))
+        return self.scale * out
+
+
 # ------------------------------------------------------- M2: spike-driven paths
 
 class BlockM2(nn.Module):
@@ -365,7 +414,8 @@ class BlockM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = (CRSA if cfg.attn in ('crsa', 'tssa') else MSSA)(cfg)
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+                     .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         self.D = nn.Parameter(torch.empty(d, d))
         nn.init.orthogonal_(self.D)
