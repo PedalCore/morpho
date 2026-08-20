@@ -59,6 +59,10 @@ def main():
     ap.add_argument('--spike-prox', action='store_true')
     ap.add_argument('--untied', action='store_true')
     ap.add_argument('--scale-init', type=float, default=0.1)
+    ap.add_argument('--init-from', default=None,
+                    help='warm-start weights from another run ckpt (the '
+                         'annealing lesson: quantized variants fine-tune '
+                         'from float rather than train from scratch)')
     ap.add_argument('--name', default=None)
     args = ap.parse_args()
 
@@ -73,6 +77,11 @@ def main():
         f'-d{cfg.n_embd}L{cfg.n_layer}'
     run_dir = pathlib.Path(__file__).parent / 'runs' / name
     run_dir.mkdir(parents=True, exist_ok=True)
+    if args.init_from:
+        src = torch.load(args.init_from, map_location=device)
+        missing, unexpected = model.load_state_dict(src['model'], strict=False)
+        print(f'warm-start from {args.init_from}: '
+              f'{len(missing)} new params, {len(unexpected)} dropped')
     print(f'{name}: {model.num_params() / 1e6:.1f}M params on {device}')
 
     train_data, valid_data = load_split('train'), load_split('valid')
