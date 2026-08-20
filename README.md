@@ -41,8 +41,29 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 | RWKV-mini (float) | ~14M | 6.42 |
 | RWKV-mini spiking L4 / binary | ~14M | 6.77 / 6.39 |
 | causal CRATE (d=384, L=12, tied) | 5.2M | **15.37** |
-| causal CRATE + spiking prox | 5.2M | *(training)* |
-| causal CRATE, param-matched (d=576, L=12) | ~14.4M | *(queued)* |
+| causal CRATE + spiking prox (warm-started from M0) | 5.2M | **17.05** |
+| causal CRATE, param-matched (d=576, L=12) | ~14.4M | *(training)* |
+
+M1 lessons: spike-prox from scratch COLLAPSES (the L0 over-compression
+signature again, ppl stuck ~400) — but warm-started from the trained float
+model it fine-tunes to within 11% relative of its parent.
+
+The collapse was autopsied, not assumed (CPU reproduction, same seed): the
+collapsed model's text is word salad ("named it was to. to the and They
+and."), and the expansion term R(Z) falls monotonically through depth
+(184.9 → 14.9 by layer 12) while ΔR^c stays deep — degenerate token
+collapse, the failure mode the compression metric alone cannot see. The
+instrument pair now separates the cases cleanly: healthy training = deep
+ΔR^c with stable R(Z); collapse = deep ΔR^c with R(Z) crashing. (The
+warm-started run, for contrast, generates fluent stories at the same
+ΔR^c depth.) The annealing
+lesson (quantized variants fine-tune from float) transfers from RWKV to
+CRATE. Scope honesty: M1 quantizes the inter-block representation only —
+every matmul is still dense float, because LayerNorm sits between the spike
+output and the next consumer and re-densifies the code. M2 (spike-in CRATE)
+moves the quantizer to feed the U projection and both dictionary matmuls
+directly, with per-channel thresholds folded into consumer weight columns —
+near-total weight-matmul spike coverage, vs RWKV's 27%.
 
 M0 landed with healthy white-box curves: mean per-layer ΔR^c deepened
 monotonically from +0.9 (init) to −7.8 (trained) — the attention layers
