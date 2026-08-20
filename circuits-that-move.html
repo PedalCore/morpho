@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — circuits that move</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  .prose { max-width: 46em; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .demo .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  pre.morpho { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+       line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+       border-radius: 8px; padding: 10px 14px; overflow-x: auto; margin: 10px 0;
+       color: #b9c7bf; }
+  pre.morpho .ln { display: block; border-radius: 4px; padding: 0 6px; margin: 0 -6px;
+                   transition: background .12s; }
+  pre.morpho .ln.hot { background: #2a2413; color: var(--amber); }
+  .stage { display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+           margin: 12px 0; }
+  .row { display: flex; gap: 4px; align-items: center; }
+  .bit { width: 26px; height: 26px; border: 1px solid var(--line);
+         border-radius: 6px; background: var(--panel2);
+         font: 12px/24px ui-monospace, monospace; text-align: center;
+         color: var(--muted); transition: background .1s, box-shadow .1s;
+         user-select: none; }
+  .bit.on { background: var(--amber); color: #14100a; border-color: var(--amber);
+            box-shadow: 0 0 8px #e2a13f66; }
+  .bit.reg { border-bottom: 3px solid #3a4150; }
+  .bit.reg.on { border-bottom-color: #8a5f1c; }
+  .bit.tap { outline: 2px solid var(--green); outline-offset: 1px; }
+  .bit.click { cursor: pointer; }
+  .bit.commit { animation: commit .18s; }
+  @keyframes commit { 50% { transform: scale(1.12); } }
+  .lamp { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line);
+          background: var(--panel2); transition: all .12s; }
+  .lamp.on { background: var(--amber); box-shadow: 0 0 18px #e2a13f88; }
+  .tag { font: 11px/1 ui-monospace, monospace; color: var(--muted);
+         letter-spacing: .06em; text-transform: uppercase; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit;
+           cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+  button.primary { border-color: var(--amber); color: var(--amber); }
+  button:active { transform: translateY(1px); }
+  input[type=range] { accent-color: var(--amber); }
+  input[type=number] { width: 64px; background: var(--panel2); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px;
+      font: 13.5px ui-monospace, monospace; }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 6px; }
+  canvas { border: 1px solid var(--line); border-radius: 8px; display: block;
+           background: #0a0d11; max-width: 100%; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .warn { color: var(--red); font: 13px ui-monospace, monospace; }
+  .ring { position: relative; width: 210px; height: 210px; flex: none; }
+  .ring::before { content: ''; position: absolute; inset: 13px;
+      border: 1px dashed var(--line); border-radius: 50%; }
+  .ring::after { content: '↻'; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%); color: var(--line); font-size: 22px; }
+  .ring .bit { position: absolute; }
+  .arrow { color: var(--muted); font-size: 13px; }
+  .lut8 { display: flex; gap: 3px; }
+  .lut8 .cell { width: 30px; text-align: center; cursor: pointer; }
+  .lut8 .nb { font: 9px/1.4 ui-monospace, monospace; color: var(--muted); }
+  .split { display: flex; gap: 24px; flex-wrap: wrap; }
+  .split > div { flex: 1; min-width: 260px; }
+  .foot { color: #6a7280; font-size: 13.5px; margin-top: 44px;
+          border-top: 1px solid var(--line); padding-top: 16px; max-width: 46em; }
+  .soundbar { position: sticky; top: 10px; z-index: 5; display: flex; gap: 10px;
+      align-items: center; flex-wrap: wrap; background: #12151bee;
+      border: 1px solid var(--line); border-radius: 9px; padding: 8px 14px;
+      width: fit-content; backdrop-filter: blur(4px); }
+  .selbox { background: var(--panel2); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
+      font: 13px inherit; }
+</style>
+</head>
+<body>
+<article>
+  <h1>circuits that <span>move</span></h1>
+  <p class="sub">The MorphoHDL article grows circuits that stand still. The
+  dynamic-systems extension adds one primitive — <code>REG</code> — and suddenly
+  circuits have a pulse. A small gallery of things that visibly move through time,
+  each one a real, verified Morpho program. Sound on: every register commit is a
+  note; the data is the score.</p>
+
+  <div class="links">
+    <a href="https://github.com/PedalCore/morpho">code</a>
+    <a href="https://paradigms-of-intelligence.github.io/morpho/">the original article</a>
+    <a href="https://soundlark.studio/research.html">← research notes</a>
+  </div>
+
+  <div class="soundbar">
+    <button id="soundToggle" class="primary" aria-pressed="false">♪ sound off</button>
+    <label>volume <input type="range" id="masterVol" min="0" max="100" value="35"></label>
+    <label>key
+      <select id="keySel" class="selbox"></select></label>
+    <label>scale
+      <select id="scaleSel" class="selbox"></select></label>
+    <span class="tag">fifths on rings, scale-locked</span>
+  </div>
+
+  <h2>two new words</h2>
+  <div class="prose">
+  <p><code>REG</code> declares state; <code>DRIVE</code> closes the loop through
+  time. Every recurrent path crosses a register, so the whole circuit updates in
+  lock-step: compute everything from the current state, then commit everything at
+  once.</p>
+  </div>
+  <div class="demo">
+    <h3>the smallest moving circuit</h3>
+    <div class="teach">one register, one inverter: q<sub>t+1</sub> = ¬q<sub>t</sub></div>
+    <div class="split">
+      <div>
+<pre class="morpho"><span class="ln" id="bl0">q = REG(ZERO)</span><span class="ln" id="bl1">DRIVE(q, Not(q))</span><span class="ln">return q</span></pre>
+      </div>
+      <div class="stage">
+        <div class="lamp" id="blinkLamp" aria-label="blinker output"></div>
+        <div class="controls">
+          <button id="blinkRun">Run</button>
+          <button id="blinkStep">Step</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>1 · remember a signal — the delay line</h2>
+  <div class="demo" id="delayDemo">
+    <h3>digital echo</h3>
+    <div class="teach">bits travel down a register chain, one cell per tick — hold
+    <b>pulse</b> and watch your signal come back late</div>
+<pre class="morpho"><span class="ln">q = REG(zeros(N))</span><span class="ln" id="dl1">DRIVE(q, CAT(x, q[:-1]))</span><span class="ln">return q[-1:]</span></pre>
+    <div class="stage">
+      <div class="row" id="delayCells"></div>
+    </div>
+    <canvas id="delayScope" width="640" height="64"></canvas>
+    <div class="controls">
+      <button id="delayRun">Run</button>
+      <button id="delayStep">Step</button>
+      <button id="delayPulse" class="primary">Pulse ✦</button>
+      <label>length <input type="range" id="delayLen" min="4" max="12" value="8">
+        <span class="readout" id="delayLenOut">8</span></label>
+    </div>
+  </div>
+
+  <h2>interlude · a ring with one twist</h2>
+  <div class="demo">
+    <h3>running light (Johnson counter)</h3>
+    <div class="teach">a register ring where the feedback bit is inverted: a block
+    of light grows around the loop, then shrinks — 2N states from N registers and
+    one NOT. The ring walks the circle of fifths.</div>
+    <div class="split">
+      <div>
+<pre class="morpho"><span class="ln">q = REG(zeros(N))</span><span class="ln" id="jc1">DRIVE(q, CAT(Not(q[-1:]), q[:-1]))</span><span class="ln">return q</span></pre>
+        <div class="controls">
+          <button id="jcRun">Run</button>
+          <button id="jcStep">Step</button>
+          <button id="jcReset">Reset</button>
+        </div>
+      </div>
+      <div class="ring" id="jcRing"></div>
+    </div>
+  </div>
+
+  <h2>2 · memory for computation — the serial adder</h2>
+  <div class="demo">
+    <h3>carry through time</h3>
+    <div class="teach">the article opens with the ripple adder: carry travelling
+    through <em>space</em>, one full adder per bit. This is the same dependency
+    rotated into <em>time</em>: one full adder, one register, any width. Click
+    bits to edit the operands.</div>
+<pre class="morpho"><span class="ln">carry = REG(ZERO)</span><span class="ln" id="sa1">s = Xor3(a, b, carry)</span><span class="ln" id="sa2">DRIVE(carry, Maj3(a, b, carry))</span><span class="ln">return s</span></pre>
+    <div class="stage" style="flex-direction:column; align-items:flex-start; gap:8px;">
+      <div class="row"><span class="tag" style="width:52px">a</span><div class="row" id="saA"></div></div>
+      <div class="row"><span class="tag" style="width:52px">b</span><div class="row" id="saB"></div></div>
+      <div class="row"><span class="tag" style="width:52px">carry</span>
+        <div class="bit reg" id="saCarry">0</div>
+        <span class="arrow" style="margin-left:14px">→ full adder → </span></div>
+      <div class="row"><span class="tag" style="width:52px">sum</span><div class="row" id="saS"></div>
+        <span class="readout" id="saCheck" style="margin-left:12px"></span></div>
+    </div>
+    <div class="controls">
+      <button id="saRun">Run</button>
+      <button id="saStep">Step</button>
+      <button id="saReset">Reset</button>
+      <button id="saRand">Randomize</button>
+    </div>
+  </div>
+
+  <h2>interlude · a number that is also a clock bank</h2>
+  <div class="demo">
+    <h3>binary counter / clock divider</h3>
+    <div class="teach">registers wrapped around the article's own ripple adder:
+    q ← q + 1. One state machine is simultaneously a number and a bank of
+    divided clocks — each bit toggles at half the rate of the bit below.</div>
+<pre class="morpho"><span class="ln">q = REG(zeros(4))</span><span class="ln" id="cn1">DRIVE(q, ripple_adder(q, one, ZERO)[0])</span><span class="ln">return q</span></pre>
+    <canvas id="cntScope" width="640" height="112"></canvas>
+    <div class="controls">
+      <button id="cntRun">Run</button>
+      <button id="cntStep">Step</button>
+      <button id="cntReset">Reset</button>
+      <span class="readout" id="cntVal"></span>
+    </div>
+  </div>
+
+  <h2>3 · autonomous dynamics — the LFSR necklace</h2>
+  <div class="demo">
+    <h3>pseudo-random from two taps</h3>
+    <div class="teach">a shift ring whose new bit is the XOR of two taps (green).
+    With the right taps the state visits <em>every</em> nonzero pattern before
+    repeating. Click cells to move the taps; hunt for the maximal period.</div>
+    <div class="split">
+      <div>
+<pre class="morpho"><span class="ln">s = REG([1,0,0,…])</span><span class="ln" id="lf1">fb = Xor(s[i], s[j])</span><span class="ln" id="lf2">DRIVE(s, CAT(fb, s[:-1]))</span><span class="ln">return s</span></pre>
+        <div class="controls">
+          <button id="lfRun">Run</button>
+          <button id="lfStep">Step</button>
+          <button id="lfReset">Reset</button>
+          <label>width <input type="range" id="lfW" min="3" max="12" value="4">
+            <span class="readout" id="lfWOut">4</span></label>
+        </div>
+        <p style="margin-top:10px"><span class="readout" id="lfPeriod"></span></p>
+      </div>
+      <div class="ring" id="lfRing"></div>
+    </div>
+  </div>
+
+  <h2>4 · distributed dynamics — the cellular automaton</h2>
+  <div class="demo">
+    <h3>elementary CA explorer</h3>
+    <div class="teach">an N-bit register bank, two cyclic shifts, one 3-input rule
+    — the whole language of elementary CAs in four lines. The rule's truth table
+    is drawn below: <b>click its cells to rewrite the physics while it runs</b>.
+    Every cell birth is a note; the melody is where growth happens.</div>
+<pre class="morpho"><span class="ln">state = REG(zeros(W))</span><span class="ln">l = CAT(state[-1:], state[:-1])</span><span class="ln">r = CAT(state[1:], state[:1])</span><span class="ln" id="ca1">DRIVE(state, Rule(r, state, l))</span><span class="ln">return state</span></pre>
+    <div class="stage" style="gap:26px">
+      <div>
+        <div class="tag" style="margin-bottom:5px">rule <span id="caRuleNo" class="readout"></span> — truth table (click to edit)</div>
+        <div class="lut8" id="caLut"></div>
+      </div>
+      <div class="controls" style="margin-top:0">
+        <button id="caR30">30</button><button id="caR90">90</button>
+        <button id="caR110" class="primary">110</button>
+        <label>rule <input type="number" id="caRule" min="0" max="255" value="110"></label>
+      </div>
+    </div>
+    <canvas id="caCanvas" width="640" height="320"></canvas>
+    <div class="controls">
+      <button id="caRun">Run</button>
+      <button id="caStep">Step</button>
+      <button id="caReset">Reset ⤾ sweep</button>
+      <label>width <input type="range" id="caW" min="32" max="160" value="80">
+        <span class="readout" id="caWOut">80</span></label>
+      <label>seed
+        <select id="caSeed" style="background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px">
+          <option value="single">single</option>
+          <option value="random">random</option>
+          <option value="alt">alternating</option>
+        </select></label>
+      <label>speed <input type="range" id="caSpeed" min="2" max="30" value="12"></label>
+    </div>
+  </div>
+
+  <h2>aside · state without a clock</h2>
+  <div class="demo">
+    <h3>SR latch — one bit from nothing but a loop</h3>
+    <div class="teach">no REG at all: two cross-coupled NORs hold a bit as a
+    fixed point of raw feedback (<code>FORWARD</code>/<code>TIE</code>, the
+    asynchronous corner of the language). Pulse Set and Reset. Then pulse both
+    at once and let go — and meet the state the latch cannot decide.</div>
+<pre class="morpho"><span class="ln">q, qn = FORWARD(ONE), FORWARD(ONE)</span><span class="ln" id="sr1">TIE(q,  Nor(r, qn))</span><span class="ln" id="sr2">TIE(qn, Nor(s, q))</span><span class="ln">return q, qn</span></pre>
+    <div class="stage">
+      <div class="controls" style="margin:0">
+        <button id="srSet" class="primary">Set</button>
+        <button id="srReset" class="primary">Reset</button>
+        <button id="srBoth">S+R together</button>
+      </div>
+      <div class="row" style="gap:16px">
+        <div style="text-align:center"><div class="lamp" id="srQ"></div><div class="tag">Q</div></div>
+        <div style="text-align:center"><div class="lamp" id="srQn"></div><div class="tag">Q̄</div></div>
+      </div>
+      <span class="warn" id="srWarn"></span>
+    </div>
+  </div>
+
+  <h2>5 · computation acquires a body</h2>
+  <div class="demo">
+    <h3>travelling-wave tentacle</h3>
+    <div class="teach">so far the circuit has moved only in time. But a Morpho
+    node can also describe physical tissue: feed register state into
+    <code>Muscle</code> segments and the logical signal changes the geometry
+    that carries it. A circulating bit becomes a contraction wave —
+    peristalsis from a shift register. Swap the controller and the same body
+    inhales, twitches, or dances Rule 110's gliders.</div>
+<pre class="morpho"><span class="ln">q = REG([1,0,0,…,0])</span><span class="ln" id="tn1">DRIVE(q, CAT(q[-1:], q[:-1]))</span><span class="ln">body = muscle_tube(q)</span><span class="ln">return body</span></pre>
+    <canvas id="tubeCv" width="640" height="150"></canvas>
+    <div class="controls">
+      <button id="tbRun">Run</button>
+      <button id="tbStep">Step</button>
+      <button id="tbReset">Reset</button>
+      <label>controller
+        <select id="tbCtrl" class="selbox">
+          <option>one-hot ring</option>
+          <option>Johnson counter</option>
+          <option>LFSR</option>
+          <option>Rule 90</option>
+          <option>Rule 110</option>
+        </select></label>
+      <label>direction <button id="tbDir">→</button></label>
+      <label>wave width <input type="range" id="tbW" min="1" max="8" value="3">
+        <span class="readout" id="tbWOut">3</span></label>
+      <label>contraction <input type="range" id="tbC" min="20" max="85" value="60">
+        <span class="readout" id="tbCOut">60%</span></label>
+      <label>speed <input type="range" id="tbSpeed" min="2" max="16" value="6"></label>
+    </div>
+    <p style="margin-top:10px; font-size:13.5px; color:var(--muted)">With Rule
+    90 or 110 selected this is an <em>automaton with a body</em>: every cell is
+    simultaneously a bit of computation and a piece of muscle. Change the rule
+    and you rewrite both the information dynamics and the choreography.</p>
+  </div>
+
+  <div class="prose">
+  <h2>why these four, and a body</h2>
+  <p>The demos form a progression: <em>remember one signal</em> (delay line) →
+  <em>use memory for computation</em> (serial adder) → <em>create autonomous
+  dynamics</em> (LFSR) → <em>create distributed dynamics</em> (cellular
+  automaton) → <em>embody those dynamics as motion</em> (the tentacle). The
+  latch sits apart because it stores a bit a different way — not behind a
+  clock, but as a fixed point of the wires themselves. Every controller is a
+  real program in the sequential extension, verified in the repository against
+  numpy oracles and, for the adders, against arithmetic itself; the tube
+  renders the tissue idea from the Morpho muscle work — logical nodes that
+  also set the rest length of the links that carry them.</p>
+  </div>
+
+  <p class="foot">
+    Every demo is the actual MorphoHDL program shown beside it, re-simulated in
+    this page with the same synchronous-commit semantics as
+    <code>tiny_morpho_seq.py</code> (runnable versions:
+    <a href="examples/sequential/">examples/sequential/</a>).
+    Sound: one note per register commit, scale-locked (A pentatonic; rings walk
+    the circle of fifths) in the manner of the <a href="https://soundlark.studio/snn/">snn lab</a>.
+    Resetting a demo plays a wavefront — one note per logic level, the signal
+    travelling from inputs to outputs.
+  </p>
+</article>
+
+<script>
+'use strict';
+/* ============ audio: scale-locked pings, fifths on rings ============ */
+const Snd = {
+  ctx: null, master: null, on: false,
+  ensure() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.35 * 0.5;
+      this.master.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  note(midi, {dur = 0.16, gain = 1, type = 'sine', when = 0} = {}) {
+    if (!this.on) return;
+    this.ensure();
+    const t = this.ctx.currentTime + when;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type;
+    o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.28 * gain, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  sweep(levels, base = 57) {          // one note per logic level
+    levels.forEach((el, i) => {
+      this.note(scale(i, 1), {when: i * 0.09, type: 'triangle', gain: .9});
+      if (el) { el.classList.add('commit'); setTimeout(() => el.classList.remove('commit'), 220 + i * 90); }
+    });
+  }
+};
+/* key + scale are user-selectable; rings walk the circle of fifths and
+   snap ("scale-lock") to the chosen scale, snn-lab style */
+const SCALES = {
+  'pentatonic':       [0, 2, 4, 7, 9],
+  'minor pentatonic': [0, 3, 5, 7, 10],
+  'major':            [0, 2, 4, 5, 7, 9, 11],
+  'natural minor':    [0, 2, 3, 5, 7, 8, 10],
+  'dorian':           [0, 2, 3, 5, 7, 9, 10],
+  'whole tone':       [0, 2, 4, 6, 8, 10],
+};
+const KEYS = {A: 57, 'A♯': 58, B: 59, C: 60, 'C♯': 61, D: 62, 'D♯': 63,
+              E: 64, F: 53, 'F♯': 54, G: 55, 'G♯': 56};
+let CUR_SCALE = SCALES['pentatonic'], CUR_ROOT = 57;
+function scale(deg, oct = 0) {
+  const n = CUR_SCALE.length;
+  const d = ((deg % n) + n) % n;
+  return CUR_ROOT + 12 * (oct + Math.floor(deg / n)) + CUR_SCALE[d];
+}
+function snapPC(pc) {                    // nearest scale pitch-class
+  let best = CUR_SCALE[0], dist = 99;
+  for (const s of CUR_SCALE) {
+    const d = Math.min((pc - s + 12) % 12, (s - pc + 12) % 12);
+    if (d < dist) { dist = d; best = s; }
+  }
+  return best;
+}
+function fifths(k, oct = 0) {
+  return (CUR_ROOT - 12) + snapPC((k * 7) % 12) + 12 * oct;
+}
+{
+  const keySel = document.getElementById('keySel'),
+        scaleSel = document.getElementById('scaleSel');
+  for (const k of Object.keys(KEYS)) keySel.add(new Option(k, k));
+  for (const s of Object.keys(SCALES)) scaleSel.add(new Option(s, s));
+  keySel.onchange = () => { CUR_ROOT = KEYS[keySel.value]; Snd.note(scale(0), {gain: .6}); };
+  scaleSel.onchange = () => {
+    CUR_SCALE = SCALES[scaleSel.value];
+    [0, 1, 2].forEach(d => Snd.note(scale(d), {gain: .5, when: d * .1}));
+  };
+}
+const soundBtn = document.getElementById('soundToggle');
+soundBtn.onclick = () => {
+  Snd.on = !Snd.on;
+  if (Snd.on) Snd.ensure();
+  soundBtn.textContent = Snd.on ? '♪ sound on' : '♪ sound off';
+  soundBtn.setAttribute('aria-pressed', Snd.on);
+  if (Snd.on) Snd.note(scale(0, 1), {});
+};
+document.getElementById('masterVol').oninput = e => {
+  if (Snd.master) Snd.master.gain.value = (e.target.value / 100) * 0.5;
+};
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// nothing on this page animates until the visitor starts it, so `reduced`
+// is available for future use rather than gating an autoplay.
+
+/* ============ shared helpers ============ */
+function mkBits(container, n, cls = 'bit reg') {
+  container.innerHTML = '';
+  return Array.from({length: n}, () => {
+    const d = document.createElement('div');
+    d.className = cls; d.textContent = '0';
+    container.appendChild(d);
+    return d;
+  });
+}
+function setBit(el, v) {
+  el.classList.toggle('on', !!v);
+  el.textContent = v ? 1 : 0;
+}
+function flash(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hot');
+  setTimeout(() => el.classList.remove('hot'), 130);
+}
+function ticker(period, fn) {                 // returns {toggle, running, set}
+  let h = null;
+  const api = {
+    running: () => h !== null,
+    stop() { clearInterval(h); h = null; },
+    start() { if (!h) h = setInterval(fn, period.value ?? period); },
+    toggle(btn) {
+      if (api.running()) { api.stop(); btn.textContent = 'Run'; }
+      else { api.start(); btn.textContent = 'Pause'; }
+    },
+    restart() { if (api.running()) { api.stop(); api.start(); } }
+  };
+  return api;
+}
+
+/* ============ blinker ============ */
+{
+  let q = 0;
+  const lamp = document.getElementById('blinkLamp');
+  const step = () => {
+    q ^= 1;
+    lamp.classList.toggle('on', !!q);
+    flash('bl1');
+    Snd.note(q ? scale(4) : scale(0), {gain: .5});
+  };
+  const t = ticker(500, step);
+  document.getElementById('blinkRun').onclick = e => t.toggle(e.target);
+  document.getElementById('blinkStep').onclick = step;
+}
+
+/* ============ delay line ============ */
+{
+  let N = 8, q = Array(N).fill(0), pulse = 0;
+  const cellBox = document.getElementById('delayCells');
+  const scope = document.getElementById('delayScope').getContext('2d');
+  const histX = [], histY = [];
+  let cells, inCell;
+  function build() {
+    q = Array(N).fill(0);
+    cellBox.innerHTML = '';
+    inCell = document.createElement('div');
+    inCell.className = 'bit click'; inCell.textContent = 'x';
+    inCell.title = 'hold Pulse, or click me';
+    cellBox.appendChild(inCell);
+    const arrow = document.createElement('span');
+    arrow.className = 'arrow'; arrow.textContent = '→';
+    cellBox.appendChild(arrow);
+    cells = Array.from({length: N}, () => {
+      const d = document.createElement('div');
+      d.className = 'bit reg'; d.textContent = '0';
+      cellBox.appendChild(d); return d;
+    });
+    const out = document.createElement('span');
+    out.className = 'arrow'; out.textContent = '→ y';
+    cellBox.appendChild(out);
+    inCell.onclick = () => { pulse = 1; render(); };
+    render();
+  }
+  function render() {
+    setBit(inCell, pulse); inCell.textContent = pulse ? '✦' : 'x';
+    cells.forEach((c, i) => setBit(c, q[i]));
+  }
+  function drawScope() {
+    const w = 640, h = 64;
+    scope.fillStyle = '#0a0d11'; scope.fillRect(0, 0, w, h);
+    const draw = (hist, y0, color) => {
+      scope.strokeStyle = color; scope.lineWidth = 2; scope.beginPath();
+      hist.slice(-80).forEach((v, i) => {
+        const x = i * 8, y = y0 + (v ? 0 : 18);
+        i ? scope.lineTo(x, y) : scope.moveTo(x, y);
+        scope.lineTo(x + 8, y);
+      });
+      scope.stroke();
+    };
+    draw(histX, 8, '#9aa1ad'); draw(histY, 38, '#e2a13f');
+    scope.fillStyle = '#9aa1ad'; scope.font = '10px ui-monospace';
+    scope.fillText('x', 4, 14); scope.fillText('y', 4, 44);
+  }
+  function step() {
+    const out = q[N - 1];
+    q = [pulse, ...q.slice(0, -1)];
+    histX.push(pulse); histY.push(out);
+    if (pulse) Snd.note(scale(7), {gain: .55, type: 'triangle'});
+    if (out) Snd.note(scale(2), {gain: .8});
+    pulse = 0;
+    flash('dl1'); render(); drawScope();
+  }
+  const t = ticker(280, step);
+  document.getElementById('delayRun').onclick = e => t.toggle(e.target);
+  document.getElementById('delayStep').onclick = step;
+  const pbtn = document.getElementById('delayPulse');
+  pbtn.onmousedown = () => { pulse = 1; render(); };
+  pbtn.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { pulse = 1; render(); } };
+  document.getElementById('delayLen').oninput = e => {
+    N = +e.target.value;
+    document.getElementById('delayLenOut').textContent = N;
+    build();
+  };
+  build();
+}
+
+/* ============ johnson counter ============ */
+{
+  const N = 8;
+  let q = Array(N).fill(0);
+  const ring = document.getElementById('jcRing');
+  let cells = [];
+  function build() {
+    ring.innerHTML = ''; cells = [];
+    for (let i = 0; i < N; i++) {
+      const d = document.createElement('div');
+      d.className = 'bit reg'; d.textContent = '0';
+      const a = (i / N) * 2 * Math.PI - Math.PI / 2;
+      d.style.left = (92 + 86 * Math.cos(a)) + 'px';
+      d.style.top = (92 + 86 * Math.sin(a)) + 'px';
+      ring.appendChild(d); cells.push(d);
+    }
+  }
+  const render = () => cells.forEach((c, i) => setBit(c, q[i]));
+  function step() {
+    const head = q[N - 1] ? 0 : 1;
+    q = [head, ...q.slice(0, -1)];
+    flash('jc1'); render();
+    Snd.note(fifths(q.filter(Boolean).length, head ? 1 : 0), {gain: .6});
+  }
+  const t = ticker(240, step);
+  document.getElementById('jcRun').onclick = e => t.toggle(e.target);
+  document.getElementById('jcStep').onclick = step;
+  document.getElementById('jcReset').onclick = () => {
+    q = Array(N).fill(0); render();
+    Snd.sweep(cells.slice(0, 4));
+  };
+  build(); render();
+}
+
+/* ============ serial adder ============ */
+{
+  const W = 8;
+  let A = [], B = [], S = [], carry = 0, ptr = 0;
+  const boxA = document.getElementById('saA'), boxB = document.getElementById('saB'),
+        boxS = document.getElementById('saS'), cEl = document.getElementById('saCarry'),
+        check = document.getElementById('saCheck');
+  let cellsA, cellsB, cellsS;
+  const val = bits => bits.reduce((v, b, i) => v + (b << i), 0);
+  function reset(randomize = false) {
+    if (randomize || !A.length) {
+      A = Array.from({length: W}, () => Math.random() < .5 ? 1 : 0);
+      B = Array.from({length: W}, () => Math.random() < .5 ? 1 : 0);
+    }
+    S = Array(W + 1).fill(null); carry = 0; ptr = 0;
+    render(); check.textContent = '';
+  }
+  function render() {
+    // display MSB-left; consume LSB-first (rightmost first)
+    const paint = (cells, bits, editable) => cells.forEach((c, i) => {
+      const bitIdx = W - 1 - i;
+      setBit(c, bits[bitIdx]);
+      c.classList.toggle('click', editable);
+      c.style.outline = (ptr < W && bitIdx === ptr) ? '2px solid #7bd8a5' : '';
+    });
+    paint(cellsA, A, true); paint(cellsB, B, true);
+    cellsS.forEach((c, i) => {
+      const bitIdx = W - i;      // sum has W+1 bits
+      const v = S[bitIdx];
+      c.textContent = v === null ? '·' : v;
+      c.classList.toggle('on', v === 1);
+    });
+    setBit(cEl, carry);
+  }
+  function step() {
+    if (ptr >= W) {
+      if (S[W] === null) { S[W] = carry; render(); finish(); }
+      return;
+    }
+    const a = A[ptr], b = B[ptr];
+    const s = a ^ b ^ carry;
+    const cN = (a & b) | (carry & (a ^ b));
+    flash('sa1');
+    setTimeout(() => flash('sa2'), 70);
+    S[ptr] = s; carry = cN; ptr++;
+    if (s) Snd.note(scale(ptr, 0), {gain: .8});
+    if (cN) Snd.note(scale(0, -1), {gain: .5, type: 'triangle'});
+    render();
+    if (ptr >= W) { S[W] = carry; render(); finish(); }
+  }
+  function finish() {
+    t.stop(); document.getElementById('saRun').textContent = 'Run';
+    const ok = val(A) + val(B) === S.reduce((v, b, i) => v + (b << i), 0);
+    check.textContent = ok ? `${val(A)} + ${val(B)} = ${val(A) + val(B)} ✓` : 'mismatch?!';
+    Snd.note(scale(0, 1), {when: .05}); Snd.note(scale(2, 1), {when: .15});
+  }
+  cellsA = mkBits(boxA, W, 'bit'); cellsB = mkBits(boxB, W, 'bit');
+  cellsS = mkBits(boxS, W + 1, 'bit');
+  [[cellsA, () => A], [cellsB, () => B]].forEach(([cells, get]) =>
+    cells.forEach((c, i) => c.onclick = () => {
+      const bits = get(); bits[W - 1 - i] ^= 1; reset(false); render();
+    }));
+  const t = ticker(420, step);
+  document.getElementById('saRun').onclick = e => t.toggle(e.target);
+  document.getElementById('saStep').onclick = step;
+  document.getElementById('saReset').onclick = () => { reset(false); Snd.sweep([cEl]); };
+  document.getElementById('saRand').onclick = () => reset(true);
+  reset(true);
+}
+
+/* ============ binary counter / clock divider ============ */
+{
+  const NB = 4;
+  let q = 0;
+  const hist = Array.from({length: NB}, () => []);
+  const ctx = document.getElementById('cntScope').getContext('2d');
+  function draw() {
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, 640, 112);
+    ctx.font = '10px ui-monospace';
+    for (let k = 0; k < NB; k++) {
+      const y0 = 10 + k * 26;
+      ctx.strokeStyle = k === 0 ? '#9aa1ad' : '#e2a13f';
+      ctx.globalAlpha = 0.55 + 0.45 * (k / (NB - 1));
+      ctx.lineWidth = 2; ctx.beginPath();
+      hist[k].slice(-76).forEach((v, i) => {
+        const x = 34 + i * 8, y = y0 + (v ? 0 : 14);
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        ctx.lineTo(x + 8, y);
+      });
+      ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#9aa1ad';
+      ctx.fillText(`q${k} /${1 << (k + 1)}`, 2, y0 + 10);
+    }
+  }
+  function step() {
+    const prev = q;
+    q = (q + 1) & ((1 << NB) - 1);
+    flash('cn1');
+    for (let k = 0; k < NB; k++) {
+      hist[k].push((q >> k) & 1);
+      if (((prev ^ q) >> k) & 1 && ((q >> k) & 1))
+        Snd.note(scale(k, k > 1 ? 1 : 0), {gain: .7 - k * .12});
+    }
+    document.getElementById('cntVal').textContent = `q = ${q}`;
+    draw();
+  }
+  const t = ticker(300, step);
+  document.getElementById('cntRun').onclick = e => t.toggle(e.target);
+  document.getElementById('cntStep').onclick = step;
+  document.getElementById('cntReset').onclick = () => {
+    q = 0; hist.forEach(h => h.length = 0); draw();
+    document.getElementById('cntVal').textContent = 'q = 0';
+  };
+  draw();
+}
+
+/* ============ LFSR ============ */
+{
+  let W = 4, taps = [3, 2], s = [];
+  const ring = document.getElementById('lfRing');
+  let cells = [];
+  function reset() { s = Array(W).fill(0); s[0] = 1; render(); }
+  function build() {
+    ring.innerHTML = ''; cells = [];
+    for (let i = 0; i < W; i++) {
+      const d = document.createElement('div');
+      d.className = 'bit reg click'; d.textContent = '0';
+      const a = (i / W) * 2 * Math.PI - Math.PI / 2;
+      d.style.left = (92 + 86 * Math.cos(a)) + 'px';
+      d.style.top = (92 + 86 * Math.sin(a)) + 'px';
+      d.title = 'click to make this a tap';
+      d.onclick = () => { taps = [taps[1], i]; period(); render(); };
+      ring.appendChild(d); cells.push(d);
+    }
+    reset(); period();
+  }
+  function render() {
+    cells.forEach((c, i) => {
+      setBit(c, s[i]);
+      c.classList.toggle('tap', taps.includes(i));
+    });
+  }
+  function stepState(st) {
+    const fb = st[taps[0]] ^ st[taps[1]];
+    return [fb, ...st.slice(0, -1)];
+  }
+  function step() {
+    s = stepState(s);
+    flash('lf1'); setTimeout(() => flash('lf2'), 70);
+    render();
+    const packed = s.reduce((v, b, i) => v + (b << i), 0);
+    Snd.note(fifths(packed % 12, s[0] ? 1 : 0), {gain: .55});
+  }
+  function period() {
+    let st = Array(W).fill(0); st[0] = 1;
+    const seen = st.join('');
+    let p = 0;
+    do { st = stepState(st); p++; } while (st.join('') !== seen && p <= (1 << W));
+    const max = (1 << W) - 1;
+    const el = document.getElementById('lfPeriod');
+    el.textContent = `period ${p} of ${max} possible` + (p === max ? '  — maximal ✓' : '');
+    el.style.color = p === max ? 'var(--green)' : 'var(--muted)';
+  }
+  const t = ticker(240, step);
+  document.getElementById('lfRun').onclick = e => t.toggle(e.target);
+  document.getElementById('lfStep').onclick = step;
+  document.getElementById('lfReset').onclick = () => { reset(); Snd.sweep(cells.slice(0, 3)); };
+  document.getElementById('lfW').oninput = e => {
+    W = +e.target.value;
+    document.getElementById('lfWOut').textContent = W;
+    taps = [W - 1, W - 2];
+    build();
+  };
+  build();
+}
+
+/* ============ ECA explorer ============ */
+{
+  let W = 80, rule = 110, state = [], row = 0;
+  const cv = document.getElementById('caCanvas'), ctx = cv.getContext('2d');
+  const H = 160, CW = 640;
+  const lutBox = document.getElementById('caLut');
+  function seed() {
+    const kind = document.getElementById('caSeed').value;
+    state = Array.from({length: W}, (_, i) =>
+      kind === 'random' ? (Math.random() < .5 ? 1 : 0) :
+      kind === 'alt' ? (i % 2) :
+      (i === W >> 1 ? 1 : 0));
+    row = 0;
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, CW, 2 * H);
+    drawRow();
+  }
+  function drawLut() {
+    lutBox.innerHTML = '';
+    document.getElementById('caRuleNo').textContent = rule;
+    document.getElementById('caRule').value = rule;
+    for (let n = 7; n >= 0; n--) {
+      const wrap = document.createElement('div');
+      wrap.className = 'cell';
+      const nb = document.createElement('div');
+      nb.className = 'nb'; nb.textContent = n.toString(2).padStart(3, '0');
+      const c = document.createElement('div');
+      c.className = 'bit' + (((rule >> n) & 1) ? ' on' : '');
+      c.textContent = (rule >> n) & 1;
+      c.onclick = () => { rule ^= (1 << n); drawLut(); Snd.note(scale(n), {gain: .5}); };
+      wrap.appendChild(nb); wrap.appendChild(c); lutBox.appendChild(wrap);
+    }
+  }
+  function drawRow() {
+    const px = CW / W;
+    if (row >= H) {                        // scroll up by one row
+      ctx.drawImage(cv, 0, 2, CW, 2 * (H - 1), 0, 0, CW, 2 * (H - 1));
+      ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 2 * (H - 1), CW, 2);
+    }
+    const y = Math.min(row, H - 1) * 2;
+    for (let i = 0; i < W; i++) {
+      ctx.fillStyle = state[i] ? '#e2a13f' : '#0a0d11';
+      ctx.fillRect(i * px, y, Math.ceil(px), 2);
+    }
+  }
+  function step() {
+    const prev = state;
+    state = state.map((c, i) => {
+      const l = prev[(i - 1 + W) % W], r = prev[(i + 1) % W];
+      return (rule >> (4 * l + 2 * c + r)) & 1;
+    });
+    row++;
+    flash('ca1');
+    drawRow();
+    // births -> notes: melody follows where growth happens
+    const births = [];
+    for (let i = 0; i < W; i++) if (state[i] && !prev[i]) births.push(i);
+    const pick = births.filter((_, k) => k % Math.ceil(births.length / 4) === 0).slice(0, 4);
+    pick.forEach((i, k) =>
+      Snd.note(scale(Math.floor((i / W) * 10), 0), {gain: .5 / (k + 1), when: k * .02}));
+  }
+  const speed = document.getElementById('caSpeed');
+  let h = null;
+  function setRun(on) {
+    if (h) { clearInterval(h); h = null; }
+    if (on) h = setInterval(step, 1000 / (+speed.value));
+    document.getElementById('caRun').textContent = h ? 'Pause' : 'Run';
+  }
+  document.getElementById('caRun').onclick = () => setRun(!h);
+  speed.oninput = () => { if (h) setRun(true); };
+  document.getElementById('caStep').onclick = step;
+  document.getElementById('caReset').onclick = () => {
+    seed();
+    Snd.sweep([null, null, null], 57);     // regs -> shifts -> LUT
+  };
+  document.getElementById('caRule').onchange = e => {
+    rule = Math.max(0, Math.min(255, +e.target.value || 0)); drawLut();
+  };
+  [['caR30', 30], ['caR90', 90], ['caR110', 110]].forEach(([id, r]) =>
+    document.getElementById(id).onclick = () => { rule = r; drawLut(); });
+  document.getElementById('caW').oninput = e => {
+    W = +e.target.value;
+    document.getElementById('caWOut').textContent = W;
+    seed();
+  };
+  drawLut(); seed();
+  // deliberately NOT auto-started: it would already be running when the
+  // visitor first enables sound, and they would hear a demo they never began.
+}
+
+/* ============ travelling-wave tentacle (logic becomes motion) ============ */
+{
+  const N = 24;
+  let seg = [], dir = 1, ctrl = 'one-hot ring';
+  let radii = Array(N).fill(1);                 // eased visual state
+  const cv = document.getElementById('tubeCv'), ctx = cv.getContext('2d');
+  const waveW = document.getElementById('tbW'), contr = document.getElementById('tbC');
+
+  const shiftArr = (a, d) => d > 0
+    ? [a[a.length - 1], ...a.slice(0, -1)]
+    : [...a.slice(1), a[0]];
+  const CTRL = {
+    'one-hot ring': {
+      init() { const w = +waveW.value;
+               seg = Array.from({length: N}, (_, i) => i < w ? 1 : 0); },
+      step() { seg = shiftArr(seg, dir); }
+    },
+    'Johnson counter': {
+      init() { seg = Array(N).fill(0); },
+      step() {
+        const head = dir > 0 ? (seg[N - 1] ? 0 : 1) : (seg[0] ? 0 : 1);
+        seg = dir > 0 ? [head, ...seg.slice(0, -1)] : [...seg.slice(1), head];
+      }
+    },
+    'LFSR': {
+      init() { seg = Array(N).fill(0); seg[0] = 1; },
+      step() {
+        const fb = seg[N - 1] ^ seg[N - 2];
+        seg = dir > 0 ? [fb, ...seg.slice(0, -1)] : [...seg.slice(1), fb];
+      }
+    },
+    'Rule 90': {
+      init() { seg = Array(N).fill(0); seg[N >> 1] = 1; },
+      step() { seg = eca(seg, 90); }
+    },
+    'Rule 110': {
+      init() { seg = Array(N).fill(0); seg[N >> 1] = 1; },
+      step() { seg = eca(seg, 110); }
+    }
+  };
+  function eca(s, rule) {
+    return s.map((c, i) => {
+      const l = s[(i - 1 + N) % N], r = s[(i + 1) % N];
+      return (rule >> (4 * l + 2 * c + r)) & 1;
+    });
+  }
+  function draw() {
+    const W = 640, H = 150, sw = W / N, mid = H / 2, R = 46;
+    ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, W, H);
+    const rr = i => R * radii[Math.max(0, Math.min(N - 1, i))];
+    const xs = i => (i + 0.5) * sw;
+    // path along one tube edge, left -> right (no beginPath inside)
+    const edge = sign => {
+      for (let i = 0; i < N - 1; i++) {
+        const xm = (xs(i) + xs(i + 1)) / 2;
+        const ym = mid + sign * (rr(i) + rr(i + 1)) / 2;
+        ctx.quadraticCurveTo(xs(i), mid + sign * rr(i), xm, ym);
+      }
+      ctx.quadraticCurveTo(xs(N - 1), mid + sign * rr(N - 1),
+                           W, mid + sign * rr(N - 1));
+    };
+    const edgeBack = sign => {                  // right -> left
+      for (let i = N - 1; i > 0; i--) {
+        const xm = (xs(i) + xs(i - 1)) / 2;
+        const ym = mid + sign * (rr(i) + rr(i - 1)) / 2;
+        ctx.quadraticCurveTo(xs(i), mid + sign * rr(i), xm, ym);
+      }
+      ctx.quadraticCurveTo(xs(0), mid + sign * rr(0), 0, mid + sign * rr(0));
+    };
+    ctx.fillStyle = '#171b23';
+    ctx.beginPath();
+    ctx.moveTo(0, mid + rr(0)); edge(1);
+    ctx.lineTo(W, mid - rr(N - 1)); edgeBack(-1);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#3a4150'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, mid + rr(0)); edge(1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, mid - rr(0)); edge(-1); ctx.stroke();
+    // contracted segments glow
+    ctx.fillStyle = 'rgba(226,161,63,0.30)';
+    seg.forEach((v, i) => {
+      if (!v) return;
+      const r = rr(i);
+      ctx.fillRect(i * sw, mid - r, sw, 2 * r);
+    });
+    // segment ribs
+    ctx.strokeStyle = '#242a35'; ctx.lineWidth = 1;
+    for (let i = 1; i < N; i++) {
+      const r = (rr(i - 1) + rr(i)) / 2;
+      ctx.beginPath(); ctx.moveTo(i * sw, mid - r);
+      ctx.lineTo(i * sw, mid + r); ctx.stroke();
+    }
+  }
+  function animate() {
+    const c = (+contr.value) / 100;
+    seg.forEach((v, i) => {
+      const target = v ? (1 - c) : 1;
+      radii[i] += (target - radii[i]) * 0.30;
+    });
+    draw();
+    requestAnimationFrame(animate);
+  }
+  function step() {
+    const prev = seg;
+    CTRL[ctrl].step();
+    flash('tn1');
+    const births = [];
+    seg.forEach((v, i) => { if (v && !prev[i]) births.push(i); });
+    births.slice(0, 3).forEach((i, k) =>
+      Snd.note(scale(Math.floor((i / N) * 8)), {gain: .55 / (k + 1), when: k * .02}));
+  }
+  const speed = document.getElementById('tbSpeed');
+  let h = null;
+  function setRun(on) {
+    if (h) { clearInterval(h); h = null; }
+    if (on) h = setInterval(step, 1000 / (+speed.value));
+    document.getElementById('tbRun').textContent = h ? 'Pause' : 'Run';
+  }
+  document.getElementById('tbRun').onclick = () => setRun(!h);
+  speed.oninput = () => { if (h) setRun(true); };
+  document.getElementById('tbStep').onclick = step;
+  document.getElementById('tbReset').onclick = () => {
+    CTRL[ctrl].init();
+    Snd.sweep([null, null, null]);
+  };
+  document.getElementById('tbCtrl').onchange = e => {
+    ctrl = e.target.value; CTRL[ctrl].init();
+  };
+  document.getElementById('tbDir').onclick = e => {
+    dir = -dir; e.target.textContent = dir > 0 ? '→' : '←';
+  };
+  waveW.oninput = () => {
+    document.getElementById('tbWOut').textContent = waveW.value;
+    if (ctrl === 'one-hot ring') CTRL[ctrl].init();
+  };
+  contr.oninput = () =>
+    document.getElementById('tbCOut').textContent = contr.value + '%';
+  CTRL[ctrl].init();
+  animate();
+}
+
+/* ============ SR latch (fixed-point feedback) ============ */
+{
+  let q = 0, qn = 0;
+  const lampQ = document.getElementById('srQ'), lampQn = document.getElementById('srQn'),
+        warn = document.getElementById('srWarn');
+  function settle(s, r) {
+    // parallel fixed-point iteration with persisted values — the same
+    // semantics as tiny_morpho_seq's relax loop (forward wires copy the
+    // gates' previous values). Held S=R=1 converges to (0,0): a genuine
+    // fixed point, just not a valid latch state. The failure to settle
+    // happens on simultaneous RELEASE, where the symmetric update has no
+    // way to break the tie — the idealization of metastability.
+    for (let i = 0; i < 32; i++) {
+      const nq = (r || qn) ? 0 : 1;        // Nor(r, qn)
+      const nqn = (s || q) ? 0 : 1;        // Nor(s, q)
+      if (nq === q && nqn === qn) return true;
+      q = nq; qn = nqn;
+    }
+    return false;
+  }
+  function render() {
+    lampQ.classList.toggle('on', !!q);
+    lampQn.classList.toggle('on', !!qn);
+  }
+  function pulse(s, r) {
+    flash('sr1'); setTimeout(() => flash('sr2'), 70);
+    settle(s, r);
+    settle(0, 0);
+    render(); warn.textContent = '';
+    Snd.note(s ? fifths(1, 1) : fifths(6, 0), {gain: .7});
+  }
+  document.getElementById('srSet').onclick = () => pulse(1, 0);
+  document.getElementById('srReset').onclick = () => pulse(0, 1);
+  document.getElementById('srBoth').onclick = () => {
+    flash('sr1'); setTimeout(() => flash('sr2'), 70);
+    settle(1, 1); render();
+    warn.textContent = 'held: both outputs forced low — a fixed point, '
+      + 'but not a valid latch state…';
+    setTimeout(() => {
+      const ok = settle(0, 0);
+      render();
+      if (!ok) {
+        warn.textContent = 'released together: the symmetric update never '
+          + 'settles — real silicon breaks the tie with noise (metastability)';
+        Snd.note(scale(1), {gain: .5, type: 'square', dur: .1});
+        Snd.note(scale(1) + 1, {gain: .5, type: 'square', dur: .1, when: .11});
+      }
+    }, 900);
+  };
+  settle(0, 1); render();                  // start reset
+}
+</script>
+</body>
+</html>
