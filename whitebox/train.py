@@ -127,6 +127,21 @@ def main():
         print('calibrated thresholds:',
               [(li, kind, f'{want}->{got}') for li, kind, want, got in rep[:6]],
               '...', flush=True)
+        # step-0 mechanism-success signature (M2.md) — recorded pre-training
+        ppl0 = evaluate(model, valid_data, args.batch, cfg.ctx, device,
+                        iters=10, rng=np.random.default_rng(7))
+        xm0, _ = get_batch(valid_data, 8, cfg.ctx,
+                           np.random.default_rng(3), device)
+        m0 = model.layer_metrics(xm0)
+        sp = np.mean([1 - (1 - mm['sparsity']) for mm in m0])
+        rates = [1 - mm['sparsity'] for mm in m0]
+        ents = [mm['entropy'] for mm in m0 if mm['entropy'] is not None]
+        ers = [mm['err_rate'] for mm in m0 if mm['err_rate'] is not None]
+        print(f'CALIBRATION CHECK (pre-training): ppl {ppl0:.0f} '
+              f'(vs 4086 uncalibrated) | firing rates '
+              f'{min(rates):.2f}-{max(rates):.2f} (envelope 0.35-0.47 target) '
+              f'| entropy {min(ents):.2f}-{max(ents):.2f} | err-rate '
+              f'{np.mean(ers):.2f} (target ~0.20)', flush=True)
 
     def set_blend(a):
         from whitebox.model import SpikeProx, SignedProx
