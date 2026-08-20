@@ -40,8 +40,18 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 |---|---|---|
 | RWKV-mini (float) | ~14M | 6.42 |
 | RWKV-mini spiking L4 / binary | ~14M | 6.77 / 6.39 |
-| causal CRATE (d=384, L=12, tied) | 5.2M | *(training)* |
+| causal CRATE (d=384, L=12, tied) | 5.2M | **15.37** |
 | causal CRATE + spiking prox | 5.2M | *(training)* |
+| causal CRATE, param-matched (d=576, L=12) | ~14.4M | *(queued)* |
+
+M0 landed with healthy white-box curves: mean per-layer ΔR^c deepened
+monotonically from +0.9 (init) to −7.8 (trained) — the attention layers
+learn to compress, as derived — with ISTA sparsity settling at 0.62.
+Generated text is recognizable TinyStories with rougher grammar than the
+RWKV baselines, consistent with the perplexity gap. One training lesson,
+found by the instrumentation itself: the derived step-size constant is
+load-bearing (scale init 1.0 → layer-0 over-compression, ΔR^c −74.7 at L0,
+stall at ppl ~420; init 0.1 → healthy descent).
 
 CRATE blocks are ~3d² parameters against a transformer's ~12d² — the table
 reports both param counts and shared step budget; neither normalization is

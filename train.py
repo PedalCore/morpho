@@ -55,6 +55,7 @@ def main():
     ap.add_argument('--batch', type=int, default=16)
     ap.add_argument('--lr', type=float, default=6e-4)
     ap.add_argument('--layers', type=int, default=12)
+    ap.add_argument('--width', type=int, default=384)
     ap.add_argument('--spike-prox', action='store_true')
     ap.add_argument('--untied', action='store_true')
     ap.add_argument('--scale-init', type=float, default=0.1)
@@ -64,6 +65,7 @@ def main():
     device = pick_device()
     tok = get_tokenizer()
     cfg = Config(vocab_size=tok.vocab_size, n_layer=args.layers,
+                 n_embd=args.width,
                  tied=not args.untied, spike_prox=args.spike_prox,
                  mssa_scale=args.scale_init)
     model = CausalCRATE(cfg).to(device)
