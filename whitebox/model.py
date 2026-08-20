@@ -251,7 +251,7 @@ class CausalCRATE(nn.Module):
         g = z.transpose(-2, -1) @ z                        # B,d,d
         alpha = d / (T * eps_sq)
         eye = torch.eye(d, device=z.device)
-        return (_chol_logdet(eye.double() + alpha * g.double()) / 2).mean().float()
+        return (_chol_logdet(eye + alpha * g) / 2).mean().float()
 
     @staticmethod
     def _coding_rate(z, attn, eps_sq):
@@ -260,8 +260,9 @@ class CausalCRATE(nn.Module):
 
 def _chol_logdet(M):
     """Overflow-robust logdet: float64, symmetrized, Cholesky
-    (logdet = 2 sum log L_ii), escalating diagnostic jitter."""
-    M = M.double()
+    (logdet = 2 sum log L_ii), escalating diagnostic jitter.
+    Computed on CPU — MPS has no float64; these matrices are small."""
+    M = M.detach().cpu().double()
     M = 0.5 * (M + M.transpose(-2, -1))
     eye = torch.eye(M.shape[-1], dtype=M.dtype, device=M.device)
     for jitter in (0.0, 1e-8, 1e-6, 1e-4):
@@ -285,7 +286,7 @@ def _coding_rate_impl(z, attn, eps_sq):
     eye = torch.eye(p, device=z.device)
     if torch.is_grad_enabled() and z.requires_grad:
         return (torch.logdet(eye + alpha * g).sum(dim=1) * p / (2 * T)).mean()
-    ld = _chol_logdet(eye.double() + alpha * g.double())
+    ld = _chol_logdet(eye + alpha * g)
     return (ld.sum(dim=1) * p / (2 * T)).mean().float()
 
 
