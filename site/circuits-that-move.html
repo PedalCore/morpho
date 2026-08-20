@@ -460,6 +460,8 @@ document.getElementById('masterVol').oninput = e => {
   if (Snd.master) Snd.master.gain.value = (e.target.value / 100) * 0.5;
 };
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// nothing on this page animates until the visitor starts it, so `reduced`
+// is available for future use rather than gating an autoplay.
 
 /* ============ shared helpers ============ */
 function mkBits(container, n, cls = 'bit reg') {
@@ -877,7 +879,8 @@ function ticker(period, fn) {                 // returns {toggle, running, set}
     seed();
   };
   drawLut(); seed();
-  if (!reduced) setRun(true);
+  // deliberately NOT auto-started: it would already be running when the
+  // visitor first enables sound, and they would hear a demo they never began.
 }
 
 /* ============ travelling-wave tentacle (logic becomes motion) ============ */
