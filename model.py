@@ -56,7 +56,7 @@ class Config:
     # ---- M2: spike-driven weight paths (see M2.md) ----
     m2: str = ''               # '' | 'a' (codes into U, D, head) | 'b' (+ ternary error codes)
     m2_identity: bool = False  # control: reordered wiring, identity quantizer
-    attn: str = 'mssa'         # 'mssa' | 'tssa' (M3 statistics attention)
+    attn: str = 'mssa'         # 'mssa' | 'crsa' ('tssa' accepted as legacy)
 
 
 class SpikeProx(nn.Module):
@@ -291,8 +291,10 @@ def _coding_rate_impl(z, attn, eps_sq):
     return (ld.sum(dim=1) * p / (2 * T)).mean().float()
 
 
-class TSSA(nn.Module):
-    """M3 statistics attention (M3.md): no token pairs, no softmax.
+class CRSA(nn.Module):
+    """CRSA — Causal Rate-Statistics Attention (name provisional;
+    "TSSA" is occupied by Decision SpikeFormer, CVPR 2025).
+    M3 statistics attention (M3.md): no token pairs, no softmax.
     Per head, a causally decayed activity statistic gates the projected
     coordinates by their marginal coding price:
 
@@ -363,7 +365,7 @@ class BlockM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = (TSSA if cfg.attn == 'tssa' else MSSA)(cfg)
+        self.attn = (CRSA if cfg.attn in ('crsa', 'tssa') else MSSA)(cfg)
         self.ln = nn.LayerNorm(d)
         self.D = nn.Parameter(torch.empty(d, d))
         nn.init.orthogonal_(self.D)
@@ -450,3 +452,6 @@ class CausalCRATEM2(nn.Module):
         for m in self.modules():
             if isinstance(m, (SpikeProx, SignedProx)):
                 m.levels = levels
+
+
+TSSA = CRSA   # legacy alias (pre-rename imports)

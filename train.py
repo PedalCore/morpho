@@ -65,8 +65,8 @@ def main():
                          'from float rather than train from scratch)')
     ap.add_argument('--cpu', action='store_true')
     ap.add_argument('--m2', choices=['a', 'b'], default=None)
-    ap.add_argument('--tssa', action='store_true',
-                    help='M3 statistics attention instead of MSSA')
+    ap.add_argument('--crsa', '--tssa', dest='crsa', action='store_true',
+                    help='CRSA statistics attention instead of MSSA')
     ap.add_argument('--m2-identity', action='store_true',
                     help='M2 control: reordered wiring, identity quantizer')
     ap.add_argument('--anneal', default=None,
@@ -86,7 +86,7 @@ def main():
                  tied=not args.untied, spike_prox=args.spike_prox,
                  mssa_scale=args.scale_init,
                  m2=args.m2 or '', m2_identity=args.m2_identity,
-                 attn='tssa' if args.tssa else 'mssa')
+                 attn='crsa' if args.crsa else 'mssa')
     model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
     anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))
                for s in args.anneal.split(',')] if args.anneal else [])
