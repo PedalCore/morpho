@@ -1,5 +1,16 @@
 # whitebox — causal CRATE, and a spiking proximal step
 
+> **Repo home: [PedalCore/whitebox-lm](https://github.com/PedalCore/whitebox-lm)**
+> (history extracted via subtree split; this directory in the morpho fork
+> remains the working copy only until the current training ladder
+> completes, mirrored via `git subtree push --prefix=whitebox whitebox main`).
+>
+> Machine-local dependencies, by design: the **spikelm** checkout
+> (tokenizer, TinyStories bins, baselines — the collaborator's repo,
+> referenced not vendored) and the **morpho** hardware pipeline
+> (`tiny_morpho_hw.py`, `examples/rwkv/count_gates.py`) for the
+> M2/M3-hardware stages.
+
 An adaptation of **CRATE** (Yu et al., [arXiv:2306.01129](https://arxiv.org/abs/2306.01129);
 causal GPT-style variant in the [JMLR version](https://arxiv.org/abs/2311.13110))
 to this project's corpus, baselines, and measurement discipline — plus the
