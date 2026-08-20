@@ -53,6 +53,9 @@ class Config:
     spike_prox: bool = False   # integer-quantizer prox instead of soft-thresh
     spike_levels: int = 4
     spike_init_threshold: float = 0.5
+    # ---- M2: spike-driven weight paths (see M2.md) ----
+    m2: str = ''               # '' | 'a' (codes into U, D, head) | 'b' (+ ternary error codes)
+    m2_identity: bool = False  # control: reordered wiring, identity quantizer
 
 
 class SpikeProx(nn.Module):
@@ -79,6 +82,27 @@ class SpikeProx(nn.Module):
         mask = ((v > -0.5 * thr) & (v < thr * (self.levels + 0.5))).to(v.dtype)
         ste = v * mask
         return n.detach() * thr + (ste - ste.detach())
+
+
+class SignedProx(nn.Module):
+    """Ternary-code prox for the reconstruction error (M2b):
+    sign(r) * clamp(floor(|r|/thr), 0, L) * thr, trainable per-channel thr."""
+
+    def __init__(self, dim, levels=4, init_threshold=0.5):
+        super().__init__()
+        self.levels = levels
+        self.log_threshold = nn.Parameter(
+            torch.full((dim,), float(init_threshold)).log())
+        self.last_rate = None
+
+    def forward(self, r):
+        thr = self.log_threshold.exp()
+        n = torch.clamp(torch.floor(r.abs() / thr), 0, self.levels)
+        s = torch.sign(r)
+        self.last_rate = (n.detach() != 0).float().mean()
+        mask = (r.abs() < thr * (self.levels + 0.5)).to(r.dtype)
+        ste = r * mask
+        return (s * n).detach() * thr + (ste - ste.detach())
 
 
 class MSSA(nn.Module):
@@ -198,6 +222,21 @@ class CausalCRATE(nn.Module):
         return out
 
     @staticmethod
+    def _code_stats(z, prox):
+        """Spike-code health: rate, level entropy, mean |code|."""
+        if prox is None:
+            nz = (z.detach() != 0).float().mean()
+            return dict(rate=float(nz), entropy=None,
+                        mag=float(z.detach().abs().mean()))
+        thr = prox.log_threshold.exp()
+        n = torch.round(z.detach() / thr).clamp(0, prox.levels).long()
+        counts = torch.bincount(n.reshape(-1), minlength=prox.levels + 1).float()
+        p = counts / counts.sum()
+        ent = float(-(p[p > 0] * p[p > 0].log2()).sum())
+        return dict(rate=float((n != 0).float().mean()), entropy=round(ent, 3),
+                    mag=float(z.detach().abs().mean()))
+
+    @staticmethod
     def _expansion_rate(z, eps_sq):
         """R(Z) — the diversity half of the objective. Deep compression with
         collapsing R means degenerate token collapse, not good structure."""
@@ -209,11 +248,111 @@ class CausalCRATE(nn.Module):
 
     @staticmethod
     def _coding_rate(z, attn, eps_sq):
-        """R^c = sum_k p/(2N) logdet(I + p/(N eps^2) H_k H_k^T), H_k = U_k^T Z."""
-        B, T, d = z.shape
-        K, p = attn.K, attn.p
-        h = attn.U(z).view(B, T, K, p).transpose(1, 2)     # B,K,T,p
-        g = h.transpose(-2, -1) @ h                        # B,K,p,p
-        alpha = p / (T * eps_sq)
-        eye = torch.eye(p, device=z.device)
-        return (torch.logdet(eye + alpha * g).sum(dim=1) * p / (2 * T)).mean()
+        return _coding_rate_impl(z, attn, eps_sq)
+
+
+def _coding_rate_impl(z, attn, eps_sq):
+    """R^c = sum_k p/(2N) logdet(I + p/(N eps^2) H_k H_k^T), H_k = U_k^T Z."""
+    B, T, d = z.shape
+    K, p = attn.K, attn.p
+    h = attn.U(z).view(B, T, K, p).transpose(1, 2)     # B,K,T,p
+    g = h.transpose(-2, -1) @ h                        # B,K,p,p
+    alpha = p / (T * eps_sq)
+    eye = torch.eye(p, device=z.device)
+    return (torch.logdet(eye + alpha * g).sum(dim=1) * p / (2 * T)).mean()
+
+
+# ------------------------------------------------------- M2: spike-driven paths
+
+class BlockM2(nn.Module):
+    """M2 block (M2.md eq.): the layer state is a CODE vector; U and D
+    consume it raw (no LN in between), the ISTA step unrolls from the
+    previous code, and (M2b) the reconstruction error is ternary-quantized
+    so D^T consumes codes too."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        self.attn = MSSA(cfg)
+        self.ln = nn.LayerNorm(d)
+        self.D = nn.Parameter(torch.empty(d, d))
+        nn.init.orthogonal_(self.D)
+        self.eta = cfg.ista_eta
+        self.eprox = (SignedProx(d, cfg.spike_levels, cfg.spike_init_threshold)
+                      if cfg.m2 == 'b' and not cfg.m2_identity else None)
+        self.prox = (None if cfg.m2_identity else
+                     SpikeProx(d, cfg.spike_levels, cfg.spike_init_threshold))
+
+    def forward(self, z):
+        x = z + self.attn(z)               # U consumes codes directly
+        u = self.ln(x)
+        r = u - z @ self.D.t()             # D consumes codes
+        if self.eprox is not None:
+            r = self.eprox(r)              # ternary error codes (M2b)
+        v = z + self.eta * (r @ self.D)    # D^T consumes r (codes in M2b)
+        return self.prox(v) if self.prox is not None else v
+
+
+class CausalCRATEM2(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        assert cfg.m2 in ('a', 'b')
+        self.cfg = cfg
+        self.emb = nn.Embedding(cfg.vocab_size, cfg.n_embd)
+        self.pos = nn.Embedding(cfg.ctx, cfg.n_embd)
+        self.ln_in = nn.LayerNorm(cfg.n_embd)
+        self.prox_in = (None if cfg.m2_identity else
+                        SpikeProx(cfg.n_embd, cfg.spike_levels,
+                                  cfg.spike_init_threshold))
+        self.blocks = nn.ModuleList(BlockM2(cfg) for _ in range(cfg.n_layer))
+        self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
+        self.head.weight = self.emb.weight     # head consumes codes directly
+        nn.init.normal_(self.emb.weight, std=0.02)
+        nn.init.normal_(self.pos.weight, std=0.02)
+
+    def num_params(self):
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+    def _embed(self, idx):
+        T = idx.shape[1]
+        x = self.ln_in(self.emb(idx) + self.pos(torch.arange(T, device=idx.device)))
+        return self.prox_in(x) if self.prox_in is not None else x
+
+    def forward(self, idx, targets=None):
+        z = self._embed(idx)
+        for b in self.blocks:
+            z = b(z)
+        logits = self.head(z)
+        if targets is None:
+            return logits, None
+        loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)),
+                               targets.reshape(-1))
+        return logits, loss
+
+    @torch.no_grad()
+    def layer_metrics(self, idx, eps_sq=0.5):
+        z = self._embed(idx)
+        out = []
+        for li, b in enumerate(self.blocks):
+            rc_before = _coding_rate_impl(z, b.attn, eps_sq)
+            x = z + b.attn(z)
+            rc_after = _coding_rate_impl(b.ln(x), b.attn, eps_sq)
+            z = b(z)
+            stats = CausalCRATE._code_stats(z, b.prox)
+            out.append(dict(layer=li,
+                            rc_before=float(rc_before),
+                            rc_after=float(rc_after),
+                            r_total=float(CausalCRATE._expansion_rate(z, eps_sq)),
+                            sparsity=1.0 - stats['rate'],
+                            entropy=stats['entropy'],
+                            mag=round(stats['mag'], 4),
+                            err_rate=(float(b.eprox.last_rate)
+                                      if b.eprox is not None and
+                                      b.eprox.last_rate is not None else None)))
+        return out
+
+    def set_levels(self, levels):
+        """Annealing hook: 4 -> 2 -> 1 during training."""
+        for m in self.modules():
+            if isinstance(m, (SpikeProx, SignedProx)):
+                m.levels = levels
