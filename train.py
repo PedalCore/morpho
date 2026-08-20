@@ -57,13 +57,15 @@ def main():
     ap.add_argument('--layers', type=int, default=12)
     ap.add_argument('--spike-prox', action='store_true')
     ap.add_argument('--untied', action='store_true')
+    ap.add_argument('--scale-init', type=float, default=0.1)
     ap.add_argument('--name', default=None)
     args = ap.parse_args()
 
     device = pick_device()
     tok = get_tokenizer()
     cfg = Config(vocab_size=tok.vocab_size, n_layer=args.layers,
-                 tied=not args.untied, spike_prox=args.spike_prox)
+                 tied=not args.untied, spike_prox=args.spike_prox,
+                 mssa_scale=args.scale_init)
     model = CausalCRATE(cfg).to(device)
     name = args.name or ('crate-spike' if args.spike_prox else 'crate') + \
         f'-d{cfg.n_embd}L{cfg.n_layer}'
