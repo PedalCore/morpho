@@ -56,6 +56,7 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 | causal CRATE, larger (d=576, L=12) | 10.5M | **12.89** |
 
 | M2-control (reordered wiring, identity quantizer) | 5.2M | **14.22** |
+| M2-spike (warm from M0, uncalibrated grid) | 5.2M | 82.35 — preregistered negative (dead-zone start: 96% silenced at step 0) |
 
 M2-control verdict: the reorder is an IMPROVEMENT over M0 (14.22 vs
 15.37), not a cost — the ablation ladder's first rung passes with margin.
