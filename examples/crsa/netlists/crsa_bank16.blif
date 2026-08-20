@@ -1,0 +1,3527 @@
+.model crsa_bank16
+.inputs clk e_0 e_1 e_2 e_3 e_4 e_5 e_6 e_7 e_8 e_9 e_10 e_11 e_12 e_13 e_14 e_15
+.outputs d_0 d_1 d_2 d_3 d_4 d_5 d_6 d_7 d_8 d_9 d_10 d_11 d_12 d_13 d_14 d_15 d_16 d_17 d_18 d_19 d_20 d_21 d_22 d_23 d_24 d_25 d_26 d_27 d_28 d_29 d_30 d_31
+.names const0
+.names const1
+1
+.latch w41 r18 re clk 0
+.latch w43 r19 re clk 0
+.latch w45 r20 re clk 0
+.latch w47 r21 re clk 0
+.latch w49 r22 re clk 0
+.latch w51 r23 re clk 0
+.latch w68 r24 re clk 0
+.latch w70 r25 re clk 0
+.latch w72 r26 re clk 0
+.latch w74 r27 re clk 0
+.latch w76 r28 re clk 0
+.latch w78 r29 re clk 0
+.latch w80 r30 re clk 0
+.latch w82 r31 re clk 0
+.names r23 w32
+0 1
+.names r24 w33
+0 1
+.names r25 w34
+0 1
+.names r26 w35
+0 1
+.names r27 w36
+0 1
+.names r28 w37
+0 1
+.names r29 w38
+0 1
+.names r30 w39
+0 1
+.names r31 w40
+0 1
+.names r18 w32 w41
+00 1
+11 1
+.names r18 w32 w42
+10 1
+01 1
+11 1
+.names r19 w33 w42 w43
+100 1
+010 1
+001 1
+111 1
+.names r19 w33 w42 w44
+110 1
+101 1
+011 1
+111 1
+.names r20 w34 w44 w45
+100 1
+010 1
+001 1
+111 1
+.names r20 w34 w44 w46
+110 1
+101 1
+011 1
+111 1
+.names r21 w35 w46 w47
+100 1
+010 1
+001 1
+111 1
+.names r21 w35 w46 w48
+110 1
+101 1
+011 1
+111 1
+.names r22 w36 w48 w49
+100 1
+010 1
+001 1
+111 1
+.names r22 w36 w48 w50
+110 1
+101 1
+011 1
+111 1
+.names r23 w37 w50 w51
+100 1
+010 1
+001 1
+111 1
+.names r23 w37 w50 w52
+110 1
+101 1
+011 1
+111 1
+.names r24 w38 w52 w53
+100 1
+010 1
+001 1
+111 1
+.names r24 w38 w52 w54
+110 1
+101 1
+011 1
+111 1
+.names r25 w39 w54 w55
+100 1
+010 1
+001 1
+111 1
+.names r25 w39 w54 w56
+110 1
+101 1
+011 1
+111 1
+.names r26 w40 w56 w57
+100 1
+010 1
+001 1
+111 1
+.names r26 w40 w56 w58
+110 1
+101 1
+011 1
+111 1
+.names r27 w58 w59
+00 1
+11 1
+.names r27 w58 w60
+10 1
+01 1
+11 1
+.names r28 w60 w61
+00 1
+11 1
+.names r28 w60 w62
+10 1
+01 1
+11 1
+.names r29 w62 w63
+00 1
+11 1
+.names r29 w62 w64
+10 1
+01 1
+11 1
+.names r30 w64 w65
+00 1
+11 1
+.names r30 w64 w66
+10 1
+01 1
+11 1
+.names r31 w66 w67
+00 1
+11 1
+.names w53 e_0 w68
+10 1
+01 1
+.names w53 e_0 w69
+11 1
+.names w55 w69 w70
+10 1
+01 1
+.names w55 w69 w71
+11 1
+.names w57 w71 w72
+10 1
+01 1
+.names w57 w71 w73
+11 1
+.names w59 w73 w74
+10 1
+01 1
+.names w59 w73 w75
+11 1
+.names w61 w75 w76
+10 1
+01 1
+.names w61 w75 w77
+11 1
+.names w63 w77 w78
+10 1
+01 1
+.names w63 w77 w79
+11 1
+.names w65 w79 w80
+10 1
+01 1
+.names w65 w79 w81
+11 1
+.names w67 w81 w82
+10 1
+01 1
+.names r28 r27 w83
+10 1
+01 1
+11 1
+.names r29 w83 w84
+10 1
+01 1
+11 1
+.names r30 w84 w85
+10 1
+01 1
+11 1
+.names r31 w85 w86
+10 1
+01 1
+11 1
+.names w86 w87
+0 1
+.names r30 r29 w88
+10 1
+01 1
+11 1
+.names r31 w88 w89
+10 1
+01 1
+11 1
+.names w89 w90
+0 1
+.latch w114 r91 re clk 0
+.latch w116 r92 re clk 0
+.latch w118 r93 re clk 0
+.latch w120 r94 re clk 0
+.latch w122 r95 re clk 0
+.latch w124 r96 re clk 0
+.latch w141 r97 re clk 0
+.latch w143 r98 re clk 0
+.latch w145 r99 re clk 0
+.latch w147 r100 re clk 0
+.latch w149 r101 re clk 0
+.latch w151 r102 re clk 0
+.latch w153 r103 re clk 0
+.latch w155 r104 re clk 0
+.names r96 w105
+0 1
+.names r97 w106
+0 1
+.names r98 w107
+0 1
+.names r99 w108
+0 1
+.names r100 w109
+0 1
+.names r101 w110
+0 1
+.names r102 w111
+0 1
+.names r103 w112
+0 1
+.names r104 w113
+0 1
+.names r91 w105 w114
+00 1
+11 1
+.names r91 w105 w115
+10 1
+01 1
+11 1
+.names r92 w106 w115 w116
+100 1
+010 1
+001 1
+111 1
+.names r92 w106 w115 w117
+110 1
+101 1
+011 1
+111 1
+.names r93 w107 w117 w118
+100 1
+010 1
+001 1
+111 1
+.names r93 w107 w117 w119
+110 1
+101 1
+011 1
+111 1
+.names r94 w108 w119 w120
+100 1
+010 1
+001 1
+111 1
+.names r94 w108 w119 w121
+110 1
+101 1
+011 1
+111 1
+.names r95 w109 w121 w122
+100 1
+010 1
+001 1
+111 1
+.names r95 w109 w121 w123
+110 1
+101 1
+011 1
+111 1
+.names r96 w110 w123 w124
+100 1
+010 1
+001 1
+111 1
+.names r96 w110 w123 w125
+110 1
+101 1
+011 1
+111 1
+.names r97 w111 w125 w126
+100 1
+010 1
+001 1
+111 1
+.names r97 w111 w125 w127
+110 1
+101 1
+011 1
+111 1
+.names r98 w112 w127 w128
+100 1
+010 1
+001 1
+111 1
+.names r98 w112 w127 w129
+110 1
+101 1
+011 1
+111 1
+.names r99 w113 w129 w130
+100 1
+010 1
+001 1
+111 1
+.names r99 w113 w129 w131
+110 1
+101 1
+011 1
+111 1
+.names r100 w131 w132
+00 1
+11 1
+.names r100 w131 w133
+10 1
+01 1
+11 1
+.names r101 w133 w134
+00 1
+11 1
+.names r101 w133 w135
+10 1
+01 1
+11 1
+.names r102 w135 w136
+00 1
+11 1
+.names r102 w135 w137
+10 1
+01 1
+11 1
+.names r103 w137 w138
+00 1
+11 1
+.names r103 w137 w139
+10 1
+01 1
+11 1
+.names r104 w139 w140
+00 1
+11 1
+.names w126 e_1 w141
+10 1
+01 1
+.names w126 e_1 w142
+11 1
+.names w128 w142 w143
+10 1
+01 1
+.names w128 w142 w144
+11 1
+.names w130 w144 w145
+10 1
+01 1
+.names w130 w144 w146
+11 1
+.names w132 w146 w147
+10 1
+01 1
+.names w132 w146 w148
+11 1
+.names w134 w148 w149
+10 1
+01 1
+.names w134 w148 w150
+11 1
+.names w136 w150 w151
+10 1
+01 1
+.names w136 w150 w152
+11 1
+.names w138 w152 w153
+10 1
+01 1
+.names w138 w152 w154
+11 1
+.names w140 w154 w155
+10 1
+01 1
+.names r101 r100 w156
+10 1
+01 1
+11 1
+.names r102 w156 w157
+10 1
+01 1
+11 1
+.names r103 w157 w158
+10 1
+01 1
+11 1
+.names r104 w158 w159
+10 1
+01 1
+11 1
+.names w159 w160
+0 1
+.names r103 r102 w161
+10 1
+01 1
+11 1
+.names r104 w161 w162
+10 1
+01 1
+11 1
+.names w162 w163
+0 1
+.latch w187 r164 re clk 0
+.latch w189 r165 re clk 0
+.latch w191 r166 re clk 0
+.latch w193 r167 re clk 0
+.latch w195 r168 re clk 0
+.latch w197 r169 re clk 0
+.latch w214 r170 re clk 0
+.latch w216 r171 re clk 0
+.latch w218 r172 re clk 0
+.latch w220 r173 re clk 0
+.latch w222 r174 re clk 0
+.latch w224 r175 re clk 0
+.latch w226 r176 re clk 0
+.latch w228 r177 re clk 0
+.names r169 w178
+0 1
+.names r170 w179
+0 1
+.names r171 w180
+0 1
+.names r172 w181
+0 1
+.names r173 w182
+0 1
+.names r174 w183
+0 1
+.names r175 w184
+0 1
+.names r176 w185
+0 1
+.names r177 w186
+0 1
+.names r164 w178 w187
+00 1
+11 1
+.names r164 w178 w188
+10 1
+01 1
+11 1
+.names r165 w179 w188 w189
+100 1
+010 1
+001 1
+111 1
+.names r165 w179 w188 w190
+110 1
+101 1
+011 1
+111 1
+.names r166 w180 w190 w191
+100 1
+010 1
+001 1
+111 1
+.names r166 w180 w190 w192
+110 1
+101 1
+011 1
+111 1
+.names r167 w181 w192 w193
+100 1
+010 1
+001 1
+111 1
+.names r167 w181 w192 w194
+110 1
+101 1
+011 1
+111 1
+.names r168 w182 w194 w195
+100 1
+010 1
+001 1
+111 1
+.names r168 w182 w194 w196
+110 1
+101 1
+011 1
+111 1
+.names r169 w183 w196 w197
+100 1
+010 1
+001 1
+111 1
+.names r169 w183 w196 w198
+110 1
+101 1
+011 1
+111 1
+.names r170 w184 w198 w199
+100 1
+010 1
+001 1
+111 1
+.names r170 w184 w198 w200
+110 1
+101 1
+011 1
+111 1
+.names r171 w185 w200 w201
+100 1
+010 1
+001 1
+111 1
+.names r171 w185 w200 w202
+110 1
+101 1
+011 1
+111 1
+.names r172 w186 w202 w203
+100 1
+010 1
+001 1
+111 1
+.names r172 w186 w202 w204
+110 1
+101 1
+011 1
+111 1
+.names r173 w204 w205
+00 1
+11 1
+.names r173 w204 w206
+10 1
+01 1
+11 1
+.names r174 w206 w207
+00 1
+11 1
+.names r174 w206 w208
+10 1
+01 1
+11 1
+.names r175 w208 w209
+00 1
+11 1
+.names r175 w208 w210
+10 1
+01 1
+11 1
+.names r176 w210 w211
+00 1
+11 1
+.names r176 w210 w212
+10 1
+01 1
+11 1
+.names r177 w212 w213
+00 1
+11 1
+.names w199 e_2 w214
+10 1
+01 1
+.names w199 e_2 w215
+11 1
+.names w201 w215 w216
+10 1
+01 1
+.names w201 w215 w217
+11 1
+.names w203 w217 w218
+10 1
+01 1
+.names w203 w217 w219
+11 1
+.names w205 w219 w220
+10 1
+01 1
+.names w205 w219 w221
+11 1
+.names w207 w221 w222
+10 1
+01 1
+.names w207 w221 w223
+11 1
+.names w209 w223 w224
+10 1
+01 1
+.names w209 w223 w225
+11 1
+.names w211 w225 w226
+10 1
+01 1
+.names w211 w225 w227
+11 1
+.names w213 w227 w228
+10 1
+01 1
+.names r174 r173 w229
+10 1
+01 1
+11 1
+.names r175 w229 w230
+10 1
+01 1
+11 1
+.names r176 w230 w231
+10 1
+01 1
+11 1
+.names r177 w231 w232
+10 1
+01 1
+11 1
+.names w232 w233
+0 1
+.names r176 r175 w234
+10 1
+01 1
+11 1
+.names r177 w234 w235
+10 1
+01 1
+11 1
+.names w235 w236
+0 1
+.latch w260 r237 re clk 0
+.latch w262 r238 re clk 0
+.latch w264 r239 re clk 0
+.latch w266 r240 re clk 0
+.latch w268 r241 re clk 0
+.latch w270 r242 re clk 0
+.latch w287 r243 re clk 0
+.latch w289 r244 re clk 0
+.latch w291 r245 re clk 0
+.latch w293 r246 re clk 0
+.latch w295 r247 re clk 0
+.latch w297 r248 re clk 0
+.latch w299 r249 re clk 0
+.latch w301 r250 re clk 0
+.names r242 w251
+0 1
+.names r243 w252
+0 1
+.names r244 w253
+0 1
+.names r245 w254
+0 1
+.names r246 w255
+0 1
+.names r247 w256
+0 1
+.names r248 w257
+0 1
+.names r249 w258
+0 1
+.names r250 w259
+0 1
+.names r237 w251 w260
+00 1
+11 1
+.names r237 w251 w261
+10 1
+01 1
+11 1
+.names r238 w252 w261 w262
+100 1
+010 1
+001 1
+111 1
+.names r238 w252 w261 w263
+110 1
+101 1
+011 1
+111 1
+.names r239 w253 w263 w264
+100 1
+010 1
+001 1
+111 1
+.names r239 w253 w263 w265
+110 1
+101 1
+011 1
+111 1
+.names r240 w254 w265 w266
+100 1
+010 1
+001 1
+111 1
+.names r240 w254 w265 w267
+110 1
+101 1
+011 1
+111 1
+.names r241 w255 w267 w268
+100 1
+010 1
+001 1
+111 1
+.names r241 w255 w267 w269
+110 1
+101 1
+011 1
+111 1
+.names r242 w256 w269 w270
+100 1
+010 1
+001 1
+111 1
+.names r242 w256 w269 w271
+110 1
+101 1
+011 1
+111 1
+.names r243 w257 w271 w272
+100 1
+010 1
+001 1
+111 1
+.names r243 w257 w271 w273
+110 1
+101 1
+011 1
+111 1
+.names r244 w258 w273 w274
+100 1
+010 1
+001 1
+111 1
+.names r244 w258 w273 w275
+110 1
+101 1
+011 1
+111 1
+.names r245 w259 w275 w276
+100 1
+010 1
+001 1
+111 1
+.names r245 w259 w275 w277
+110 1
+101 1
+011 1
+111 1
+.names r246 w277 w278
+00 1
+11 1
+.names r246 w277 w279
+10 1
+01 1
+11 1
+.names r247 w279 w280
+00 1
+11 1
+.names r247 w279 w281
+10 1
+01 1
+11 1
+.names r248 w281 w282
+00 1
+11 1
+.names r248 w281 w283
+10 1
+01 1
+11 1
+.names r249 w283 w284
+00 1
+11 1
+.names r249 w283 w285
+10 1
+01 1
+11 1
+.names r250 w285 w286
+00 1
+11 1
+.names w272 e_3 w287
+10 1
+01 1
+.names w272 e_3 w288
+11 1
+.names w274 w288 w289
+10 1
+01 1
+.names w274 w288 w290
+11 1
+.names w276 w290 w291
+10 1
+01 1
+.names w276 w290 w292
+11 1
+.names w278 w292 w293
+10 1
+01 1
+.names w278 w292 w294
+11 1
+.names w280 w294 w295
+10 1
+01 1
+.names w280 w294 w296
+11 1
+.names w282 w296 w297
+10 1
+01 1
+.names w282 w296 w298
+11 1
+.names w284 w298 w299
+10 1
+01 1
+.names w284 w298 w300
+11 1
+.names w286 w300 w301
+10 1
+01 1
+.names r247 r246 w302
+10 1
+01 1
+11 1
+.names r248 w302 w303
+10 1
+01 1
+11 1
+.names r249 w303 w304
+10 1
+01 1
+11 1
+.names r250 w304 w305
+10 1
+01 1
+11 1
+.names w305 w306
+0 1
+.names r249 r248 w307
+10 1
+01 1
+11 1
+.names r250 w307 w308
+10 1
+01 1
+11 1
+.names w308 w309
+0 1
+.latch w333 r310 re clk 0
+.latch w335 r311 re clk 0
+.latch w337 r312 re clk 0
+.latch w339 r313 re clk 0
+.latch w341 r314 re clk 0
+.latch w343 r315 re clk 0
+.latch w360 r316 re clk 0
+.latch w362 r317 re clk 0
+.latch w364 r318 re clk 0
+.latch w366 r319 re clk 0
+.latch w368 r320 re clk 0
+.latch w370 r321 re clk 0
+.latch w372 r322 re clk 0
+.latch w374 r323 re clk 0
+.names r315 w324
+0 1
+.names r316 w325
+0 1
+.names r317 w326
+0 1
+.names r318 w327
+0 1
+.names r319 w328
+0 1
+.names r320 w329
+0 1
+.names r321 w330
+0 1
+.names r322 w331
+0 1
+.names r323 w332
+0 1
+.names r310 w324 w333
+00 1
+11 1
+.names r310 w324 w334
+10 1
+01 1
+11 1
+.names r311 w325 w334 w335
+100 1
+010 1
+001 1
+111 1
+.names r311 w325 w334 w336
+110 1
+101 1
+011 1
+111 1
+.names r312 w326 w336 w337
+100 1
+010 1
+001 1
+111 1
+.names r312 w326 w336 w338
+110 1
+101 1
+011 1
+111 1
+.names r313 w327 w338 w339
+100 1
+010 1
+001 1
+111 1
+.names r313 w327 w338 w340
+110 1
+101 1
+011 1
+111 1
+.names r314 w328 w340 w341
+100 1
+010 1
+001 1
+111 1
+.names r314 w328 w340 w342
+110 1
+101 1
+011 1
+111 1
+.names r315 w329 w342 w343
+100 1
+010 1
+001 1
+111 1
+.names r315 w329 w342 w344
+110 1
+101 1
+011 1
+111 1
+.names r316 w330 w344 w345
+100 1
+010 1
+001 1
+111 1
+.names r316 w330 w344 w346
+110 1
+101 1
+011 1
+111 1
+.names r317 w331 w346 w347
+100 1
+010 1
+001 1
+111 1
+.names r317 w331 w346 w348
+110 1
+101 1
+011 1
+111 1
+.names r318 w332 w348 w349
+100 1
+010 1
+001 1
+111 1
+.names r318 w332 w348 w350
+110 1
+101 1
+011 1
+111 1
+.names r319 w350 w351
+00 1
+11 1
+.names r319 w350 w352
+10 1
+01 1
+11 1
+.names r320 w352 w353
+00 1
+11 1
+.names r320 w352 w354
+10 1
+01 1
+11 1
+.names r321 w354 w355
+00 1
+11 1
+.names r321 w354 w356
+10 1
+01 1
+11 1
+.names r322 w356 w357
+00 1
+11 1
+.names r322 w356 w358
+10 1
+01 1
+11 1
+.names r323 w358 w359
+00 1
+11 1
+.names w345 e_4 w360
+10 1
+01 1
+.names w345 e_4 w361
+11 1
+.names w347 w361 w362
+10 1
+01 1
+.names w347 w361 w363
+11 1
+.names w349 w363 w364
+10 1
+01 1
+.names w349 w363 w365
+11 1
+.names w351 w365 w366
+10 1
+01 1
+.names w351 w365 w367
+11 1
+.names w353 w367 w368
+10 1
+01 1
+.names w353 w367 w369
+11 1
+.names w355 w369 w370
+10 1
+01 1
+.names w355 w369 w371
+11 1
+.names w357 w371 w372
+10 1
+01 1
+.names w357 w371 w373
+11 1
+.names w359 w373 w374
+10 1
+01 1
+.names r320 r319 w375
+10 1
+01 1
+11 1
+.names r321 w375 w376
+10 1
+01 1
+11 1
+.names r322 w376 w377
+10 1
+01 1
+11 1
+.names r323 w377 w378
+10 1
+01 1
+11 1
+.names w378 w379
+0 1
+.names r322 r321 w380
+10 1
+01 1
+11 1
+.names r323 w380 w381
+10 1
+01 1
+11 1
+.names w381 w382
+0 1
+.latch w406 r383 re clk 0
+.latch w408 r384 re clk 0
+.latch w410 r385 re clk 0
+.latch w412 r386 re clk 0
+.latch w414 r387 re clk 0
+.latch w416 r388 re clk 0
+.latch w433 r389 re clk 0
+.latch w435 r390 re clk 0
+.latch w437 r391 re clk 0
+.latch w439 r392 re clk 0
+.latch w441 r393 re clk 0
+.latch w443 r394 re clk 0
+.latch w445 r395 re clk 0
+.latch w447 r396 re clk 0
+.names r388 w397
+0 1
+.names r389 w398
+0 1
+.names r390 w399
+0 1
+.names r391 w400
+0 1
+.names r392 w401
+0 1
+.names r393 w402
+0 1
+.names r394 w403
+0 1
+.names r395 w404
+0 1
+.names r396 w405
+0 1
+.names r383 w397 w406
+00 1
+11 1
+.names r383 w397 w407
+10 1
+01 1
+11 1
+.names r384 w398 w407 w408
+100 1
+010 1
+001 1
+111 1
+.names r384 w398 w407 w409
+110 1
+101 1
+011 1
+111 1
+.names r385 w399 w409 w410
+100 1
+010 1
+001 1
+111 1
+.names r385 w399 w409 w411
+110 1
+101 1
+011 1
+111 1
+.names r386 w400 w411 w412
+100 1
+010 1
+001 1
+111 1
+.names r386 w400 w411 w413
+110 1
+101 1
+011 1
+111 1
+.names r387 w401 w413 w414
+100 1
+010 1
+001 1
+111 1
+.names r387 w401 w413 w415
+110 1
+101 1
+011 1
+111 1
+.names r388 w402 w415 w416
+100 1
+010 1
+001 1
+111 1
+.names r388 w402 w415 w417
+110 1
+101 1
+011 1
+111 1
+.names r389 w403 w417 w418
+100 1
+010 1
+001 1
+111 1
+.names r389 w403 w417 w419
+110 1
+101 1
+011 1
+111 1
+.names r390 w404 w419 w420
+100 1
+010 1
+001 1
+111 1
+.names r390 w404 w419 w421
+110 1
+101 1
+011 1
+111 1
+.names r391 w405 w421 w422
+100 1
+010 1
+001 1
+111 1
+.names r391 w405 w421 w423
+110 1
+101 1
+011 1
+111 1
+.names r392 w423 w424
+00 1
+11 1
+.names r392 w423 w425
+10 1
+01 1
+11 1
+.names r393 w425 w426
+00 1
+11 1
+.names r393 w425 w427
+10 1
+01 1
+11 1
+.names r394 w427 w428
+00 1
+11 1
+.names r394 w427 w429
+10 1
+01 1
+11 1
+.names r395 w429 w430
+00 1
+11 1
+.names r395 w429 w431
+10 1
+01 1
+11 1
+.names r396 w431 w432
+00 1
+11 1
+.names w418 e_5 w433
+10 1
+01 1
+.names w418 e_5 w434
+11 1
+.names w420 w434 w435
+10 1
+01 1
+.names w420 w434 w436
+11 1
+.names w422 w436 w437
+10 1
+01 1
+.names w422 w436 w438
+11 1
+.names w424 w438 w439
+10 1
+01 1
+.names w424 w438 w440
+11 1
+.names w426 w440 w441
+10 1
+01 1
+.names w426 w440 w442
+11 1
+.names w428 w442 w443
+10 1
+01 1
+.names w428 w442 w444
+11 1
+.names w430 w444 w445
+10 1
+01 1
+.names w430 w444 w446
+11 1
+.names w432 w446 w447
+10 1
+01 1
+.names r393 r392 w448
+10 1
+01 1
+11 1
+.names r394 w448 w449
+10 1
+01 1
+11 1
+.names r395 w449 w450
+10 1
+01 1
+11 1
+.names r396 w450 w451
+10 1
+01 1
+11 1
+.names w451 w452
+0 1
+.names r395 r394 w453
+10 1
+01 1
+11 1
+.names r396 w453 w454
+10 1
+01 1
+11 1
+.names w454 w455
+0 1
+.latch w479 r456 re clk 0
+.latch w481 r457 re clk 0
+.latch w483 r458 re clk 0
+.latch w485 r459 re clk 0
+.latch w487 r460 re clk 0
+.latch w489 r461 re clk 0
+.latch w506 r462 re clk 0
+.latch w508 r463 re clk 0
+.latch w510 r464 re clk 0
+.latch w512 r465 re clk 0
+.latch w514 r466 re clk 0
+.latch w516 r467 re clk 0
+.latch w518 r468 re clk 0
+.latch w520 r469 re clk 0
+.names r461 w470
+0 1
+.names r462 w471
+0 1
+.names r463 w472
+0 1
+.names r464 w473
+0 1
+.names r465 w474
+0 1
+.names r466 w475
+0 1
+.names r467 w476
+0 1
+.names r468 w477
+0 1
+.names r469 w478
+0 1
+.names r456 w470 w479
+00 1
+11 1
+.names r456 w470 w480
+10 1
+01 1
+11 1
+.names r457 w471 w480 w481
+100 1
+010 1
+001 1
+111 1
+.names r457 w471 w480 w482
+110 1
+101 1
+011 1
+111 1
+.names r458 w472 w482 w483
+100 1
+010 1
+001 1
+111 1
+.names r458 w472 w482 w484
+110 1
+101 1
+011 1
+111 1
+.names r459 w473 w484 w485
+100 1
+010 1
+001 1
+111 1
+.names r459 w473 w484 w486
+110 1
+101 1
+011 1
+111 1
+.names r460 w474 w486 w487
+100 1
+010 1
+001 1
+111 1
+.names r460 w474 w486 w488
+110 1
+101 1
+011 1
+111 1
+.names r461 w475 w488 w489
+100 1
+010 1
+001 1
+111 1
+.names r461 w475 w488 w490
+110 1
+101 1
+011 1
+111 1
+.names r462 w476 w490 w491
+100 1
+010 1
+001 1
+111 1
+.names r462 w476 w490 w492
+110 1
+101 1
+011 1
+111 1
+.names r463 w477 w492 w493
+100 1
+010 1
+001 1
+111 1
+.names r463 w477 w492 w494
+110 1
+101 1
+011 1
+111 1
+.names r464 w478 w494 w495
+100 1
+010 1
+001 1
+111 1
+.names r464 w478 w494 w496
+110 1
+101 1
+011 1
+111 1
+.names r465 w496 w497
+00 1
+11 1
+.names r465 w496 w498
+10 1
+01 1
+11 1
+.names r466 w498 w499
+00 1
+11 1
+.names r466 w498 w500
+10 1
+01 1
+11 1
+.names r467 w500 w501
+00 1
+11 1
+.names r467 w500 w502
+10 1
+01 1
+11 1
+.names r468 w502 w503
+00 1
+11 1
+.names r468 w502 w504
+10 1
+01 1
+11 1
+.names r469 w504 w505
+00 1
+11 1
+.names w491 e_6 w506
+10 1
+01 1
+.names w491 e_6 w507
+11 1
+.names w493 w507 w508
+10 1
+01 1
+.names w493 w507 w509
+11 1
+.names w495 w509 w510
+10 1
+01 1
+.names w495 w509 w511
+11 1
+.names w497 w511 w512
+10 1
+01 1
+.names w497 w511 w513
+11 1
+.names w499 w513 w514
+10 1
+01 1
+.names w499 w513 w515
+11 1
+.names w501 w515 w516
+10 1
+01 1
+.names w501 w515 w517
+11 1
+.names w503 w517 w518
+10 1
+01 1
+.names w503 w517 w519
+11 1
+.names w505 w519 w520
+10 1
+01 1
+.names r466 r465 w521
+10 1
+01 1
+11 1
+.names r467 w521 w522
+10 1
+01 1
+11 1
+.names r468 w522 w523
+10 1
+01 1
+11 1
+.names r469 w523 w524
+10 1
+01 1
+11 1
+.names w524 w525
+0 1
+.names r468 r467 w526
+10 1
+01 1
+11 1
+.names r469 w526 w527
+10 1
+01 1
+11 1
+.names w527 w528
+0 1
+.latch w552 r529 re clk 0
+.latch w554 r530 re clk 0
+.latch w556 r531 re clk 0
+.latch w558 r532 re clk 0
+.latch w560 r533 re clk 0
+.latch w562 r534 re clk 0
+.latch w579 r535 re clk 0
+.latch w581 r536 re clk 0
+.latch w583 r537 re clk 0
+.latch w585 r538 re clk 0
+.latch w587 r539 re clk 0
+.latch w589 r540 re clk 0
+.latch w591 r541 re clk 0
+.latch w593 r542 re clk 0
+.names r534 w543
+0 1
+.names r535 w544
+0 1
+.names r536 w545
+0 1
+.names r537 w546
+0 1
+.names r538 w547
+0 1
+.names r539 w548
+0 1
+.names r540 w549
+0 1
+.names r541 w550
+0 1
+.names r542 w551
+0 1
+.names r529 w543 w552
+00 1
+11 1
+.names r529 w543 w553
+10 1
+01 1
+11 1
+.names r530 w544 w553 w554
+100 1
+010 1
+001 1
+111 1
+.names r530 w544 w553 w555
+110 1
+101 1
+011 1
+111 1
+.names r531 w545 w555 w556
+100 1
+010 1
+001 1
+111 1
+.names r531 w545 w555 w557
+110 1
+101 1
+011 1
+111 1
+.names r532 w546 w557 w558
+100 1
+010 1
+001 1
+111 1
+.names r532 w546 w557 w559
+110 1
+101 1
+011 1
+111 1
+.names r533 w547 w559 w560
+100 1
+010 1
+001 1
+111 1
+.names r533 w547 w559 w561
+110 1
+101 1
+011 1
+111 1
+.names r534 w548 w561 w562
+100 1
+010 1
+001 1
+111 1
+.names r534 w548 w561 w563
+110 1
+101 1
+011 1
+111 1
+.names r535 w549 w563 w564
+100 1
+010 1
+001 1
+111 1
+.names r535 w549 w563 w565
+110 1
+101 1
+011 1
+111 1
+.names r536 w550 w565 w566
+100 1
+010 1
+001 1
+111 1
+.names r536 w550 w565 w567
+110 1
+101 1
+011 1
+111 1
+.names r537 w551 w567 w568
+100 1
+010 1
+001 1
+111 1
+.names r537 w551 w567 w569
+110 1
+101 1
+011 1
+111 1
+.names r538 w569 w570
+00 1
+11 1
+.names r538 w569 w571
+10 1
+01 1
+11 1
+.names r539 w571 w572
+00 1
+11 1
+.names r539 w571 w573
+10 1
+01 1
+11 1
+.names r540 w573 w574
+00 1
+11 1
+.names r540 w573 w575
+10 1
+01 1
+11 1
+.names r541 w575 w576
+00 1
+11 1
+.names r541 w575 w577
+10 1
+01 1
+11 1
+.names r542 w577 w578
+00 1
+11 1
+.names w564 e_7 w579
+10 1
+01 1
+.names w564 e_7 w580
+11 1
+.names w566 w580 w581
+10 1
+01 1
+.names w566 w580 w582
+11 1
+.names w568 w582 w583
+10 1
+01 1
+.names w568 w582 w584
+11 1
+.names w570 w584 w585
+10 1
+01 1
+.names w570 w584 w586
+11 1
+.names w572 w586 w587
+10 1
+01 1
+.names w572 w586 w588
+11 1
+.names w574 w588 w589
+10 1
+01 1
+.names w574 w588 w590
+11 1
+.names w576 w590 w591
+10 1
+01 1
+.names w576 w590 w592
+11 1
+.names w578 w592 w593
+10 1
+01 1
+.names r539 r538 w594
+10 1
+01 1
+11 1
+.names r540 w594 w595
+10 1
+01 1
+11 1
+.names r541 w595 w596
+10 1
+01 1
+11 1
+.names r542 w596 w597
+10 1
+01 1
+11 1
+.names w597 w598
+0 1
+.names r541 r540 w599
+10 1
+01 1
+11 1
+.names r542 w599 w600
+10 1
+01 1
+11 1
+.names w600 w601
+0 1
+.latch w625 r602 re clk 0
+.latch w627 r603 re clk 0
+.latch w629 r604 re clk 0
+.latch w631 r605 re clk 0
+.latch w633 r606 re clk 0
+.latch w635 r607 re clk 0
+.latch w652 r608 re clk 0
+.latch w654 r609 re clk 0
+.latch w656 r610 re clk 0
+.latch w658 r611 re clk 0
+.latch w660 r612 re clk 0
+.latch w662 r613 re clk 0
+.latch w664 r614 re clk 0
+.latch w666 r615 re clk 0
+.names r607 w616
+0 1
+.names r608 w617
+0 1
+.names r609 w618
+0 1
+.names r610 w619
+0 1
+.names r611 w620
+0 1
+.names r612 w621
+0 1
+.names r613 w622
+0 1
+.names r614 w623
+0 1
+.names r615 w624
+0 1
+.names r602 w616 w625
+00 1
+11 1
+.names r602 w616 w626
+10 1
+01 1
+11 1
+.names r603 w617 w626 w627
+100 1
+010 1
+001 1
+111 1
+.names r603 w617 w626 w628
+110 1
+101 1
+011 1
+111 1
+.names r604 w618 w628 w629
+100 1
+010 1
+001 1
+111 1
+.names r604 w618 w628 w630
+110 1
+101 1
+011 1
+111 1
+.names r605 w619 w630 w631
+100 1
+010 1
+001 1
+111 1
+.names r605 w619 w630 w632
+110 1
+101 1
+011 1
+111 1
+.names r606 w620 w632 w633
+100 1
+010 1
+001 1
+111 1
+.names r606 w620 w632 w634
+110 1
+101 1
+011 1
+111 1
+.names r607 w621 w634 w635
+100 1
+010 1
+001 1
+111 1
+.names r607 w621 w634 w636
+110 1
+101 1
+011 1
+111 1
+.names r608 w622 w636 w637
+100 1
+010 1
+001 1
+111 1
+.names r608 w622 w636 w638
+110 1
+101 1
+011 1
+111 1
+.names r609 w623 w638 w639
+100 1
+010 1
+001 1
+111 1
+.names r609 w623 w638 w640
+110 1
+101 1
+011 1
+111 1
+.names r610 w624 w640 w641
+100 1
+010 1
+001 1
+111 1
+.names r610 w624 w640 w642
+110 1
+101 1
+011 1
+111 1
+.names r611 w642 w643
+00 1
+11 1
+.names r611 w642 w644
+10 1
+01 1
+11 1
+.names r612 w644 w645
+00 1
+11 1
+.names r612 w644 w646
+10 1
+01 1
+11 1
+.names r613 w646 w647
+00 1
+11 1
+.names r613 w646 w648
+10 1
+01 1
+11 1
+.names r614 w648 w649
+00 1
+11 1
+.names r614 w648 w650
+10 1
+01 1
+11 1
+.names r615 w650 w651
+00 1
+11 1
+.names w637 e_8 w652
+10 1
+01 1
+.names w637 e_8 w653
+11 1
+.names w639 w653 w654
+10 1
+01 1
+.names w639 w653 w655
+11 1
+.names w641 w655 w656
+10 1
+01 1
+.names w641 w655 w657
+11 1
+.names w643 w657 w658
+10 1
+01 1
+.names w643 w657 w659
+11 1
+.names w645 w659 w660
+10 1
+01 1
+.names w645 w659 w661
+11 1
+.names w647 w661 w662
+10 1
+01 1
+.names w647 w661 w663
+11 1
+.names w649 w663 w664
+10 1
+01 1
+.names w649 w663 w665
+11 1
+.names w651 w665 w666
+10 1
+01 1
+.names r612 r611 w667
+10 1
+01 1
+11 1
+.names r613 w667 w668
+10 1
+01 1
+11 1
+.names r614 w668 w669
+10 1
+01 1
+11 1
+.names r615 w669 w670
+10 1
+01 1
+11 1
+.names w670 w671
+0 1
+.names r614 r613 w672
+10 1
+01 1
+11 1
+.names r615 w672 w673
+10 1
+01 1
+11 1
+.names w673 w674
+0 1
+.latch w698 r675 re clk 0
+.latch w700 r676 re clk 0
+.latch w702 r677 re clk 0
+.latch w704 r678 re clk 0
+.latch w706 r679 re clk 0
+.latch w708 r680 re clk 0
+.latch w725 r681 re clk 0
+.latch w727 r682 re clk 0
+.latch w729 r683 re clk 0
+.latch w731 r684 re clk 0
+.latch w733 r685 re clk 0
+.latch w735 r686 re clk 0
+.latch w737 r687 re clk 0
+.latch w739 r688 re clk 0
+.names r680 w689
+0 1
+.names r681 w690
+0 1
+.names r682 w691
+0 1
+.names r683 w692
+0 1
+.names r684 w693
+0 1
+.names r685 w694
+0 1
+.names r686 w695
+0 1
+.names r687 w696
+0 1
+.names r688 w697
+0 1
+.names r675 w689 w698
+00 1
+11 1
+.names r675 w689 w699
+10 1
+01 1
+11 1
+.names r676 w690 w699 w700
+100 1
+010 1
+001 1
+111 1
+.names r676 w690 w699 w701
+110 1
+101 1
+011 1
+111 1
+.names r677 w691 w701 w702
+100 1
+010 1
+001 1
+111 1
+.names r677 w691 w701 w703
+110 1
+101 1
+011 1
+111 1
+.names r678 w692 w703 w704
+100 1
+010 1
+001 1
+111 1
+.names r678 w692 w703 w705
+110 1
+101 1
+011 1
+111 1
+.names r679 w693 w705 w706
+100 1
+010 1
+001 1
+111 1
+.names r679 w693 w705 w707
+110 1
+101 1
+011 1
+111 1
+.names r680 w694 w707 w708
+100 1
+010 1
+001 1
+111 1
+.names r680 w694 w707 w709
+110 1
+101 1
+011 1
+111 1
+.names r681 w695 w709 w710
+100 1
+010 1
+001 1
+111 1
+.names r681 w695 w709 w711
+110 1
+101 1
+011 1
+111 1
+.names r682 w696 w711 w712
+100 1
+010 1
+001 1
+111 1
+.names r682 w696 w711 w713
+110 1
+101 1
+011 1
+111 1
+.names r683 w697 w713 w714
+100 1
+010 1
+001 1
+111 1
+.names r683 w697 w713 w715
+110 1
+101 1
+011 1
+111 1
+.names r684 w715 w716
+00 1
+11 1
+.names r684 w715 w717
+10 1
+01 1
+11 1
+.names r685 w717 w718
+00 1
+11 1
+.names r685 w717 w719
+10 1
+01 1
+11 1
+.names r686 w719 w720
+00 1
+11 1
+.names r686 w719 w721
+10 1
+01 1
+11 1
+.names r687 w721 w722
+00 1
+11 1
+.names r687 w721 w723
+10 1
+01 1
+11 1
+.names r688 w723 w724
+00 1
+11 1
+.names w710 e_9 w725
+10 1
+01 1
+.names w710 e_9 w726
+11 1
+.names w712 w726 w727
+10 1
+01 1
+.names w712 w726 w728
+11 1
+.names w714 w728 w729
+10 1
+01 1
+.names w714 w728 w730
+11 1
+.names w716 w730 w731
+10 1
+01 1
+.names w716 w730 w732
+11 1
+.names w718 w732 w733
+10 1
+01 1
+.names w718 w732 w734
+11 1
+.names w720 w734 w735
+10 1
+01 1
+.names w720 w734 w736
+11 1
+.names w722 w736 w737
+10 1
+01 1
+.names w722 w736 w738
+11 1
+.names w724 w738 w739
+10 1
+01 1
+.names r685 r684 w740
+10 1
+01 1
+11 1
+.names r686 w740 w741
+10 1
+01 1
+11 1
+.names r687 w741 w742
+10 1
+01 1
+11 1
+.names r688 w742 w743
+10 1
+01 1
+11 1
+.names w743 w744
+0 1
+.names r687 r686 w745
+10 1
+01 1
+11 1
+.names r688 w745 w746
+10 1
+01 1
+11 1
+.names w746 w747
+0 1
+.latch w771 r748 re clk 0
+.latch w773 r749 re clk 0
+.latch w775 r750 re clk 0
+.latch w777 r751 re clk 0
+.latch w779 r752 re clk 0
+.latch w781 r753 re clk 0
+.latch w798 r754 re clk 0
+.latch w800 r755 re clk 0
+.latch w802 r756 re clk 0
+.latch w804 r757 re clk 0
+.latch w806 r758 re clk 0
+.latch w808 r759 re clk 0
+.latch w810 r760 re clk 0
+.latch w812 r761 re clk 0
+.names r753 w762
+0 1
+.names r754 w763
+0 1
+.names r755 w764
+0 1
+.names r756 w765
+0 1
+.names r757 w766
+0 1
+.names r758 w767
+0 1
+.names r759 w768
+0 1
+.names r760 w769
+0 1
+.names r761 w770
+0 1
+.names r748 w762 w771
+00 1
+11 1
+.names r748 w762 w772
+10 1
+01 1
+11 1
+.names r749 w763 w772 w773
+100 1
+010 1
+001 1
+111 1
+.names r749 w763 w772 w774
+110 1
+101 1
+011 1
+111 1
+.names r750 w764 w774 w775
+100 1
+010 1
+001 1
+111 1
+.names r750 w764 w774 w776
+110 1
+101 1
+011 1
+111 1
+.names r751 w765 w776 w777
+100 1
+010 1
+001 1
+111 1
+.names r751 w765 w776 w778
+110 1
+101 1
+011 1
+111 1
+.names r752 w766 w778 w779
+100 1
+010 1
+001 1
+111 1
+.names r752 w766 w778 w780
+110 1
+101 1
+011 1
+111 1
+.names r753 w767 w780 w781
+100 1
+010 1
+001 1
+111 1
+.names r753 w767 w780 w782
+110 1
+101 1
+011 1
+111 1
+.names r754 w768 w782 w783
+100 1
+010 1
+001 1
+111 1
+.names r754 w768 w782 w784
+110 1
+101 1
+011 1
+111 1
+.names r755 w769 w784 w785
+100 1
+010 1
+001 1
+111 1
+.names r755 w769 w784 w786
+110 1
+101 1
+011 1
+111 1
+.names r756 w770 w786 w787
+100 1
+010 1
+001 1
+111 1
+.names r756 w770 w786 w788
+110 1
+101 1
+011 1
+111 1
+.names r757 w788 w789
+00 1
+11 1
+.names r757 w788 w790
+10 1
+01 1
+11 1
+.names r758 w790 w791
+00 1
+11 1
+.names r758 w790 w792
+10 1
+01 1
+11 1
+.names r759 w792 w793
+00 1
+11 1
+.names r759 w792 w794
+10 1
+01 1
+11 1
+.names r760 w794 w795
+00 1
+11 1
+.names r760 w794 w796
+10 1
+01 1
+11 1
+.names r761 w796 w797
+00 1
+11 1
+.names w783 e_10 w798
+10 1
+01 1
+.names w783 e_10 w799
+11 1
+.names w785 w799 w800
+10 1
+01 1
+.names w785 w799 w801
+11 1
+.names w787 w801 w802
+10 1
+01 1
+.names w787 w801 w803
+11 1
+.names w789 w803 w804
+10 1
+01 1
+.names w789 w803 w805
+11 1
+.names w791 w805 w806
+10 1
+01 1
+.names w791 w805 w807
+11 1
+.names w793 w807 w808
+10 1
+01 1
+.names w793 w807 w809
+11 1
+.names w795 w809 w810
+10 1
+01 1
+.names w795 w809 w811
+11 1
+.names w797 w811 w812
+10 1
+01 1
+.names r758 r757 w813
+10 1
+01 1
+11 1
+.names r759 w813 w814
+10 1
+01 1
+11 1
+.names r760 w814 w815
+10 1
+01 1
+11 1
+.names r761 w815 w816
+10 1
+01 1
+11 1
+.names w816 w817
+0 1
+.names r760 r759 w818
+10 1
+01 1
+11 1
+.names r761 w818 w819
+10 1
+01 1
+11 1
+.names w819 w820
+0 1
+.latch w844 r821 re clk 0
+.latch w846 r822 re clk 0
+.latch w848 r823 re clk 0
+.latch w850 r824 re clk 0
+.latch w852 r825 re clk 0
+.latch w854 r826 re clk 0
+.latch w871 r827 re clk 0
+.latch w873 r828 re clk 0
+.latch w875 r829 re clk 0
+.latch w877 r830 re clk 0
+.latch w879 r831 re clk 0
+.latch w881 r832 re clk 0
+.latch w883 r833 re clk 0
+.latch w885 r834 re clk 0
+.names r826 w835
+0 1
+.names r827 w836
+0 1
+.names r828 w837
+0 1
+.names r829 w838
+0 1
+.names r830 w839
+0 1
+.names r831 w840
+0 1
+.names r832 w841
+0 1
+.names r833 w842
+0 1
+.names r834 w843
+0 1
+.names r821 w835 w844
+00 1
+11 1
+.names r821 w835 w845
+10 1
+01 1
+11 1
+.names r822 w836 w845 w846
+100 1
+010 1
+001 1
+111 1
+.names r822 w836 w845 w847
+110 1
+101 1
+011 1
+111 1
+.names r823 w837 w847 w848
+100 1
+010 1
+001 1
+111 1
+.names r823 w837 w847 w849
+110 1
+101 1
+011 1
+111 1
+.names r824 w838 w849 w850
+100 1
+010 1
+001 1
+111 1
+.names r824 w838 w849 w851
+110 1
+101 1
+011 1
+111 1
+.names r825 w839 w851 w852
+100 1
+010 1
+001 1
+111 1
+.names r825 w839 w851 w853
+110 1
+101 1
+011 1
+111 1
+.names r826 w840 w853 w854
+100 1
+010 1
+001 1
+111 1
+.names r826 w840 w853 w855
+110 1
+101 1
+011 1
+111 1
+.names r827 w841 w855 w856
+100 1
+010 1
+001 1
+111 1
+.names r827 w841 w855 w857
+110 1
+101 1
+011 1
+111 1
+.names r828 w842 w857 w858
+100 1
+010 1
+001 1
+111 1
+.names r828 w842 w857 w859
+110 1
+101 1
+011 1
+111 1
+.names r829 w843 w859 w860
+100 1
+010 1
+001 1
+111 1
+.names r829 w843 w859 w861
+110 1
+101 1
+011 1
+111 1
+.names r830 w861 w862
+00 1
+11 1
+.names r830 w861 w863
+10 1
+01 1
+11 1
+.names r831 w863 w864
+00 1
+11 1
+.names r831 w863 w865
+10 1
+01 1
+11 1
+.names r832 w865 w866
+00 1
+11 1
+.names r832 w865 w867
+10 1
+01 1
+11 1
+.names r833 w867 w868
+00 1
+11 1
+.names r833 w867 w869
+10 1
+01 1
+11 1
+.names r834 w869 w870
+00 1
+11 1
+.names w856 e_11 w871
+10 1
+01 1
+.names w856 e_11 w872
+11 1
+.names w858 w872 w873
+10 1
+01 1
+.names w858 w872 w874
+11 1
+.names w860 w874 w875
+10 1
+01 1
+.names w860 w874 w876
+11 1
+.names w862 w876 w877
+10 1
+01 1
+.names w862 w876 w878
+11 1
+.names w864 w878 w879
+10 1
+01 1
+.names w864 w878 w880
+11 1
+.names w866 w880 w881
+10 1
+01 1
+.names w866 w880 w882
+11 1
+.names w868 w882 w883
+10 1
+01 1
+.names w868 w882 w884
+11 1
+.names w870 w884 w885
+10 1
+01 1
+.names r831 r830 w886
+10 1
+01 1
+11 1
+.names r832 w886 w887
+10 1
+01 1
+11 1
+.names r833 w887 w888
+10 1
+01 1
+11 1
+.names r834 w888 w889
+10 1
+01 1
+11 1
+.names w889 w890
+0 1
+.names r833 r832 w891
+10 1
+01 1
+11 1
+.names r834 w891 w892
+10 1
+01 1
+11 1
+.names w892 w893
+0 1
+.latch w917 r894 re clk 0
+.latch w919 r895 re clk 0
+.latch w921 r896 re clk 0
+.latch w923 r897 re clk 0
+.latch w925 r898 re clk 0
+.latch w927 r899 re clk 0
+.latch w944 r900 re clk 0
+.latch w946 r901 re clk 0
+.latch w948 r902 re clk 0
+.latch w950 r903 re clk 0
+.latch w952 r904 re clk 0
+.latch w954 r905 re clk 0
+.latch w956 r906 re clk 0
+.latch w958 r907 re clk 0
+.names r899 w908
+0 1
+.names r900 w909
+0 1
+.names r901 w910
+0 1
+.names r902 w911
+0 1
+.names r903 w912
+0 1
+.names r904 w913
+0 1
+.names r905 w914
+0 1
+.names r906 w915
+0 1
+.names r907 w916
+0 1
+.names r894 w908 w917
+00 1
+11 1
+.names r894 w908 w918
+10 1
+01 1
+11 1
+.names r895 w909 w918 w919
+100 1
+010 1
+001 1
+111 1
+.names r895 w909 w918 w920
+110 1
+101 1
+011 1
+111 1
+.names r896 w910 w920 w921
+100 1
+010 1
+001 1
+111 1
+.names r896 w910 w920 w922
+110 1
+101 1
+011 1
+111 1
+.names r897 w911 w922 w923
+100 1
+010 1
+001 1
+111 1
+.names r897 w911 w922 w924
+110 1
+101 1
+011 1
+111 1
+.names r898 w912 w924 w925
+100 1
+010 1
+001 1
+111 1
+.names r898 w912 w924 w926
+110 1
+101 1
+011 1
+111 1
+.names r899 w913 w926 w927
+100 1
+010 1
+001 1
+111 1
+.names r899 w913 w926 w928
+110 1
+101 1
+011 1
+111 1
+.names r900 w914 w928 w929
+100 1
+010 1
+001 1
+111 1
+.names r900 w914 w928 w930
+110 1
+101 1
+011 1
+111 1
+.names r901 w915 w930 w931
+100 1
+010 1
+001 1
+111 1
+.names r901 w915 w930 w932
+110 1
+101 1
+011 1
+111 1
+.names r902 w916 w932 w933
+100 1
+010 1
+001 1
+111 1
+.names r902 w916 w932 w934
+110 1
+101 1
+011 1
+111 1
+.names r903 w934 w935
+00 1
+11 1
+.names r903 w934 w936
+10 1
+01 1
+11 1
+.names r904 w936 w937
+00 1
+11 1
+.names r904 w936 w938
+10 1
+01 1
+11 1
+.names r905 w938 w939
+00 1
+11 1
+.names r905 w938 w940
+10 1
+01 1
+11 1
+.names r906 w940 w941
+00 1
+11 1
+.names r906 w940 w942
+10 1
+01 1
+11 1
+.names r907 w942 w943
+00 1
+11 1
+.names w929 e_12 w944
+10 1
+01 1
+.names w929 e_12 w945
+11 1
+.names w931 w945 w946
+10 1
+01 1
+.names w931 w945 w947
+11 1
+.names w933 w947 w948
+10 1
+01 1
+.names w933 w947 w949
+11 1
+.names w935 w949 w950
+10 1
+01 1
+.names w935 w949 w951
+11 1
+.names w937 w951 w952
+10 1
+01 1
+.names w937 w951 w953
+11 1
+.names w939 w953 w954
+10 1
+01 1
+.names w939 w953 w955
+11 1
+.names w941 w955 w956
+10 1
+01 1
+.names w941 w955 w957
+11 1
+.names w943 w957 w958
+10 1
+01 1
+.names r904 r903 w959
+10 1
+01 1
+11 1
+.names r905 w959 w960
+10 1
+01 1
+11 1
+.names r906 w960 w961
+10 1
+01 1
+11 1
+.names r907 w961 w962
+10 1
+01 1
+11 1
+.names w962 w963
+0 1
+.names r906 r905 w964
+10 1
+01 1
+11 1
+.names r907 w964 w965
+10 1
+01 1
+11 1
+.names w965 w966
+0 1
+.latch w990 r967 re clk 0
+.latch w992 r968 re clk 0
+.latch w994 r969 re clk 0
+.latch w996 r970 re clk 0
+.latch w998 r971 re clk 0
+.latch w1000 r972 re clk 0
+.latch w1017 r973 re clk 0
+.latch w1019 r974 re clk 0
+.latch w1021 r975 re clk 0
+.latch w1023 r976 re clk 0
+.latch w1025 r977 re clk 0
+.latch w1027 r978 re clk 0
+.latch w1029 r979 re clk 0
+.latch w1031 r980 re clk 0
+.names r972 w981
+0 1
+.names r973 w982
+0 1
+.names r974 w983
+0 1
+.names r975 w984
+0 1
+.names r976 w985
+0 1
+.names r977 w986
+0 1
+.names r978 w987
+0 1
+.names r979 w988
+0 1
+.names r980 w989
+0 1
+.names r967 w981 w990
+00 1
+11 1
+.names r967 w981 w991
+10 1
+01 1
+11 1
+.names r968 w982 w991 w992
+100 1
+010 1
+001 1
+111 1
+.names r968 w982 w991 w993
+110 1
+101 1
+011 1
+111 1
+.names r969 w983 w993 w994
+100 1
+010 1
+001 1
+111 1
+.names r969 w983 w993 w995
+110 1
+101 1
+011 1
+111 1
+.names r970 w984 w995 w996
+100 1
+010 1
+001 1
+111 1
+.names r970 w984 w995 w997
+110 1
+101 1
+011 1
+111 1
+.names r971 w985 w997 w998
+100 1
+010 1
+001 1
+111 1
+.names r971 w985 w997 w999
+110 1
+101 1
+011 1
+111 1
+.names r972 w986 w999 w1000
+100 1
+010 1
+001 1
+111 1
+.names r972 w986 w999 w1001
+110 1
+101 1
+011 1
+111 1
+.names r973 w987 w1001 w1002
+100 1
+010 1
+001 1
+111 1
+.names r973 w987 w1001 w1003
+110 1
+101 1
+011 1
+111 1
+.names r974 w988 w1003 w1004
+100 1
+010 1
+001 1
+111 1
+.names r974 w988 w1003 w1005
+110 1
+101 1
+011 1
+111 1
+.names r975 w989 w1005 w1006
+100 1
+010 1
+001 1
+111 1
+.names r975 w989 w1005 w1007
+110 1
+101 1
+011 1
+111 1
+.names r976 w1007 w1008
+00 1
+11 1
+.names r976 w1007 w1009
+10 1
+01 1
+11 1
+.names r977 w1009 w1010
+00 1
+11 1
+.names r977 w1009 w1011
+10 1
+01 1
+11 1
+.names r978 w1011 w1012
+00 1
+11 1
+.names r978 w1011 w1013
+10 1
+01 1
+11 1
+.names r979 w1013 w1014
+00 1
+11 1
+.names r979 w1013 w1015
+10 1
+01 1
+11 1
+.names r980 w1015 w1016
+00 1
+11 1
+.names w1002 e_13 w1017
+10 1
+01 1
+.names w1002 e_13 w1018
+11 1
+.names w1004 w1018 w1019
+10 1
+01 1
+.names w1004 w1018 w1020
+11 1
+.names w1006 w1020 w1021
+10 1
+01 1
+.names w1006 w1020 w1022
+11 1
+.names w1008 w1022 w1023
+10 1
+01 1
+.names w1008 w1022 w1024
+11 1
+.names w1010 w1024 w1025
+10 1
+01 1
+.names w1010 w1024 w1026
+11 1
+.names w1012 w1026 w1027
+10 1
+01 1
+.names w1012 w1026 w1028
+11 1
+.names w1014 w1028 w1029
+10 1
+01 1
+.names w1014 w1028 w1030
+11 1
+.names w1016 w1030 w1031
+10 1
+01 1
+.names r977 r976 w1032
+10 1
+01 1
+11 1
+.names r978 w1032 w1033
+10 1
+01 1
+11 1
+.names r979 w1033 w1034
+10 1
+01 1
+11 1
+.names r980 w1034 w1035
+10 1
+01 1
+11 1
+.names w1035 w1036
+0 1
+.names r979 r978 w1037
+10 1
+01 1
+11 1
+.names r980 w1037 w1038
+10 1
+01 1
+11 1
+.names w1038 w1039
+0 1
+.latch w1063 r1040 re clk 0
+.latch w1065 r1041 re clk 0
+.latch w1067 r1042 re clk 0
+.latch w1069 r1043 re clk 0
+.latch w1071 r1044 re clk 0
+.latch w1073 r1045 re clk 0
+.latch w1090 r1046 re clk 0
+.latch w1092 r1047 re clk 0
+.latch w1094 r1048 re clk 0
+.latch w1096 r1049 re clk 0
+.latch w1098 r1050 re clk 0
+.latch w1100 r1051 re clk 0
+.latch w1102 r1052 re clk 0
+.latch w1104 r1053 re clk 0
+.names r1045 w1054
+0 1
+.names r1046 w1055
+0 1
+.names r1047 w1056
+0 1
+.names r1048 w1057
+0 1
+.names r1049 w1058
+0 1
+.names r1050 w1059
+0 1
+.names r1051 w1060
+0 1
+.names r1052 w1061
+0 1
+.names r1053 w1062
+0 1
+.names r1040 w1054 w1063
+00 1
+11 1
+.names r1040 w1054 w1064
+10 1
+01 1
+11 1
+.names r1041 w1055 w1064 w1065
+100 1
+010 1
+001 1
+111 1
+.names r1041 w1055 w1064 w1066
+110 1
+101 1
+011 1
+111 1
+.names r1042 w1056 w1066 w1067
+100 1
+010 1
+001 1
+111 1
+.names r1042 w1056 w1066 w1068
+110 1
+101 1
+011 1
+111 1
+.names r1043 w1057 w1068 w1069
+100 1
+010 1
+001 1
+111 1
+.names r1043 w1057 w1068 w1070
+110 1
+101 1
+011 1
+111 1
+.names r1044 w1058 w1070 w1071
+100 1
+010 1
+001 1
+111 1
+.names r1044 w1058 w1070 w1072
+110 1
+101 1
+011 1
+111 1
+.names r1045 w1059 w1072 w1073
+100 1
+010 1
+001 1
+111 1
+.names r1045 w1059 w1072 w1074
+110 1
+101 1
+011 1
+111 1
+.names r1046 w1060 w1074 w1075
+100 1
+010 1
+001 1
+111 1
+.names r1046 w1060 w1074 w1076
+110 1
+101 1
+011 1
+111 1
+.names r1047 w1061 w1076 w1077
+100 1
+010 1
+001 1
+111 1
+.names r1047 w1061 w1076 w1078
+110 1
+101 1
+011 1
+111 1
+.names r1048 w1062 w1078 w1079
+100 1
+010 1
+001 1
+111 1
+.names r1048 w1062 w1078 w1080
+110 1
+101 1
+011 1
+111 1
+.names r1049 w1080 w1081
+00 1
+11 1
+.names r1049 w1080 w1082
+10 1
+01 1
+11 1
+.names r1050 w1082 w1083
+00 1
+11 1
+.names r1050 w1082 w1084
+10 1
+01 1
+11 1
+.names r1051 w1084 w1085
+00 1
+11 1
+.names r1051 w1084 w1086
+10 1
+01 1
+11 1
+.names r1052 w1086 w1087
+00 1
+11 1
+.names r1052 w1086 w1088
+10 1
+01 1
+11 1
+.names r1053 w1088 w1089
+00 1
+11 1
+.names w1075 e_14 w1090
+10 1
+01 1
+.names w1075 e_14 w1091
+11 1
+.names w1077 w1091 w1092
+10 1
+01 1
+.names w1077 w1091 w1093
+11 1
+.names w1079 w1093 w1094
+10 1
+01 1
+.names w1079 w1093 w1095
+11 1
+.names w1081 w1095 w1096
+10 1
+01 1
+.names w1081 w1095 w1097
+11 1
+.names w1083 w1097 w1098
+10 1
+01 1
+.names w1083 w1097 w1099
+11 1
+.names w1085 w1099 w1100
+10 1
+01 1
+.names w1085 w1099 w1101
+11 1
+.names w1087 w1101 w1102
+10 1
+01 1
+.names w1087 w1101 w1103
+11 1
+.names w1089 w1103 w1104
+10 1
+01 1
+.names r1050 r1049 w1105
+10 1
+01 1
+11 1
+.names r1051 w1105 w1106
+10 1
+01 1
+11 1
+.names r1052 w1106 w1107
+10 1
+01 1
+11 1
+.names r1053 w1107 w1108
+10 1
+01 1
+11 1
+.names w1108 w1109
+0 1
+.names r1052 r1051 w1110
+10 1
+01 1
+11 1
+.names r1053 w1110 w1111
+10 1
+01 1
+11 1
+.names w1111 w1112
+0 1
+.latch w1136 r1113 re clk 0
+.latch w1138 r1114 re clk 0
+.latch w1140 r1115 re clk 0
+.latch w1142 r1116 re clk 0
+.latch w1144 r1117 re clk 0
+.latch w1146 r1118 re clk 0
+.latch w1163 r1119 re clk 0
+.latch w1165 r1120 re clk 0
+.latch w1167 r1121 re clk 0
+.latch w1169 r1122 re clk 0
+.latch w1171 r1123 re clk 0
+.latch w1173 r1124 re clk 0
+.latch w1175 r1125 re clk 0
+.latch w1177 r1126 re clk 0
+.names r1118 w1127
+0 1
+.names r1119 w1128
+0 1
+.names r1120 w1129
+0 1
+.names r1121 w1130
+0 1
+.names r1122 w1131
+0 1
+.names r1123 w1132
+0 1
+.names r1124 w1133
+0 1
+.names r1125 w1134
+0 1
+.names r1126 w1135
+0 1
+.names r1113 w1127 w1136
+00 1
+11 1
+.names r1113 w1127 w1137
+10 1
+01 1
+11 1
+.names r1114 w1128 w1137 w1138
+100 1
+010 1
+001 1
+111 1
+.names r1114 w1128 w1137 w1139
+110 1
+101 1
+011 1
+111 1
+.names r1115 w1129 w1139 w1140
+100 1
+010 1
+001 1
+111 1
+.names r1115 w1129 w1139 w1141
+110 1
+101 1
+011 1
+111 1
+.names r1116 w1130 w1141 w1142
+100 1
+010 1
+001 1
+111 1
+.names r1116 w1130 w1141 w1143
+110 1
+101 1
+011 1
+111 1
+.names r1117 w1131 w1143 w1144
+100 1
+010 1
+001 1
+111 1
+.names r1117 w1131 w1143 w1145
+110 1
+101 1
+011 1
+111 1
+.names r1118 w1132 w1145 w1146
+100 1
+010 1
+001 1
+111 1
+.names r1118 w1132 w1145 w1147
+110 1
+101 1
+011 1
+111 1
+.names r1119 w1133 w1147 w1148
+100 1
+010 1
+001 1
+111 1
+.names r1119 w1133 w1147 w1149
+110 1
+101 1
+011 1
+111 1
+.names r1120 w1134 w1149 w1150
+100 1
+010 1
+001 1
+111 1
+.names r1120 w1134 w1149 w1151
+110 1
+101 1
+011 1
+111 1
+.names r1121 w1135 w1151 w1152
+100 1
+010 1
+001 1
+111 1
+.names r1121 w1135 w1151 w1153
+110 1
+101 1
+011 1
+111 1
+.names r1122 w1153 w1154
+00 1
+11 1
+.names r1122 w1153 w1155
+10 1
+01 1
+11 1
+.names r1123 w1155 w1156
+00 1
+11 1
+.names r1123 w1155 w1157
+10 1
+01 1
+11 1
+.names r1124 w1157 w1158
+00 1
+11 1
+.names r1124 w1157 w1159
+10 1
+01 1
+11 1
+.names r1125 w1159 w1160
+00 1
+11 1
+.names r1125 w1159 w1161
+10 1
+01 1
+11 1
+.names r1126 w1161 w1162
+00 1
+11 1
+.names w1148 e_15 w1163
+10 1
+01 1
+.names w1148 e_15 w1164
+11 1
+.names w1150 w1164 w1165
+10 1
+01 1
+.names w1150 w1164 w1166
+11 1
+.names w1152 w1166 w1167
+10 1
+01 1
+.names w1152 w1166 w1168
+11 1
+.names w1154 w1168 w1169
+10 1
+01 1
+.names w1154 w1168 w1170
+11 1
+.names w1156 w1170 w1171
+10 1
+01 1
+.names w1156 w1170 w1172
+11 1
+.names w1158 w1172 w1173
+10 1
+01 1
+.names w1158 w1172 w1174
+11 1
+.names w1160 w1174 w1175
+10 1
+01 1
+.names w1160 w1174 w1176
+11 1
+.names w1162 w1176 w1177
+10 1
+01 1
+.names r1123 r1122 w1178
+10 1
+01 1
+11 1
+.names r1124 w1178 w1179
+10 1
+01 1
+11 1
+.names r1125 w1179 w1180
+10 1
+01 1
+11 1
+.names r1126 w1180 w1181
+10 1
+01 1
+11 1
+.names w1181 w1182
+0 1
+.names r1125 r1124 w1183
+10 1
+01 1
+11 1
+.names r1126 w1183 w1184
+10 1
+01 1
+11 1
+.names w1184 w1185
+0 1
+.names w87 d_0
+1 1
+.names w90 d_1
+1 1
+.names w160 d_2
+1 1
+.names w163 d_3
+1 1
+.names w233 d_4
+1 1
+.names w236 d_5
+1 1
+.names w306 d_6
+1 1
+.names w309 d_7
+1 1
+.names w379 d_8
+1 1
+.names w382 d_9
+1 1
+.names w452 d_10
+1 1
+.names w455 d_11
+1 1
+.names w525 d_12
+1 1
+.names w528 d_13
+1 1
+.names w598 d_14
+1 1
+.names w601 d_15
+1 1
+.names w671 d_16
+1 1
+.names w674 d_17
+1 1
+.names w744 d_18
+1 1
+.names w747 d_19
+1 1
+.names w817 d_20
+1 1
+.names w820 d_21
+1 1
+.names w890 d_22
+1 1
+.names w893 d_23
+1 1
+.names w963 d_24
+1 1
+.names w966 d_25
+1 1
+.names w1036 d_26
+1 1
+.names w1039 d_27
+1 1
+.names w1109 d_28
+1 1
+.names w1112 d_29
+1 1
+.names w1182 d_30
+1 1
+.names w1185 d_31
+1 1
+.end
