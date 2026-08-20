@@ -81,7 +81,9 @@ class SpikeProx(nn.Module):
         # value: n*thr;  grad wrt v: STE mask;  grad wrt thr: through n*thr
         mask = ((v > -0.5 * thr) & (v < thr * (self.levels + 0.5))).to(v.dtype)
         ste = v * mask
-        return n.detach() * thr + (ste - ste.detach())
+        q = n.detach() * thr + (ste - ste.detach())
+        a = getattr(self, 'blend', 1.0)    # calibrated conversion: 0 -> 1
+        return q if a >= 1.0 else (1.0 - a) * v + a * q
 
 
 class SignedProx(nn.Module):
@@ -331,12 +333,15 @@ class CausalCRATEM2(nn.Module):
 
     @torch.no_grad()
     def layer_metrics(self, idx, eps_sq=0.5):
+        """ALIGNED attention substep: dR^c = R^c(z + attn(z); U) − R^c(z; U),
+        same basis, same scaling — no LayerNorm between the two sides (a
+        LN'd comparison can flip sign without the substep changing)."""
         z = self._embed(idx)
         out = []
         for li, b in enumerate(self.blocks):
             rc_before = _coding_rate_impl(z, b.attn, eps_sq)
             x = z + b.attn(z)
-            rc_after = _coding_rate_impl(b.ln(x), b.attn, eps_sq)
+            rc_after = _coding_rate_impl(x, b.attn, eps_sq)
             z = b(z)
             stats = CausalCRATE._code_stats(z, b.prox)
             out.append(dict(layer=li,

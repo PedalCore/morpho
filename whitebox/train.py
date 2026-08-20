@@ -69,6 +69,11 @@ def main():
                     help='M2 control: reordered wiring, identity quantizer')
     ap.add_argument('--anneal', default=None,
                     help='level schedule, e.g. "2500:2,4000:1"')
+    ap.add_argument('--calibrate-from', default=None,
+                    help='M2-control ckpt: init weights AND set thresholds '
+                         'from measured pre-consumer activation quantiles')
+    ap.add_argument('--blend-steps', type=int, default=0,
+                    help='ramp float->quantized alpha 0->1 over N steps')
     ap.add_argument('--name', default=None)
     args = ap.parse_args()
 
@@ -109,9 +114,31 @@ def main():
         t = (step - warmup) / max(1, args.steps - warmup)
         return args.lr * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * t)))
 
+    if args.calibrate_from:
+        from whitebox.calibrate import calibrate
+        src = torch.load(args.calibrate_from, map_location=device)
+        sd = {k.replace('.ista.D', '.D').replace('.ln2.', '.ln.'): v
+              for k, v in src['model'].items()}
+        model.load_state_dict(sd, strict=False)
+        cal_batches = [get_batch(valid_data, 8, cfg.ctx,
+                                 np.random.default_rng(11 + i), device)[0]
+                       for i in range(8)]
+        rep = calibrate(model, cal_batches)
+        print('calibrated thresholds:',
+              [(li, kind, f'{want}->{got}') for li, kind, want, got in rep[:6]],
+              '...', flush=True)
+
+    def set_blend(a):
+        from whitebox.model import SpikeProx, SignedProx
+        for m in model.modules():
+            if isinstance(m, (SpikeProx, SignedProx)):
+                m.blend = a
+
     log = open(run_dir / 'log.jsonl', 'a')
     t0 = time.time()
     for step in range(args.steps):
+        if args.blend_steps:
+            set_blend(min(1.0, step / args.blend_steps))
         for at_step, lv in anneal:
             if step == at_step:
                 model.set_levels(lv)
