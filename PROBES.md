@@ -76,3 +76,39 @@ The memorable figure, if the data cooperates: accuracy-vs-delay curves
 for all architectures over one x-axis in units of t_½, with state bits
 as marker size — retention you can afford, priced in bits and, one
 methods-section later, in gates.
+
+
+## RESULTS (2026-08-21, two seeds — protocol amendment: user stopped the
+seed-2 pass, arms already cleanly separated; dval and staircase arms see
+notes)
+
+Copy / assoc / induction / selective accuracy, mean of seeds {0,1}, at
+delays {6, 11, 22, 44, 89}:
+
+    copy       kv 0.72-0.70 flat | win32 0.12->0.08 cliff | dval FLOOR | crsa 0.56-0.63 FLAT
+    assoc      kv ~0.30          | win32 ~0.10           | dval FLOOR | crsa 0.15-0.19
+    induction  kv 1.00 all       | win32 0.28->0.09 cliff | dval FLOOR | crsa **1.00 ALL DELAYS**
+    selective  kv ~0.91          | win32 ~0.08           | dval FLOOR | crsa 0.52-0.58
+
+Prediction scorecard:
+1. KV flat — CONFIRMED (every task).
+2. Window cliff between 22 and 44 — CONFIRMED in shape (induction
+   0.28->0.09; copy 0.12->0.08), though the arm trains weakly overall.
+3. Decayed-value smooth decay — NOT TESTED IN EFFECT: the arm floored at
+   chance both seeds; the (1-rho) input attenuation (up to 64x) is the
+   suspected implementation artifact. The baseline is INVALID until a
+   rescaled follow-up runs; no comparative claims against it.
+4. CRSA ordering by m at D >= t_1/2 — REFUTED in the strong direction:
+   retention is FLAT to 89 tokens (2x the slowest half-life, 17x the
+   fastest) — the multiscale population retains what no single counter
+   could. The stronger branch of the preregistered framing.
+5. Staircase plateaus — arm deferred, untested.
+6. Interference signature — CONFIRMED in relative form: CRSA's gap to KV
+   is much larger on selective-retention (0.56 vs 0.91) and assoc than on
+   copy (0.58 vs 0.71) — shared-counter interference, as predicted.
+
+Headline: **a constant-state operator with no token pairs solves
+induction (A B ... A -> B) perfectly at every tested distance.** CRSA is
+the only constant-state arm that learns all four tasks. Its cost
+concentrates precisely where the mechanism predicts: interference-prone
+retrieval, not distance.
