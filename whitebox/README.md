@@ -73,6 +73,13 @@ post-hoc). Mechanism axis observation, not gate: descent-form held
 monotonically (−5.0 → −11.5) — changing the operator changed the
 derivation–execution relationship.
 
+State-health axis (post-hoc, final checkpoint): CLEAN. Zero idle
+capacity (no coordinates with d>0.99 at any horizon), no dead heads, no
+saturation blowup; mean counter load scales sensibly with horizon (c̄ =
+10.5/18.5/32.3/63.9 for m=3/4/5/6) and mean marginal prices (0.12 →
+0.03) show every timescale in active use. Remaining axis: the locked
+probe suite (temporal function).
+
 **M2 VERDICT (by the frozen rule): closed.** Calibration prevents
 extinction but does not recover sufficient capability. The codes stay
 active, entropic, and trainable while remaining semantically misaligned
