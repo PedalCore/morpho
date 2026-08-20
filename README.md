@@ -60,6 +60,19 @@ Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
 | M2-annealed (4→2→1, uncalibrated) | 5.2M | 2,472 — doubly-confirmed negative: BOTH coarsenings re-injured (113→2,926 at 4→2; 134→2,401 at 2→1, then TRAPPED at binary) |
 | M2-calibrated (rescue: quantile thresholds + blend ramp from M2-control) | 5.2M | 36.80 — mechanism gate PASSED (no extinction; activity healthy throughout), capability gate FAILED (59.7% NLL recovery, plateaued) |
 
+| **M3-control (TSSA: decaying-counter attention, no softmax/pairs/KV)** | 5.2M | **13.78** — beats its 14.22 softmax parent by 3.1%; both gates passed; ΔR^c descent-form (−11.5) monotone through training — the first arm whose trained mechanism matches the derived sign |
+
+**M3-control capability verdict: causal decaying sufficient statistics
+replace token-pair attention on this corpus with an IMPROVEMENT, at
+constant attention state (K·p = 384 counters per layer vs a growing KV
+cache).** Remaining axes before the operator is declared: temporal
+function (the locked probe suite — decaying counters compress and
+forget; TinyStories' short dependencies can flatter a forgetful
+operator) and state health (saturation, dead heads, per-m utilization,
+post-hoc). Mechanism axis observation, not gate: descent-form held
+monotonically (−5.0 → −11.5) — changing the operator changed the
+derivation–execution relationship.
+
 **M2 VERDICT (by the frozen rule): closed.** Calibration prevents
 extinction but does not recover sufficient capability. The codes stay
 active, entropic, and trainable while remaining semantically misaligned
