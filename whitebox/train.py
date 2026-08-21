@@ -56,6 +56,7 @@ def main():
     ap.add_argument('--lr', type=float, default=6e-4)
     ap.add_argument('--layers', type=int, default=12)
     ap.add_argument('--width', type=int, default=384)
+    ap.add_argument('--heads', type=int, default=8)
     ap.add_argument('--spike-prox', action='store_true')
     ap.add_argument('--untied', action='store_true')
     ap.add_argument('--scale-init', type=float, default=0.1)
@@ -82,7 +83,7 @@ def main():
     device = 'cpu' if args.cpu else pick_device()
     tok = get_tokenizer()
     cfg = Config(vocab_size=tok.vocab_size, n_layer=args.layers,
-                 n_embd=args.width,
+                 n_embd=args.width, n_head=args.heads,
                  tied=not args.untied, spike_prox=args.spike_prox,
                  mssa_scale=args.scale_init,
                  m2=args.m2 or '', m2_identity=args.m2_identity,
