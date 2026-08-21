@@ -141,9 +141,14 @@ measurable quality cost; both beat softmax ⇒ token-statistics mixing is
 the underlying advantage; softmax wins ⇒ constant-statistics attention
 trades retrieval capacity for state efficiency.
 FIRST SCREEN RESULT: CRSA+MLP = **16.79 @3000** — best screen number of
-the campaign (F4 19.75, d672 baseline 19.62); softmax+MLP and TOST+MLP
-(uniform-measure ablation, isolates the temporal-measure axis alone)
-running/queued — separating
+the campaign (F4 19.75, d672 baseline 19.62); softmax+MLP running; CRSA-UNIFORM+MLP queued
+(naming rule: uniform prefix measure with CRSA's router/price/tied-agg
+is NOT published TSSA — it lacks soft membership, temperature, bias,
+untied out; the strongest ladder = CRSA-leaky / CRSA-uniform / literal
+TSSA Algorithm 2 verified numerically equivalent on shared weights —
+the literal arm is OWED). Param caveat on 16.79: the MLP model carries
+~10M more params than the 14M dictionary arm — strong trainability +
+feature-bottleneck support, NOT proof that MLP beats dictionary — separating
 nonlinear capacity, sparse-coding value, CRSA's decayed statistics, and
 token-statistics attention itself.
 

@@ -363,12 +363,15 @@ class CRSA(nn.Module):
 
 
 class TOST(CRSA):
-    """Uniform-measure ablation of CRSA — the ToST/causal-TSSA temporal
-    measure (arXiv:2412.17810): running MEAN of squared projections
-    (uniform prefix weights) instead of the dyadic exponential ladder.
-    Identical code path otherwise, so CRSA-vs-TOST isolates exactly the
-    forgetting/multiscale axis. Full soft-membership Causal-ToST
-    reproduction remains owed; this is the measure swap alone."""
+    """CRSA-UNIFORM — NOT published TSSA. Uniform prefix-normalized
+    second moments (running mean of h^2) with CRSA's router, price, and
+    tied aggregation; published causal TSSA additionally has soft head
+    membership pi, membership-count normalization, learned temperature,
+    position/head bias, and an untied output projection. This arm
+    isolates the temporal-weighting axis (forgetting + ladder) alone.
+    A LITERAL TSSA Algorithm-2 implementation, verified NUMERICALLY
+    EQUIVALENT on shared weights (causality alone proves nothing), is
+    the required third rung and remains owed."""
 
     def forward(self, x):
         B, T, d = x.shape
