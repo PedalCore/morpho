@@ -59,6 +59,8 @@ class Config:
     attn: str = 'mssa'         # 'mssa' | 'crsa' | 'dval' ('tssa' legacy)
     window: int = 0            # mssa only: banded causal mask (0 = full)
     dict_expand: int = 1       # >1: overcomplete dictionary fork (DICTIONARY.md)
+    dict_local: bool = False   # block-local a0=0 form (the factorial's design)
+    dict_identity: bool = False  # factorial arms F1/F3: prox disabled (LINEAR)
 
 
 class SpikeProx(nn.Module):
@@ -466,6 +468,39 @@ class BlockOD(nn.Module):
         return a2 @ self.D.t(), a2                   # decode, carry code
 
 
+class BlockODLocal(nn.Module):
+    """Block-local overcomplete sparse coding (DICTIONARY.md v2, the
+    factorial's canonical form): a(0)=0, one exact ISTA step, gamma-mixed
+    residual update. Explicit choice: the equations run in the LayerNorm
+    frame (x := LN(z + attn(z))). dict_identity disables the prox —
+    D(eta D^T x) is STILL LINEAR; that is arms F1/F3's point."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        q = cfg.dict_expand * d
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+                     .get(cfg.attn, MSSA))(cfg)
+        self.ln = nn.LayerNorm(d)
+        D = torch.randn(d, q)
+        self.D = nn.Parameter(D / D.norm(dim=0, keepdim=True))
+        self.eta = cfg.ista_eta
+        self.lam = cfg.ista_lambda
+        self.gamma = nn.Parameter(torch.tensor(0.5))   # relaxed update init
+        self.identity = cfg.dict_identity
+        self.last_rate = None
+        self.last_a = None
+
+    def forward(self, z):
+        x = self.ln(z + self.attn(z))
+        pre = self.eta * (x @ self.D)                  # eta D^T x
+        a = pre if self.identity else torch.relu(pre - self.eta * self.lam)
+        self.last_rate = (a.detach() != 0).float().mean()
+        self.last_a = a.detach()
+        xhat = a @ self.D.t()
+        return x + self.gamma * (xhat - x)
+
+
 class CausalCRATEM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -477,7 +512,8 @@ class CausalCRATEM2(nn.Module):
         self.prox_in = (None if cfg.m2_identity else
                         SpikeProx(cfg.n_embd, cfg.spike_levels,
                                   cfg.spike_init_threshold))
-        blk = BlockOD if cfg.dict_expand > 1 else BlockM2
+        blk = (BlockODLocal if cfg.dict_local else
+               BlockOD if cfg.dict_expand > 1 else BlockM2)
         self.blocks = nn.ModuleList(blk(cfg) for _ in range(cfg.n_layer))
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
         self.head.weight = self.emb.weight     # head consumes codes directly
@@ -494,7 +530,10 @@ class CausalCRATEM2(nn.Module):
 
     def forward(self, idx, targets=None):
         z = self._embed(idx)
-        if self.cfg.dict_expand > 1:
+        if self.cfg.dict_local:
+            for b in self.blocks:
+                z = b(z)
+        elif self.cfg.dict_expand > 1:
             a = torch.zeros(*z.shape[:-1],
                             self.cfg.dict_expand * self.cfg.n_embd,
                             device=z.device, dtype=z.dtype)
@@ -516,6 +555,38 @@ class CausalCRATEM2(nn.Module):
         same basis, same scaling — no LayerNorm between the two sides (a
         LN'd comparison can flip sign without the substep changing)."""
         z = self._embed(idx)
+        if self.cfg.dict_local:
+            out = []
+            for li, b in enumerate(self.blocks):
+                rc_before = _coding_rate_impl(z, b.attn, eps_sq)
+                rc_after = _coding_rate_impl(z + b.attn(z), b.attn, eps_sq)
+                x = b.ln(z + b.attn(z))
+                z = b(z)
+                a = b.last_a.reshape(-1, b.last_a.shape[-1])
+                dead = float((a.abs().sum(0) == 0).float().mean())
+                Dn = b.D / b.D.norm(dim=0, keepdim=True)
+                q, d = b.D.shape[1], b.D.shape[0]
+                G = b.D @ b.D.t()
+                frame = float((G - (q / d) * torch.eye(d)).norm() /
+                              ((q / d) * d ** 0.5))
+                spec = float(torch.linalg.matrix_norm(b.D, 2)) ** 2
+                xf = x.reshape(-1, d)
+                rec = float(((a @ b.D.t()) - xf).norm() / (xf.norm() + 1e-9))
+                coh = float((Dn.t() @ Dn - torch.eye(q)).abs().max())
+                out.append(dict(layer=li, rc_before=float(rc_before),
+                                rc_after=float(rc_after),
+                                r_total=float(
+                                    CausalCRATE._expansion_rate(z, eps_sq)),
+                                sparsity=1.0 - float(b.last_rate),
+                                entropy=None, mag=round(float(a.abs().mean()), 4),
+                                zmax=round(float(z.abs().max()), 2),
+                                dead=round(dead, 3),
+                                rec=round(rec, 3),
+                                eta_spec=round(b.eta * spec, 2),
+                                frame=round(frame, 3),
+                                coh=round(coh, 3),
+                                err_rate=None))
+            return out
         if self.cfg.dict_expand > 1:
             a = torch.zeros(*z.shape[:-1],
                             self.cfg.dict_expand * self.cfg.n_embd,
