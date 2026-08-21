@@ -1,69 +1,91 @@
-# The overcomplete dictionary fork (formalization before implementation)
+# The overcomplete dictionary fork (formalization v2 — corrected)
 
-Motivation, stated plainly: **published CRATE never beat attention
-transformers, and this line inherits that ceiling.** The most conspicuous
-capacity difference is the sparsification block — CRATE's d×d dictionary
-against the transformer's 4d MLP. Sharpened by an observation from our
-own wiring: the identity-control blocks contain **no elementwise
-nonlinearity whatsoever** (the prox is identity; all nonlinearity is
-LayerNorm plus the attention gate). The fork therefore tests two things
-at once, deliberately: dictionary WIDTH (4d atoms) and an ACTIVE prox
-(soft-threshold on the wide code). "Capacity" here = width × nonlinearity.
+Motivation: published CRATE never beat attention transformers; this line
+inherits that ceiling. The mathematical point (sharper than "capacity"):
+**an overcomplete dictionary with the prox disabled is still a linear
+map** — the hypothesis is overcomplete NONLINEAR sparse coding, not
+dictionary size. Wording correction on record: this is NOT the program's
+first nonlinear arm (M0's ReLU/ISTA and the spike-prox models were
+nonlinear); it is **the first CRSA arm with an active, transformer-scale
+overcomplete nonlinear feature block**.
 
-Screens rank early trajectories only (standing caveat); the eventual
-winner gets a train-to-plateau run — where ppl bottoms out is the real
-comparison, per protocol note below.
+## Canonical block (block-local form — the factorial's design)
 
-## The five interface decisions (each made explicitly)
+Post-CRSA representation x_ℓ ∈ R^d; block-local code a_ℓ ∈ R^q, q = r·d,
+r ∈ {1, 2, 4}; dictionary D_ℓ ∈ R^{d×q}. Local objective: nonnegative
+sparse coding, a* = argmin_{a≥0} ½‖x − D a‖² + λ‖a‖₁. One exact ISTA
+iteration from a⁽⁰⁾ = 0 (cleanest first implementation):
 
-**D1 — What is the layer state?** Chosen: a STATE PAIR. The d-stream z
-feeds attention (Kp = d counter policy intact, all attention results
-carry over); a wide code stream a ∈ R^{4d} carries the sparse code
-across layers. Rejected: state = wide code everywhere (touches every
-interface, quadruples the state-bits claim); state = reconstruction with
-code reset per block (loses the unroll trick that won M2-control its
-1.15 ppl).
+    a⁽¹⁾ = ReLU( η D^T x − η λ 1 )
+    x̂    = D a⁽¹⁾
+    z'   = x + γ (x̂ − x)          γ = 1: sparse reconstruction directly;
+                                   0 < γ < 1: relaxed update (stability)
 
-**D2 — Unroll point.** Chosen: ISTA unrolls from the PREVIOUS LAYER'S
-wide code (a₀ = a_{ℓ−1}; a₀ = 0 before block 0) — the faithful analog of
-the winning reorder. Cost: a 4d activation stream at train/inference
-time; zero parameters.
+CRSA and its counters stay d-wide; only the block-local feature bank
+expands. Honest divergence from CRATE: the sparse object is an internal
+latent; the inter-block state is its d-dim reconstruction — CRATE's
+eqs. 14–17 pass the code itself onward and do NOT transfer unchanged.
+(The persistent cross-layer-code variant already implemented and
+screening as `screen-dict4` is a defensible alternative design — possibly
+stronger — but it is a DIFFERENT interpretation; the factorial uses the
+block-local form.)
 
-**D3 — What the prox quantizes (future spike arm).** The wide code a.
-Coverage accounting REOPENS: D consumes codes; Dᵀ consumes the float
-residual (or ternary, M2b-style); attention's U consumes the DENSE
-decode z' = D a — so U-coverage is lost relative to M2's 100% unless a
-second prox quantizes the decode (option recorded, deferred). No spike
-claims carry over unexamined.
+## Overcomplete geometry (corrected)
 
-**D4 — Dictionary init and step.** D ∈ R^{d×4d}, column-normalized
-random init (orthogonality is impossible overcomplete; Gram statistics
-logged with the existing tooling). Step size η stays the learnable
-scalar, init 0.1 (the load-bearing-scale lesson).
+For q > d, D^T D ≈ I_q is RANK-IMPOSSIBLE — never assess it. The premise
+becomes a tight-frame condition: D D^T ≈ c·I_d (unit columns ⇒ c = q/d),
+plus low mutual coherence. ISTA stability: 0 < η < 2/‖D‖₂². Logged per
+layer, every eval: η‖D‖₂² (must stay < 2), ‖DDᵀ − cI_d‖_F, mutual
+coherence, reconstruction error, sparsity, **dead-atom fraction and
+activation-frequency distribution** (aggregate sparsity cannot show
+whether 1,792 atoms function as a much smaller dictionary).
 
-**D5 — The prox itself (this screen).** Soft-threshold ReLU on the wide
-code — an ACTIVE nonlinearity, unlike the identity control. λ = 0.1 as
-M0. (Spike prox substitutes here later, via the calibration protocol.)
+## The crucial factorial (fixed d = 448; allocation comparison ONLY after)
 
-## Block equations (the chosen design)
+| arm | dictionary | prox | isolates |
+|---|---|---|---|
+| F1 | q = d | identity | current control |
+| F2 | q = d | active | nonlinearity alone |
+| F3 | q = 4d | identity | factorization/params alone — D(Dᵀx) is STILL LINEAR |
+| F4 | q = 4d | active | the full overcomplete sparse coder |
 
-    x  = z + attn(z)                       CRSA on the d-stream, unchanged
-    u  = LN(x)
-    a' = relu( a + η·Dᵀ(u − D a) − ηλ )    one ISTA step, D ∈ d×4d,
-                                           unrolled from the previous code
-    z' = D a'                              decode; the d-stream continues
+If only F4 improves, the gain is thresholded feature regions — not a
+larger matrix. Parameters are NOT matched across arms by design
+(mechanism first); the allocation question (d=672,q=d vs d=448,q=4d)
+comes after, and eventual reporting is PPL at matched tokens, PPL per
+FLOP, and hardware-normalized cost — the current comparison is
+parameter-matched only (the persistent 4d stream also adds dictionary
+ops and inter-block bandwidth).
 
-Parameters per block: U d² + D 4d² = 5d² (vs 2d² today).
-**Matched-scale config: d = 448, L = 12, K = 8 (p = 56): 5d²·12 = 12.0M
-+ tied embedding 1.8M ≈ 14.0M.** Counters Kp = 448 = d per policy.
+## Plateau protocol (supersedes screen-verdicts; applies to every arm)
 
-## Screen protocol
+Screens eliminate catastrophic configurations only. Checkpoints retained
+for every healthy configuration. Credible arms train on full-horizon
+schedules and stop on a VALIDATION PLATEAU, not a step count: <0.5%
+relative improvement over 2,000–3,000 steps, after at least one LR
+reduction; report the best validation checkpoint. Both numbers always:
+PPL at matched tokens AND lowest plateau PPL. Standing consequence:
+lower-LR and extra-heads are screen-negative, NOT proven incapable of a
+better asymptote; the d=672 baseline (19.62 → 17.66 over steps
+3,000→4,000) was nowhere near plateau.
 
-3,000 steps, scratch, spikelm recipe, vs the width baseline's 19.62
-(same read: early trajectory only). Outcome map: clearly better ⇒
-extended run toward plateau (the "where does ppl bottom out" question is
-the decisive one — larger/more-nonlinear models may descend slower and
-bottom lower; screens cannot see that); comparable ⇒ plateau runs for
-BOTH this and baseline before judging; worse ⇒ the ceiling is not (only)
-the dictionary — training horizon, recurrent optimization, normalization,
-tied-block capacity remain the live alternatives.
+## The strongest potential conclusion (pre-written)
+
+*CRSA's temporal operator was not the scaling bottleneck; quality
+required an overcomplete, proximally gated feature dictionary that
+restores nonlinear sparse feature expansion between recurrent mixing
+steps.* A coherent architecture: CRSA does constant-state temporal
+mixing; the overcomplete prox does nonlinear feature expansion.
+
+## STAA-SNN triage (arXiv:2503.02689 — vision SNN, BPTT+surrogate; not
+causal-LM, not forward-only, not objective-derived; its attention embeds
+convs/sigmoid/ReLU/LN, so no cleaner spike-attention for CRSA)
+
+Transfers: (1) adaptive permeability → eventual learned SELECTION among
+dyadic decays (retains shift-only hardware; never arbitrary float ρ);
+(2) stochastic bypass (TSRD) → randomized identity/prox routing during
+spike conversion — a stochastic generalization of our shadow protocol;
+(3) their non-monotonic internal-width optimum supports ratio ablations
+(r ∈ {1,2,4}) but says nothing about q=4d optimality here. Their energy
+numbers are op-count models with assumed pJ values; placed-and-routed
+measurement remains the stronger standard.
