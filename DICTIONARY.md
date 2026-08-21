@@ -111,14 +111,30 @@ sparse activations, and the spike-hardware route.
 | q = d (6.8M) | 22.32 | 20.60 |
 | q = 4d (14.0M) | 22.40 | **19.75** |
 
-Main effects: nonlinearity −1.72 (zero added params); linear width +0.08
-(nil, as the rank argument demanded); interaction −0.93 — width pays
-ONLY through the prox. The sharpest-conclusion wording below now has
+Formal decomposition in validation NATS (agreed): L1..L4 = 3.105 /
+3.025 / 3.109 / 2.983. Prox at q=d: −0.080 nats. Width with identity:
++0.004 (zero). Width with active prox: −0.042. Interaction: −0.046
+nats — THE number: the active prox makes the additional atoms useful.
+PPL terms: prox alone +7.7%, width-after-prox +4.1%, F4 over F1 +11.5%.
+Conclusion wording (agreed): *overcompleteness has no value as a linear
+factorization; it becomes useful only when the proximal threshold
+partitions the input space into selectively activated feature regions.* The sharpest-conclusion wording below now has
 measured cells. Additional verdicts: the block-local a₀=0 form (19.75)
 beats the persistent-code variant (21.24) — canonical design confirmed,
-plateau run switched to it; F4 at 14M matches the d672 plain baseline
-(19.62) at similar params while still descending. Screen-scope caveats
+plateau run switched to it; F4 vs d672 baseline is NUMERICAL PARITY under different cosine
+horizons (19.75 vs 19.62) — not a victory; the factorial proves
+short-budget synergy, not a lower asymptotic floor. Block-local vs
+persistent (19.75 vs 21.24; same seed/schedule): repeatedly re-encoding
+each layer beats carrying a wide code whose atom coordinates change
+between layer dictionaries. Screen-scope caveats
 apply as everywhere (3k reads, plateau protocol governs).
+
+## The eventual architecture ladder (plateau-protocol comparisons)
+
+plain CRSA | CRSA + overcomplete prox | CRSA + conventional MLP |
+causal TSSA + the same MLP | softmax + the same MLP — separating
+nonlinear capacity, sparse-coding value, CRSA's decayed statistics, and
+token-statistics attention itself.
 
 ## The strongest potential conclusion (pre-written)
 
