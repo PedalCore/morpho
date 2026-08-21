@@ -182,3 +182,20 @@ spike conversion — a stochastic generalization of our shadow protocol;
 (r ∈ {1,2,4}) but says nothing about q=4d optimality here. Their energy
 numbers are op-count models with assumed pJ values; placed-and-routed
 measurement remains the stronger standard.
+
+
+## MLP three-way — COMPLETE (23.7M, 3,000-step screens, one seed)
+
+softmax+MLP **12.54** | CRSA-leaky+MLP 16.79 | CRSA-uniform+MLP 24.57.
+
+Row 5 fires: constant-statistics attention trades retrieval capacity for
+state efficiency (softmax wins by 4.25 with a real feature block;
+M3-control's CRSA-beats-softmax reinterpreted as a feature-starved-regime
+comparison — the probes' selective-retention gap predicted this). Row 1
+fires: the dyadic ladder is worth **+7.8 ppl over uniform prefix
+statistics** — the campaign's largest single effect; uniform all-history
+statistics dilute as context accumulates, the leaky ladder stays live.
+Ladder ordering: softmax > CRSA-leaky >> CRSA-uniform. Caveats standing:
+CRSA-uniform ≠ published TSSA (literal Algorithm-2 arm with numerical
+equivalence owed); CRSA+MLP's 16.79 carries the +10M-params caveat vs
+the dictionary arm; one seed; screen scope.
