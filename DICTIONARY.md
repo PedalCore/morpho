@@ -132,7 +132,18 @@ apply as everywhere (3k reads, plateau protocol governs).
 ## The eventual architecture ladder (plateau-protocol comparisons)
 
 plain CRSA | CRSA + overcomplete prox | CRSA + conventional MLP |
-causal TSSA + the same MLP | softmax + the same MLP — separating
+causal TSSA + the same MLP | softmax + the same MLP.
+Three-way outcome map (agreed): CRSA beats TSSA ⇒ dyadic
+forgetting/multiscale adds capability; matches ⇒ CRSA preserves TSSA
+quality while gaining bounded counters + spike compatibility + hardware
+simplicity; TSSA beats CRSA ⇒ forgetting/event compression has a
+measurable quality cost; both beat softmax ⇒ token-statistics mixing is
+the underlying advantage; softmax wins ⇒ constant-statistics attention
+trades retrieval capacity for state efficiency.
+FIRST SCREEN RESULT: CRSA+MLP = **16.79 @3000** — best screen number of
+the campaign (F4 19.75, d672 baseline 19.62); softmax+MLP and TOST+MLP
+(uniform-measure ablation, isolates the temporal-measure axis alone)
+running/queued — separating
 nonlinear capacity, sparse-coding value, CRSA's decayed statistics, and
 token-statistics attention itself.
 

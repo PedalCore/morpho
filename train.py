@@ -76,6 +76,8 @@ def main():
     ap.add_argument('--m2', choices=['a', 'b'], default=None)
     ap.add_argument('--crsa', '--tssa', dest='crsa', action='store_true',
                     help='CRSA statistics attention instead of MSSA')
+    ap.add_argument('--tost', action='store_true',
+                    help='uniform-measure (ToST) ablation of CRSA')
     ap.add_argument('--m2-identity', action='store_true',
                     help='M2 control: reordered wiring, identity quantizer')
     ap.add_argument('--anneal', default=None,
@@ -98,7 +100,7 @@ def main():
                  dict_expand=args.dict_expand,
                  dict_local=args.dict_local, dict_identity=args.dict_identity,
                  mlp=args.mlp,
-                 attn='crsa' if args.crsa else 'mssa')
+                 attn='tost' if args.tost else 'crsa' if args.crsa else 'mssa')
     model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
     anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))
                for s in args.anneal.split(',')] if args.anneal else [])

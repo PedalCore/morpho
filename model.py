@@ -362,6 +362,27 @@ class CRSA(nn.Module):
         return -self.scale * out
 
 
+class TOST(CRSA):
+    """Uniform-measure ablation of CRSA — the ToST/causal-TSSA temporal
+    measure (arXiv:2412.17810): running MEAN of squared projections
+    (uniform prefix weights) instead of the dyadic exponential ladder.
+    Identical code path otherwise, so CRSA-vs-TOST isolates exactly the
+    forgetting/multiscale axis. Full soft-membership Causal-ToST
+    reproduction remains owed; this is the measure swap alone."""
+
+    def forward(self, x):
+        B, T, d = x.shape
+        h = self.U(x).view(B, T, self.K, self.p).permute(0, 2, 1, 3)
+        n = torch.arange(1, T + 1, device=x.device,
+                         dtype=h.dtype).view(1, 1, T, 1)
+        M = torch.cumsum(h * h, dim=2) / n            # uniform prefix mean
+        dcoef = 1.0 / (1.0 + M)
+        agg = (dcoef * h).permute(0, 2, 1, 3).reshape(B, T, d)
+        out = (F.linear(agg, self.U.weight.t()) if self.tied
+               else self.out(agg))
+        return -self.scale * out
+
+
 class DecayedValue(nn.Module):
     """Probe-suite contrast arm: same params and horizon ladder as CRSA,
     but the state RETRIEVES past values (s_t = rho s_{t-1} + (1-rho) h_t)
@@ -418,7 +439,7 @@ class BlockM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         self.D = nn.Parameter(torch.empty(d, d))
@@ -449,7 +470,7 @@ class BlockOD(nn.Module):
         super().__init__()
         d = cfg.n_embd
         n = cfg.dict_expand * d
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         D = torch.randn(d, n)
@@ -480,7 +501,7 @@ class BlockODLocal(nn.Module):
         super().__init__()
         d = cfg.n_embd
         q = cfg.dict_expand * d
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         D = torch.randn(d, q)
@@ -511,7 +532,7 @@ class BlockMLP(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         self.w1 = nn.Linear(d, 4 * d)
