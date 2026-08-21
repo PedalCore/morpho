@@ -140,8 +140,18 @@ simplicity; TSSA beats CRSA ⇒ forgetting/event compression has a
 measurable quality cost; both beat softmax ⇒ token-statistics mixing is
 the underlying advantage; softmax wins ⇒ constant-statistics attention
 trades retrieval capacity for state efficiency.
-FIRST SCREEN RESULT: CRSA+MLP = **16.79 @3000** — best screen number of
-the campaign (F4 19.75, d672 baseline 19.62); softmax+MLP running; CRSA-UNIFORM+MLP queued
+SCREEN RESULTS: CRSA+MLP = 16.79 | **softmax+MLP = 12.54** — the
+outcome map's fifth row fires: *constant-statistics attention trades
+retrieval capacity for state efficiency*. With a transformer-grade
+feature block, pairwise attention wins by 4.25 ppl (34% rel); the
+M3-control result (CRSA 13.78 > softmax 14.22) is hereby REINTERPRETED
+as a feature-starved-regime comparison — neither operator could exploit
+retrieval capacity without a real MLP. Consistent with the probe
+suite's selective-retention gap (0.56 vs 0.91): the cost was always
+identity retrieval, and the MLP unlocks softmax's use of it. CRSA's
+standing claims narrow accordingly: state efficiency (384 counters vs
+growing KV), hardware simplicity, derivation fidelity — at a now-
+measured quality cost in feature-rich regimes. softmax+MLP running; CRSA-UNIFORM+MLP queued
 (naming rule: uniform prefix measure with CRSA's router/price/tied-agg
 is NOT published TSSA — it lacks soft membership, temperature, bias,
 untied out; the strongest ladder = CRSA-leaky / CRSA-uniform / literal
