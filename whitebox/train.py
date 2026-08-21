@@ -63,6 +63,8 @@ def main():
                     help='block-local a0=0 form (the factorial design)')
     ap.add_argument('--dict-identity', action='store_true',
                     help='factorial F1/F3: prox disabled (linear)')
+    ap.add_argument('--mlp', action='store_true',
+                    help='conventional 4d GELU MLP control block')
     ap.add_argument('--spike-prox', action='store_true')
     ap.add_argument('--untied', action='store_true')
     ap.add_argument('--scale-init', type=float, default=0.1)
@@ -95,6 +97,7 @@ def main():
                  m2=args.m2 or '', m2_identity=args.m2_identity,
                  dict_expand=args.dict_expand,
                  dict_local=args.dict_local, dict_identity=args.dict_identity,
+                 mlp=args.mlp,
                  attn='crsa' if args.crsa else 'mssa')
     model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
     anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))

@@ -82,6 +82,28 @@ cutting both ways. Trajectory-gap comparisons across differing schedules
 are indicative only; the plateau protocol is the resolution. Verdict:
 retained for plateau evaluation.
 
+## The MLP control (the decisive three-way)
+
+BlockMLP: h' = x + W2·GELU(W1·LN(x)), W1: d→4d untied — established,
+dense, NOT white-box. At fixed d it carries ~2× the tied dictionary's
+feature params (8d² vs 4d²): compare at fixed d AND fixed total params.
+Three-way at d=448, plus outcome table (agreed):
+
+    softmax + 4d MLP   |  CRSA + 4d MLP   |  CRSA + 4d overcomplete prox
+
+| result | interpretation |
+|---|---|
+| MLP and dictionary both improve | missing capacity was nonlinear feature expansion |
+| MLP improves, dictionary does not | CRATE's tied sparse coder is the bottleneck |
+| dictionary matches MLP | white-box sparse coding provides transformer-grade capacity |
+| dictionary beats MLP | very strong result for the derived architecture |
+| neither improves | look back toward CRSA, optimization, or another bottleneck |
+
+If CRSA+MLP matches or beats softmax+MLP, CRSA stands independently of
+CRATE's sparse-coding limitations. Trade named: MLP eases optimization
+and scaling; dictionary keeps the exact local objective, tied maps,
+sparse activations, and the spike-hardware route.
+
 ## The strongest potential conclusion (pre-written)
 
 *CRSA's temporal operator was not the scaling bottleneck; quality

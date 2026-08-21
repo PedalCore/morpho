@@ -61,6 +61,7 @@ class Config:
     dict_expand: int = 1       # >1: overcomplete dictionary fork (DICTIONARY.md)
     dict_local: bool = False   # block-local a0=0 form (the factorial's design)
     dict_identity: bool = False  # factorial arms F1/F3: prox disabled (LINEAR)
+    mlp: bool = False          # conventional transformer MLP control block
 
 
 class SpikeProx(nn.Module):
@@ -501,6 +502,29 @@ class BlockODLocal(nn.Module):
         return x + self.gamma * (xhat - x)
 
 
+class BlockMLP(nn.Module):
+    """Conventional transformer MLP control (DICTIONARY.md): the
+    established, untied, dense feature block. h' = x + W2 GELU(W1 LN(x)),
+    W1: d->4d, W2: 4d->d. NOT white-box, dense activations — the control
+    that prices what the dictionary's structure costs or buys."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+                     .get(cfg.attn, MSSA))(cfg)
+        self.ln = nn.LayerNorm(d)
+        self.w1 = nn.Linear(d, 4 * d)
+        self.w2 = nn.Linear(4 * d, d)
+        self.last_rate = None
+
+    def forward(self, z):
+        x = z + self.attn(z)
+        h = torch.nn.functional.gelu(self.w1(self.ln(x)))
+        self.last_rate = (h.detach() > 0).float().mean()
+        return x + self.w2(h)
+
+
 class CausalCRATEM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -512,7 +536,8 @@ class CausalCRATEM2(nn.Module):
         self.prox_in = (None if cfg.m2_identity else
                         SpikeProx(cfg.n_embd, cfg.spike_levels,
                                   cfg.spike_init_threshold))
-        blk = (BlockODLocal if cfg.dict_local else
+        blk = (BlockMLP if cfg.mlp else
+               BlockODLocal if cfg.dict_local else
                BlockOD if cfg.dict_expand > 1 else BlockM2)
         self.blocks = nn.ModuleList(blk(cfg) for _ in range(cfg.n_layer))
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
@@ -530,7 +555,7 @@ class CausalCRATEM2(nn.Module):
 
     def forward(self, idx, targets=None):
         z = self._embed(idx)
-        if self.cfg.dict_local:
+        if self.cfg.dict_local or self.cfg.mlp:
             for b in self.blocks:
                 z = b(z)
         elif self.cfg.dict_expand > 1:
@@ -555,6 +580,21 @@ class CausalCRATEM2(nn.Module):
         same basis, same scaling — no LayerNorm between the two sides (a
         LN'd comparison can flip sign without the substep changing)."""
         z = self._embed(idx)
+        if self.cfg.mlp:
+            out = []
+            for li, b in enumerate(self.blocks):
+                rc_before = _coding_rate_impl(z, b.attn, eps_sq)
+                rc_after = _coding_rate_impl(z + b.attn(z), b.attn, eps_sq)
+                z = b(z)
+                out.append(dict(layer=li, rc_before=float(rc_before),
+                                rc_after=float(rc_after),
+                                r_total=float(
+                                    CausalCRATE._expansion_rate(z, eps_sq)),
+                                sparsity=1.0 - float(b.last_rate),
+                                entropy=None, mag=None,
+                                zmax=round(float(z.abs().max()), 2),
+                                err_rate=None))
+            return out
         if self.cfg.dict_local:
             out = []
             for li, b in enumerate(self.blocks):
