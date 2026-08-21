@@ -58,6 +58,7 @@ class Config:
     m2_identity: bool = False  # control: reordered wiring, identity quantizer
     attn: str = 'mssa'         # 'mssa' | 'crsa' | 'dval' ('tssa' legacy)
     window: int = 0            # mssa only: banded causal mask (0 = full)
+    dict_expand: int = 1       # >1: overcomplete dictionary fork (DICTIONARY.md)
 
 
 class SpikeProx(nn.Module):
@@ -435,6 +436,36 @@ class BlockM2(nn.Module):
         return self.prox(v) if self.prox is not None else v
 
 
+class BlockOD(nn.Module):
+    """Overcomplete-dictionary block (DICTIONARY.md): state pair (z, a).
+    z (d) feeds attention; the wide sparse code a (n = expand*d) unrolls
+    across layers; active soft-threshold prox; decode continues the
+    d-stream."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        n = cfg.dict_expand * d
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'dval': DecayedValue}
+                     .get(cfg.attn, MSSA))(cfg)
+        self.ln = nn.LayerNorm(d)
+        D = torch.randn(d, n)
+        D = D / D.norm(dim=0, keepdim=True)          # column-normalized init
+        self.D = nn.Parameter(D)
+        self.eta = cfg.ista_eta
+        self.lam = cfg.ista_lambda
+        self.last_rate = None
+
+    def forward(self, z, a):
+        x = z + self.attn(z)
+        u = self.ln(x)
+        r = u - a @ self.D.t()                       # signal residual (d)
+        pre = a + self.eta * (r @ self.D)            # ISTA step on the code
+        a2 = torch.relu(pre - self.eta * self.lam)   # ACTIVE prox
+        self.last_rate = (a2.detach() != 0).float().mean()
+        return a2 @ self.D.t(), a2                   # decode, carry code
+
+
 class CausalCRATEM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -446,7 +477,8 @@ class CausalCRATEM2(nn.Module):
         self.prox_in = (None if cfg.m2_identity else
                         SpikeProx(cfg.n_embd, cfg.spike_levels,
                                   cfg.spike_init_threshold))
-        self.blocks = nn.ModuleList(BlockM2(cfg) for _ in range(cfg.n_layer))
+        blk = BlockOD if cfg.dict_expand > 1 else BlockM2
+        self.blocks = nn.ModuleList(blk(cfg) for _ in range(cfg.n_layer))
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
         self.head.weight = self.emb.weight     # head consumes codes directly
         nn.init.normal_(self.emb.weight, std=0.02)
@@ -462,8 +494,15 @@ class CausalCRATEM2(nn.Module):
 
     def forward(self, idx, targets=None):
         z = self._embed(idx)
-        for b in self.blocks:
-            z = b(z)
+        if self.cfg.dict_expand > 1:
+            a = torch.zeros(*z.shape[:-1],
+                            self.cfg.dict_expand * self.cfg.n_embd,
+                            device=z.device, dtype=z.dtype)
+            for b in self.blocks:
+                z, a = b(z, a)
+        else:
+            for b in self.blocks:
+                z = b(z)
         logits = self.head(z)
         if targets is None:
             return logits, None
@@ -477,6 +516,24 @@ class CausalCRATEM2(nn.Module):
         same basis, same scaling — no LayerNorm between the two sides (a
         LN'd comparison can flip sign without the substep changing)."""
         z = self._embed(idx)
+        if self.cfg.dict_expand > 1:
+            a = torch.zeros(*z.shape[:-1],
+                            self.cfg.dict_expand * self.cfg.n_embd,
+                            device=z.device, dtype=z.dtype)
+            out = []
+            for li, b in enumerate(self.blocks):
+                rc_before = _coding_rate_impl(z, b.attn, eps_sq)
+                rc_after = _coding_rate_impl(z + b.attn(z), b.attn, eps_sq)
+                z, a = b(z, a)
+                out.append(dict(layer=li, rc_before=float(rc_before),
+                                rc_after=float(rc_after),
+                                r_total=float(
+                                    CausalCRATE._expansion_rate(z, eps_sq)),
+                                sparsity=1.0 - float(b.last_rate),
+                                entropy=None, mag=float(a.abs().mean()),
+                                zmax=round(float(z.abs().max()), 2),
+                                err_rate=None))
+            return out
         out = []
         for li, b in enumerate(self.blocks):
             rc_before = _coding_rate_impl(z, b.attn, eps_sq)
