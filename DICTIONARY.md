@@ -104,6 +104,22 @@ CRATE's sparse-coding limitations. Trade named: MLP eases optimization
 and scaling; dictionary keeps the exact local objective, tied maps,
 sparse activations, and the spike-hardware route.
 
+## FACTORIAL RESULTS (2026-08-21, fixed d=448, 3,000-step screens)
+
+| | identity prox | active prox |
+|---|---|---|
+| q = d (6.8M) | 22.32 | 20.60 |
+| q = 4d (14.0M) | 22.40 | **19.75** |
+
+Main effects: nonlinearity −1.72 (zero added params); linear width +0.08
+(nil, as the rank argument demanded); interaction −0.93 — width pays
+ONLY through the prox. The sharpest-conclusion wording below now has
+measured cells. Additional verdicts: the block-local a₀=0 form (19.75)
+beats the persistent-code variant (21.24) — canonical design confirmed,
+plateau run switched to it; F4 at 14M matches the d672 plain baseline
+(19.62) at similar params while still descending. Screen-scope caveats
+apply as everywhere (3k reads, plateau protocol governs).
+
 ## The strongest potential conclusion (pre-written)
 
 *CRSA's temporal operator was not the scaling bottleneck; quality
