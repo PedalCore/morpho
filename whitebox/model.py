@@ -566,13 +566,15 @@ class CausalCRATEM2(nn.Module):
                 dead = float((a.abs().sum(0) == 0).float().mean())
                 Dn = b.D / b.D.norm(dim=0, keepdim=True)
                 q, d = b.D.shape[1], b.D.shape[0]
+                dev = b.D.device
                 G = b.D @ b.D.t()
-                frame = float((G - (q / d) * torch.eye(d)).norm() /
+                frame = float((G - (q / d) * torch.eye(d, device=dev)).norm() /
                               ((q / d) * d ** 0.5))
-                spec = float(torch.linalg.matrix_norm(b.D, 2)) ** 2
+                spec = float(torch.linalg.matrix_norm(b.D.cpu(), 2)) ** 2
                 xf = x.reshape(-1, d)
                 rec = float(((a @ b.D.t()) - xf).norm() / (xf.norm() + 1e-9))
-                coh = float((Dn.t() @ Dn - torch.eye(q)).abs().max())
+                coh = float((Dn.t() @ Dn -
+                             torch.eye(q, device=dev)).abs().max())
                 out.append(dict(layer=li, rc_before=float(rc_before),
                                 rc_after=float(rc_after),
                                 r_total=float(
