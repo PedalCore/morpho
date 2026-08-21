@@ -69,6 +69,19 @@ lower-LR and extra-heads are screen-negative, NOT proven incapable of a
 better asymptote; the d=672 baseline (19.62 → 17.66 over steps
 3,000→4,000) was nowhere near plateau.
 
+## Screen results (persistent-code variant) + a schedule confound
+
+screen-dict4 (persistent-code design, d448/4d, 14.0M): gap to the d672
+baseline CONVERGED monotonically +6.0 → +3.1 → +1.8 → +1.3 → +1.0
+(steps 500–2500), finished 21.24 vs 19.62 — the campaign's only
+converging trajectory; healthy throughout (sparsity 0.58, no collapse).
+CONFOUND, recorded before further reading: screens carry 3,000-step
+cosines (end-of-schedule LR boost at the finish) while the baseline's
+19.62 is a MID-5,500-schedule reading — LR differs at matched steps,
+cutting both ways. Trajectory-gap comparisons across differing schedules
+are indicative only; the plateau protocol is the resolution. Verdict:
+retained for plateau evaluation.
+
 ## The strongest potential conclusion (pre-written)
 
 *CRSA's temporal operator was not the scaling bottleneck; quality
