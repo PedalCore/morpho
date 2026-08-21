@@ -57,6 +57,8 @@ def main():
     ap.add_argument('--layers', type=int, default=12)
     ap.add_argument('--width', type=int, default=384)
     ap.add_argument('--heads', type=int, default=8)
+    ap.add_argument('--dict', type=int, default=1, dest='dict_expand',
+                    help='overcomplete dictionary expansion (DICTIONARY.md)')
     ap.add_argument('--spike-prox', action='store_true')
     ap.add_argument('--untied', action='store_true')
     ap.add_argument('--scale-init', type=float, default=0.1)
@@ -87,6 +89,7 @@ def main():
                  tied=not args.untied, spike_prox=args.spike_prox,
                  mssa_scale=args.scale_init,
                  m2=args.m2 or '', m2_identity=args.m2_identity,
+                 dict_expand=args.dict_expand,
                  attn='crsa' if args.crsa else 'mssa')
     model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
     anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))
