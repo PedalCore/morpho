@@ -291,3 +291,21 @@ capability over its direct cumulative-statistics ancestor while
 preserving bounded recurrent state, but does not eliminate the
 retrieval advantage of full attention.* An honest trade frontier — a
 stronger close than claiming CRSA universally replaced attention.
+
+
+## Extension run (floor hunt) — STOPPED EARLY BY DECISION (censored)
+
+plateau-dict-ext20k: warm restart of the 8.40 checkpoint at peak LR
+1.5e-4 (one LR reduction, per protocol). Warm-restart bump to 8.68,
+recovered, crossed below the parent at step ~4,500, and descended
+steadily to **8.077 at step 8,500 of 20,000** when the run was stopped
+by decision to redirect compute to the M4 probe ladder. CENSORED
+RESULT: not a plateau — still descending ~0.045/1k steps at stop; the
+schedule-limited floor estimate was ~7.8-8.0. Rationale recorded: the
+first 20k bought 19.75->8.40, this segment bought 0.32 in 8.5k —
+optimization is nearly exhausted; the remaining gap to the retrieval
+class is architectural (M4). Best constant-state checkpoint is now
+plateau-dict-ext20k/ckpt.pt (8.08, 28.5k total steps). Generation
+qualitatively improved: complete story arcs with endings now occur
+(one drift-free full story observed); name drift persists in other
+samples (Billy->Sarah).
