@@ -28,6 +28,7 @@ from whitebox.probe_train import batch_loss, eval_grid      # noqa: E402
 
 ARCHS = {
     'kv':      dict(attn='mssa'),
+    'qkv':     dict(attn='qkv'),   # TRUE ceiling: untied standard attention
     'crsa':    dict(attn='crsa'),
     'crsa-sm': dict(attn='crsa', signed_moment=True),
     'cache16': dict(attn='crsa', local_window=16),

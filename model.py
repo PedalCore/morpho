@@ -426,6 +426,35 @@ class TOST(CRSA):
         return -self.scale * out
 
 
+class QKV(nn.Module):
+    """Standard untied multi-head attention (separate Q/K/V/O) — the M4
+    binding CEILING arm. NOT white-box; exists because tied-projection
+    MSSA sits at chance on binding at probe scale (the locked suite's
+    "assoc weaker" was in fact "assoc ~ chance for every arm"), so it
+    cannot serve as a retrieval reference."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d, K = cfg.n_embd, cfg.n_head
+        self.K, self.p = K, d // K
+        self.q = nn.Linear(d, d, bias=False)
+        self.k = nn.Linear(d, d, bias=False)
+        self.v = nn.Linear(d, d, bias=False)
+        self.o = nn.Linear(d, d, bias=False)
+        mask = torch.triu(torch.full((cfg.ctx, cfg.ctx), float('-inf')), 1)
+        self.register_buffer('causal', mask)
+
+    def forward(self, x):
+        B, T, d = x.shape
+        sh = (B, T, self.K, self.p)
+        q = self.q(x).view(sh).transpose(1, 2)
+        k = self.k(x).view(sh).transpose(1, 2)
+        v = self.v(x).view(sh).transpose(1, 2)
+        att = torch.softmax((q @ k.transpose(-2, -1)) / math.sqrt(self.p)
+                            + self.causal[:T, :T], dim=-1)
+        return self.o((att @ v).transpose(1, 2).reshape(B, T, d))
+
+
 class TSSALit(nn.Module):
     """LITERAL causal TSSA (ToST, arXiv:2412.17810, eqs. 10/28/31 + C.1):
     soft head membership pi = softmax_K((1/2eta)||U_k^T z||^2 + b_{k,j})
@@ -515,7 +544,7 @@ def _make_attn(cfg):
     if cfg.attn in ('crsa', 'tssa') and cfg.local_window > 0:
         return CacheCRSA(cfg)
     return ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit,
-             'dval': DecayedValue}.get(cfg.attn, MSSA))(cfg)
+             'qkv': QKV, 'dval': DecayedValue}.get(cfg.attn, MSSA))(cfg)
 
 
 
