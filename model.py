@@ -386,6 +386,41 @@ class TOST(CRSA):
         return -self.scale * out
 
 
+class TSSALit(nn.Module):
+    """LITERAL causal TSSA (ToST, arXiv:2412.17810, eqs. 10/28/31 + C.1):
+    soft head membership pi = softmax_K((1/2eta)||U_k^T z||^2 + b_{k,j})
+    with learnable temperature eta and per-position bias; causal
+    membership-weighted, membership-count-normalized second moments
+    s_{j,k} = cumsum(pi*h^2)/cumsum(pi); diagonal 1/(1+s); output through
+    a learnable UNTIED W (overparameterized eq. 31), residual add.
+    Verified numerically equivalent to a per-token loop transcription of
+    eq. 28 in the smoke test — the naming rule's requirement."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d, K = cfg.n_embd, cfg.n_head
+        self.K, self.p = K, d // K
+        self.U = nn.Linear(d, d, bias=False)
+        self.W = nn.Linear(d, d, bias=False)               # untied output
+        self.log_eta = nn.Parameter(torch.tensor(0.0))     # temperature
+        self.bias = nn.Parameter(torch.zeros(K, cfg.ctx))  # b_{k,j}
+        self.tied = cfg.tied  # unused; kept for interface parity
+
+    def forward(self, x):                                  # (B, T, d)
+        B, T, d = x.shape
+        h = self.U(x).view(B, T, self.K, self.p).permute(0, 2, 1, 3)
+        eta = torch.nn.functional.softplus(self.log_eta) + 1e-4
+        logits = (h * h).sum(-1) / (2 * eta) + self.bias[:, :T].unsqueeze(0)
+        pi = torch.softmax(logits, dim=1)                  # over K heads
+        piw = pi.unsqueeze(-1)                             # B,K,T,1
+        num = torch.cumsum(piw * h * h, dim=2)             # causal, incl. j
+        den = torch.cumsum(piw, dim=2) + 1e-8
+        s = num / den
+        dcoef = 1.0 / (1.0 + s)
+        out = (piw * dcoef * h).permute(0, 2, 1, 3).reshape(B, T, d)
+        return -self.W(out)
+
+
 class DecayedValue(nn.Module):
     """Probe-suite contrast arm: same params and horizon ladder as CRSA,
     but the state RETRIEVES past values (s_t = rho s_{t-1} + (1-rho) h_t)
@@ -442,7 +477,7 @@ class BlockM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         self.D = nn.Parameter(torch.empty(d, d))
@@ -473,7 +508,7 @@ class BlockOD(nn.Module):
         super().__init__()
         d = cfg.n_embd
         n = cfg.dict_expand * d
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         D = torch.randn(d, n)
@@ -504,7 +539,7 @@ class BlockODLocal(nn.Module):
         super().__init__()
         d = cfg.n_embd
         q = cfg.dict_expand * d
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         D = torch.randn(d, q)
@@ -535,7 +570,7 @@ class BlockMLP(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'dval': DecayedValue}
+        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
                      .get(cfg.attn, MSSA))(cfg)
         self.ln = nn.LayerNorm(d)
         self.w1 = nn.Linear(d, 4 * d)
