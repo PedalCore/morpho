@@ -88,6 +88,11 @@ class Config:
                                      # own content, making ownership
                                      # unrepresentable
     slot_m: int = 8                  # number of representative slots
+    slot_owner_sel: bool = False     # gate 3: LEARNED owner selector —
+                                     # two banded micro-attentions (last 8
+                                     # tokens) pick the write ADDRESS and
+                                     # write CONTENT, replacing the
+                                     # previous-token oracle
 
 
 class SpikeProx(nn.Module):
@@ -592,6 +597,15 @@ class SlotCRSA(nn.Module):
                     if cfg.slot_own_basis else None)
         self.frozen = cfg.slot_frozen_basis
         self.prev_route = cfg.slot_prev_route
+        self.owner_sel = cfg.slot_owner_sel
+        if self.owner_sel:
+            self.sel_a = nn.Linear(d, d, bias=False)   # address selector
+            self.sel_c = nn.Linear(d, d, bias=False)   # content selector
+            W = 8
+            m1 = torch.triu(torch.full((cfg.ctx, cfg.ctx), float('-inf')), 1)
+            m1 = m1 + torch.tril(
+                torch.full((cfg.ctx, cfg.ctx), float('-inf')), -W)
+            self.register_buffer('sel_mask', m1)
         self.slot_keys = nn.Parameter(torch.randn(self.M, d) / d ** 0.5)
         self.log_tau = nn.Parameter(torch.zeros(1))
         self.out_scale = nn.Parameter(torch.tensor(0.1))
@@ -625,8 +639,15 @@ class SlotCRSA(nn.Module):
             kv = self.U(x)                         # fully shared basis
         q = self.Wq(x)
         tau = torch.nn.functional.softplus(self.log_tau) + 0.1
-        route_src = kv
-        if self.prev_route:                        # v2: address by owner
+        route_src, content = kv, kv
+        if self.owner_sel:                         # gate 3: learned selection
+            d_ = kv.shape[-1]
+            sa = (self.sel_a(x) @ kv.transpose(1, 2)) / d_ ** 0.5
+            sc = (self.sel_c(x) @ kv.transpose(1, 2)) / d_ ** 0.5
+            T_ = x.shape[1]
+            route_src = torch.softmax(sa + self.sel_mask[:T_, :T_], -1) @ kv
+            content = torch.softmax(sc + self.sel_mask[:T_, :T_], -1) @ kv
+        elif self.prev_route:                      # v2 oracle: owner at t-1
             route_src = torch.cat([torch.zeros_like(kv[:, :1]),
                                    kv[:, :-1]], dim=1)
         write = torch.softmax((route_src @ self.slot_keys.t()) /
@@ -634,7 +655,7 @@ class SlotCRSA(nn.Module):
                               dim=-1)              # (B,T,M) routing
         a = write.permute(0, 2, 1).unsqueeze(-1)   # B,M,T,1
         rho = self.slot_rho.view(1, self.M, 1, 1)
-        V = self._decay_scan(a * kv.unsqueeze(1), rho)      # B,M,T,d
+        V = self._decay_scan(a * content.unsqueeze(1), rho)  # B,M,T,d
         N = self._decay_scan(a, rho)                        # B,M,T,1
         slots = V / (N + 1e-6)
         match = torch.softmax((q @ self.slot_keys.t()) / (tau * d ** 0.5),
