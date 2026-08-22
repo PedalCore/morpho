@@ -32,6 +32,7 @@ ARCHS = {
     'crsa':    dict(attn='crsa'),
     'crsa-sm': dict(attn='crsa', signed_moment=True),
     'cache16': dict(attn='crsa', local_window=16),
+    'cache16-qkv': dict(attn='crsa', local_window=16, local_qkv=True),
     # 'slots':  gated on the cache16 oracle verdict (M4.md rung 3)
 }
 

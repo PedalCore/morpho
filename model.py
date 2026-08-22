@@ -67,6 +67,8 @@ class Config:
                                  # read: dcoef*(h + beta*s), beta ZERO-INIT
     local_window: int = 0      # >0: retrieval ORACLE — exact local attention
                                # over last W tokens, gamma ZERO-INIT residual
+    local_qkv: bool = False    # cache's local branch = untied QKV (the
+                               # decisive factorial cell: local x role-sep)
 
 
 class SpikeProx(nn.Module):
@@ -391,7 +393,8 @@ class CacheCRSA(nn.Module):
         super().__init__()
         import dataclasses
         self.crsa = CRSA(cfg)
-        self.local = MSSA(dataclasses.replace(cfg, window=cfg.local_window))
+        local_cfg = dataclasses.replace(cfg, window=cfg.local_window)
+        self.local = (QKV if cfg.local_qkv else MSSA)(local_cfg)
         self.gamma = nn.Parameter(torch.zeros(1))
         # expose the CRSA internals layer_metrics/autopsies read
         self.U, self.K, self.p = self.crsa.U, self.crsa.K, self.crsa.p
@@ -442,6 +445,9 @@ class QKV(nn.Module):
         self.v = nn.Linear(d, d, bias=False)
         self.o = nn.Linear(d, d, bias=False)
         mask = torch.triu(torch.full((cfg.ctx, cfg.ctx), float('-inf')), 1)
+        if cfg.window:                     # banded local variant (M4)
+            mask = mask + torch.tril(
+                torch.full((cfg.ctx, cfg.ctx), float('-inf')), -cfg.window)
         self.register_buffer('causal', mask)
 
     def forward(self, x):
