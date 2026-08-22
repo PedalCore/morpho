@@ -212,3 +212,39 @@ slower to organize, lower floor. Screen-vs-20k gaps (19.75→8.40,
 this file. Comparisons to the 5,500-step baseline table (RWKV 6.42 etc.)
 are NOT licensed across budgets; within-pair matched-horizon comparison
 only. One seed; longer schedules needed for true plateau per protocol.
+
+
+## Literal TSSA arm — COMPLETE (26.1M, 3,000-step screen, one seed)
+
+The owed arm is paid. Implementation is the published causal form (ToST
+arXiv:2412.17810, eqs. 10/28/31 + C.1): soft head membership pi =
+softmax_K over (1/2eta)||U_k^T z||^2 with learnable temperature eta and
+learnable per-position bias b_{k,j}; causally accumulated
+membership-weighted second moments normalized by membership counts
+n_{j,k}; diagonal scaling 1/(1+s); untied learnable output W (the
+overparameterized form "used in practice"). Verified BEFORE launch per
+the naming rule: vectorized form numerically equivalent to a per-token
+loop transcription of eq. 28 (max diff 6e-8) and exactly causal —
+causality alone proves nothing; equivalence proves it is TSSA.
+
+FULL LADDER (matched d=448 + identical 4d MLP, 3,000 steps, one seed):
+
+    softmax 12.54  |  CRSA-leaky 16.79  |  CRSA-uniform 24.57  |
+    literal TSSA 25.43
+
+Matched-step trajectory: literal TSSA tracked CRSA-uniform in lockstep
+the entire run (500: 46.0 vs 46.8; 1000: 38.4 vs 38.1; 2000: 29.0 vs
+28.2; final 25.4 vs 24.6) and finished +0.86 behind it — within screen
+noise of equal, decisively behind the leaky arm.
+
+ATTRIBUTION SHARPENED: the campaign's largest effect (+7.8 ppl,
+CRSA-leaky over CRSA-uniform) is now attributable to DECAYED VS
+ALL-HISTORY STATISTICS, not to routing machinery. The published extras
+(soft membership, temperature, position bias, untied W, +2.4M params)
+recover none of the gap — both all-history arms dilute as context
+accumulates regardless of how tokens are routed to heads. CRSA's dyadic
+forgetting is the load-bearing modification to its ancestor, on this
+corpus, at this scale, one seed, screen scope. Param caveat: the
+literal arm carries +2.4M over the other MLP arms (untied W is the
+published form's own choice) and still trails — the deficit is not
+capacity.
