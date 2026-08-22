@@ -338,6 +338,29 @@ now externally evidenced). Both compose with the dictionary model.
 
 
 ## Neuron-interpretability dividend (arXiv:2410.16443, CPAL 2025 oral)
+## [expanded after full read — supersedes the abstract-level note below]
+
+Full-paper extractions: (1) their language ISTA block IS this fork's
+block-local a0=0 form with h=4d overcomplete D and t=2 ISTA
+iterations — the two-step prox now has TWO external validations
+(CRATE-alpha + CRATE-LM) and moves to the front of the upgrade queue;
+(2) trained on the Pile to 81M/160B tokens, they claim validation loss
+"close to GPT-2 across all model sizes" (slower convergence — the
+slower-to-organize profile again) with attention still TIED Q=K=V.
+If true at 81M, that is the strongest form of "perplexity hides
+binding" — loss parity without an ownership mechanism. Their
+checkpoints are public (crate-lm.github.io): running OUR counterfactual
+binding suite on them would test tied-attention binding at a scale we
+cannot train, without any training. RECORDED AS OPTIONAL EXPERIMENT;
+(3) their Algorithm-1 automated interp scoring (explain->simulate->
+correlate; OpenAI top-and-random / random-only / Anthropic metrics,
+scored on ISTA codes) is a reusable recipe to MEASURE the
+interpretability leg of our MLP-vs-dictionary trade on our own models
+(needs an explainer LLM; optional); (4) GPT2+SAE: below CRATE on
+long-context metrics, degrades with depth, ~1 day/layer training —
+in-architecture sparsity is steadier and free at inference; their own
+caveat "enabling monosemanticity might hurt model performance" matches
+our measured ppl trade.
 
 Bai & Ma: CRATE-architecture language models show up to 103% relative
 improvement in NEURON-LEVEL interpretability over post-hoc dictionary
