@@ -45,6 +45,8 @@ ARCHS = {
     'slots':   dict(attn='slots'),   # rung 3: gate fired (reach arm failed)
     'slots-frozen': dict(attn='slots', slot_frozen_basis=True),  # middle rung
     'slots-own': dict(attn='slots', slot_own_basis=True),  # own k=v basis
+    'slots-prev': dict(attn='slots', slot_own_basis=True,
+                       slot_prev_route=True),  # v2: route write by owner
 }
 
 

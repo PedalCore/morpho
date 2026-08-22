@@ -82,6 +82,11 @@ class Config:
     slot_frozen_basis: bool = False  # slots READ CRSA's U but their loss
                                      # cannot reshape it (weight-detached
                                      # projection) — the middle rung
+    slot_prev_route: bool = False    # v2: route each WRITE by the PREVIOUS
+                                     # token's key so (name -> attr) pairs
+                                     # co-locate — v1 routed tokens by their
+                                     # own content, making ownership
+                                     # unrepresentable
 
 
 class SpikeProx(nn.Module):
@@ -586,6 +591,7 @@ class SlotCRSA(nn.Module):
         self.Ukv = (nn.Linear(d, d, bias=False)
                     if cfg.slot_own_basis else None)
         self.frozen = cfg.slot_frozen_basis
+        self.prev_route = cfg.slot_prev_route
         self.slot_keys = nn.Parameter(torch.randn(self.M, d) / d ** 0.5)
         self.log_tau = nn.Parameter(torch.zeros(1))
         self.out_scale = nn.Parameter(torch.tensor(0.1))
@@ -619,7 +625,12 @@ class SlotCRSA(nn.Module):
             kv = self.U(x)                         # fully shared basis
         q = self.Wq(x)
         tau = torch.nn.functional.softplus(self.log_tau) + 0.1
-        write = torch.softmax((kv @ self.slot_keys.t()) / (tau * d ** 0.5),
+        route_src = kv
+        if self.prev_route:                        # v2: address by owner
+            route_src = torch.cat([torch.zeros_like(kv[:, :1]),
+                                   kv[:, :-1]], dim=1)
+        write = torch.softmax((route_src @ self.slot_keys.t()) /
+                              (tau * d ** 0.5),
                               dim=-1)              # (B,T,M) routing
         a = write.permute(0, 2, 1).unsqueeze(-1)   # B,M,T,1
         rho = self.slot_rho.view(1, self.M, 1, 1)
