@@ -95,10 +95,14 @@ def eval_sets(n=200, seed=7):
         pairs(f'bind-distract@{nd}', facts=4, gap=GAP_FIXED, n_fill=nd)
     for g in WINDOW_GRID:
         pairs(f'bind-window@{g}', facts=4, gap=g, n_fill=g // 2)
+    # round-2 amendment: STRICTLY in-window cells (earliest store within
+    # 16 of the query) — the mixed grid's cells almost all exceed W=16
+    pairs('bind-inwin@2', facts=2, gap=6, n_fill=0)    # max distance 10
+    pairs('bind-inwin@4', facts=4, gap=4, n_fill=0)    # max distance 12
     return out
 
 
-def train_stream(seed=TRAIN_SEED, batch=16):
+def train_stream(seed=TRAIN_SEED, batch=16, reachable=0):
     """Mixed stream: the four locked M3 tasks + binding (equal weight).
     Binding params sampled across the sweep ranges so no eval cell is
     out-of-distribution. NOTE: this is a DIFFERENT training distribution
@@ -111,9 +115,19 @@ def train_stream(seed=TRAIN_SEED, batch=16):
         for _ in range(batch):
             t = names[int(rng.integers(len(names)))]
             if t == 'binding':
-                facts = int(rng.choice(FACTS_GRID))
-                gmax = min(96, CTX - 2 * facts - 3)   # stay inside ctx
-                gap = int(rng.integers(4, gmax + 1))
+                if reachable:
+                    # reachability-aware curriculum (round-2 amendment):
+                    # a W-token branch cannot solve store->query gaps
+                    # beyond its window; training on impossible examples
+                    # adds irreducible conflicting gradients. Constrain
+                    # earliest-store distance 2F+gap <= W-1.
+                    facts = int(rng.choice([2, 4]))
+                    gmax = reachable - 1 - 2 * facts
+                    gap = int(rng.integers(1, max(2, gmax + 1)))
+                else:
+                    facts = int(rng.choice(FACTS_GRID))
+                    gmax = min(96, CTX - 2 * facts - 3)
+                    gap = int(rng.integers(4, gmax + 1))
                 n_fill = int(rng.integers(0, min(gap, 64) + 1))
                 ex.append(make_binding(rng, facts, gap, n_fill))
             else:
