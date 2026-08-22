@@ -42,7 +42,7 @@ ARCHS = {
                                                    # binding curriculum
     'qk-v':    dict(attn='qkv', qkv_tie='qk'),   # Q=K shared, V separate
     'q-kv':    dict(attn='qkv', qkv_tie='kv'),   # Q separate, K=V shared
-    # 'slots':  gated on the cache16 oracle verdict (M4.md rung 3)
+    'slots':   dict(attn='slots'),   # rung 3: gate fired (reach arm failed)
 }
 
 

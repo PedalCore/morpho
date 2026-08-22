@@ -553,8 +553,75 @@ class DecayedValue(nn.Module):
 
 
 
+class SlotCRSA(nn.Module):
+    """M4 rung 3 — sparse representative memory with the MEASURED role
+    asymmetry: k_t = v_t = U^T x_t (ONE tied memory basis, per the
+    minimum-untying result), q_t = W_q^T x_t (the only extra matrix —
+    the proven bottleneck). M learned slot keys route writes; slots keep
+    decaying value statistics on a dyadic ladder; reads match the query
+    against slot keys. Content-addressable and full-history in reach,
+    CONSTANT STATE: M*(d+1) values/layer regardless of sequence length.
+
+    v1 deviation, recorded: routing/match are softmax (temperature
+    learned) rather than the derived WTA prox — hardening to
+    binary/WTA is the hardware step after mechanism confirmation.
+    Trained from scratch at probe scale (no zero-init gate needed)."""
+
+    M = 8
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        self.crsa = CRSA(cfg)
+        self.U, self.K, self.p = self.crsa.U, self.crsa.K, self.crsa.p
+        self.scale, self.tied = self.crsa.scale, self.crsa.tied
+        self.rho = self.crsa.rho
+        self.Wq = nn.Linear(d, d, bias=False)
+        self.slot_keys = nn.Parameter(torch.randn(self.M, d) / d ** 0.5)
+        self.log_tau = nn.Parameter(torch.zeros(1))
+        self.out_scale = nn.Parameter(torch.tensor(0.1))
+        ms = [3 + (j % 8) for j in range(self.M)]      # dyadic ladder
+        self.register_buffer('slot_rho', torch.tensor(
+            [1.0 - 2.0 ** (-m) for m in ms]).float())
+        mask = None  # slots are causal by construction (decayed cumsum)
+
+    def _decay_scan(self, v, rho):                 # v: (B,M,T,*)
+        B, M, T = v.shape[:3]
+        C, ys, carry = 32, [], torch.zeros_like(v[:, :, :1])
+        for ci in range((T + C - 1) // C):
+            vc = v[:, :, ci * C:(ci + 1) * C]
+            L = vc.shape[2]
+            t = torch.arange(L, device=v.device, dtype=v.dtype)
+            t = t.view(1, 1, L, *([1] * (v.dim() - 3)))
+            y = (rho ** (t + 1)) * carry + \
+                (rho ** t) * torch.cumsum(vc * (rho ** (-t)), dim=2)
+            ys.append(y)
+            carry = y[:, :, -1:]
+        return torch.cat(ys, dim=2)
+
+    def forward(self, x):                          # (B, T, d)
+        B, T, d = x.shape
+        base = self.crsa(x)
+        kv = self.U(x)                             # tied write key = value
+        q = self.Wq(x)
+        tau = torch.nn.functional.softplus(self.log_tau) + 0.1
+        write = torch.softmax((kv @ self.slot_keys.t()) / (tau * d ** 0.5),
+                              dim=-1)              # (B,T,M) routing
+        a = write.permute(0, 2, 1).unsqueeze(-1)   # B,M,T,1
+        rho = self.slot_rho.view(1, self.M, 1, 1)
+        V = self._decay_scan(a * kv.unsqueeze(1), rho)      # B,M,T,d
+        N = self._decay_scan(a, rho)                        # B,M,T,1
+        slots = V / (N + 1e-6)
+        match = torch.softmax((q @ self.slot_keys.t()) / (tau * d ** 0.5),
+                              dim=-1)              # (B,T,M)
+        r = torch.einsum('btm,bmtd->btd', match, slots)
+        return base + self.out_scale * F.linear(r, self.U.weight.t())
+
+
 def _make_attn(cfg):
     """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
+    if cfg.attn == 'slots':
+        return SlotCRSA(cfg)
     if cfg.attn in ('crsa', 'tssa') and cfg.local_window > 0:
         return CacheCRSA(cfg)
     return ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit,
