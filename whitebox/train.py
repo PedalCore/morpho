@@ -78,6 +78,9 @@ def main():
                     help='CRSA statistics attention instead of MSSA')
     ap.add_argument('--tssa-lit', action='store_true', dest='tssalit',
                     help='LITERAL published causal TSSA (ToST eq.28/31)')
+    ap.add_argument('--slots', action='store_true',
+                    help='M4: own-basis owner-routed slot memory (attn=slots)')
+    ap.add_argument('--slot-m', type=int, default=8, dest='slot_m')
     ap.add_argument('--signed-moment', action='store_true', dest='signed_moment',
                     help='M4: signed first moment s=rho*s+h read via '
                          'dcoef*(h+beta*s), beta zero-init')
@@ -108,7 +111,9 @@ def main():
                  dict_expand=args.dict_expand,
                  dict_local=args.dict_local, dict_identity=args.dict_identity,
                  mlp=args.mlp,
-                 attn='tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
+                 attn='slots' if args.slots else 'tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
+                 slot_own_basis=args.slots, slot_prev_route=args.slots,
+                 slot_m=args.slot_m,
                  signed_moment=args.signed_moment, local_window=args.local_window)
     model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
     anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))
