@@ -1,170 +1,116 @@
-# whitebox — causal CRATE, and a spiking proximal step
+# whitebox-lm
 
-> **Repo home: [PedalCore/whitebox-lm](https://github.com/PedalCore/whitebox-lm)**
-> (history extracted via subtree split; this directory in the morpho fork
-> remains the working copy only until the current training ladder
-> completes, mirrored via `git subtree push --prefix=whitebox whitebox main`).
->
-> Machine-local dependencies, by design: the **spikelm** checkout
-> (tokenizer, TinyStories bins, baselines — the collaborator's repo,
-> referenced not vendored) and the **morpho** hardware pipeline
-> (`tiny_morpho_hw.py`, `examples/rwkv/count_gates.py`) for the
-> M2/M3-hardware stages.
+White-box transformer language models, derived from objectives and held to
+preregistered tests. A research campaign built on CRATE (Yu et al.,
+arXiv:2306.01129), extended with spiking proximal operators, a
+constant-state counter attention (CRSA), an overcomplete sparse-coding
+feature block, and a gate-counted hardware path.
 
-An adaptation of **CRATE** (Yu et al., [arXiv:2306.01129](https://arxiv.org/abs/2306.01129);
-causal GPT-style variant in the [JMLR version](https://arxiv.org/abs/2311.13110))
-to this project's corpus, baselines, and measurement discipline — plus the
-fusion that is ours: **the ISTA block's proximal step replaced by an integer
-spike quantizer**.
+Small scale, deliberately: 5–26M params, TinyStories, one controlled seed
+per claim until replicated. The contribution is findings plus method, not
+a leaderboard entry.
 
-## Why this fusion is principled, not bolted on
+## Headline results
 
-CRATE derives each layer from the sparse rate reduction objective:
-attention = a gradient step compressing tokens toward subspaces (MSSA),
-MLP = a proximal step of sparse coding (ISTA, a soft-threshold). The spike
-operator `clamp(floor(v/thr), 0, L) * thr` is **also a proximal operator** —
-of a sparsity penalty plus an integer-grid constraint. So a spiking MLP here
-is not an approximation of the derived layer; it is a *different prox in the
-same alternating scheme*, and the white-box methodology says exactly what to
-verify: does each layer still reduce its coding-rate term, and does the code
-stay sparse? Both are logged every 500 steps (`layer_metrics`).
+**Best constant-state model** (matched 20k-step pair, one seed):
 
-Two further points of hygiene:
-
-- **Thresholds receive gradient.** The spikelm SpikeAct never routed a
-  gradient to its thresholds (all 9,216 sat frozen at init — a finding, now
-  corrected here): `SpikeProx` trains them through the `n·thr` product.
-- **Novelty was checked, not assumed** (2026-08-20): causal-LM CRATE exists
-  (JMLR version); no spiking / integer-prox CRATE work found. The candidate
-  contribution is the fusion *plus* what no one else has: gate-level cost of
-  the resulting architecture counted by construction
-  (`examples/rwkv/count_gates.py` methodology), since integer codes make the
-  dictionary matmul multiply-free — and in CRATE the ISTA block is a larger
-  share of the MACs than RWKV's channel-mix was.
-
-## Matched-budget comparison table (fill as runs land)
-
-Same corpus (TinyStories), tokenizer (4k BPE), optimizer recipe, and
-5,500-step budget as the spikelm baselines:
-
-| model | params | val ppl @5,500 |
+| model | params | val ppl @20k |
 |---|---|---|
-| RWKV-mini (float) | ~14M | 6.42 |
-| RWKV-mini spiking L4 / binary | ~14M | 6.77 / 6.39 |
-| causal CRATE (d=384, L=12, tied) | 5.2M | **15.37** |
-| causal CRATE + spiking prox (warm-started from M0) | 5.2M | **17.05** |
-| causal CRATE, larger (d=576, L=12) | 10.5M | **12.89** |
+| CRSA + overcomplete dictionary | 14.0M | **8.40** |
+| plain CRSA d=672 | 13.8M | 9.72 |
 
-| M2-control (reordered wiring, identity quantizer) | 5.2M | **14.22** |
-| M2-spike (warm from M0, uncalibrated grid) | 5.2M | 82.35 — preregistered negative (dead-zone start: 96% silenced at step 0) |
-| M2-annealed (4→2→1, uncalibrated) | 5.2M | 2,472 — doubly-confirmed negative: BOTH coarsenings re-injured (113→2,926 at 4→2; 134→2,401 at 2→1, then TRAPPED at binary) |
-| M2-calibrated (rescue: quantile thresholds + blend ramp from M2-control) | 5.2M | 36.80 — mechanism gate PASSED (no extinction; activity healthy throughout), capability gate FAILED (59.7% NLL recovery, plateaued) |
+Neither had plateaued at schedule end; true floors are lower.
 
-| **M3-control (CRSA: decaying-counter attention, no softmax/pairs/KV)** | 5.2M | **13.78** — beats its 14.22 softmax parent by 3.1%; both gates passed; ΔR^c descent-form (−11.5) monotone through training — the first arm whose trained mechanism matches the derived sign |
+**The operator ladder** (matched d=448 + identical 4d MLP, 3,000-step
+screens, one seed):
 
-**M3-control capability verdict: causal decaying sufficient statistics
-replace token-pair attention on this corpus with an IMPROVEMENT, at
-constant attention state (K·p = 384 counters per layer vs a growing KV
-cache).** Remaining axes before the operator is declared: temporal
-function (the locked probe suite — decaying counters compress and
-forget; TinyStories' short dependencies can flatter a forgetful
-operator) and state health (saturation, dead heads, per-m utilization,
-post-hoc). Mechanism axis observation, not gate: descent-form held
-monotonically (−5.0 → −11.5) — changing the operator changed the
-derivation–execution relationship.
+| attention operator | val ppl | nats vs leaky |
+|---|---|---|
+| softmax (pairwise) | 12.54 | −0.292 |
+| CRSA, dyadic-leaky counters | 16.79 | — |
+| CRSA-uniform (prefix measure ablation) | 24.57 | +0.381 |
+| literal causal TSSA (verified reproduction) | 25.43 | +0.415 |
 
-State-health axis (post-hoc, final checkpoint): CLEAN. Zero idle
-capacity (no coordinates with d>0.99 at any horizon), no dead heads, no
-saturation blowup; mean counter load scales sensibly with horizon (c̄ =
-10.5/18.5/32.3/63.9 for m=3/4/5/6) and mean marginal prices (0.12 →
-0.03) show every timescale in active use. Remaining axis: the locked
-probe suite (temporal function).
+At matched width, feature block, data, seed, and schedule, dyadic-leaky
+CRSA improves by 0.381 nats/token over its uniform-measure ablation and by
+0.415 nats/token over a numerically verified reproduction of causal TSSA
+(equation-level equivalence 6e-8), despite TSSA carrying 2.4M additional
+parameters. This identifies **multiscale exponential temporal weighting**
+— not routing simplification or parameter count — as the principal source
+of CRSA's advantage over cumulative token-statistics attention in this
+setting. Softmax retains a substantial retrieval advantage: CRSA trades
+retrieval capacity for bounded recurrent state.
 
-**M2 VERDICT (by the frozen rule): closed.** Calibration prevents
-extinction but does not recover sufficient capability. The codes stay
-active, entropic, and trainable while remaining semantically misaligned
-with the inherited consumers — "spikes are active" ≠ "spikes encode what
-the network expects." M3 proceeds from the M2-control parent (14.22);
-hard conversion is a separate, currently unresolved axis.
+**The factorial** (overcomplete dictionary, fixed d=448): the proximal
+nonlinearity alone is worth −0.080 nats at zero added parameters; 4×
+width with the prox disabled is worth nothing (+0.004, as the rank
+argument demands); the interaction is −0.046 nats. Overcompleteness has
+no value as a linear factorization; it becomes useful only when the
+threshold partitions inputs into selectively activated feature regions.
 
-M2-control verdict: the reorder is an IMPROVEMENT over M0 (14.22 vs
-15.37), not a cost — the ablation ladder's first rung passes with margin.
-Note for the diagnostics: this wiring trains with persistently positive
-ΔR^c (fluent text without attention-compression under the M0-convention
-metric); the diagnostic's interpretation must be re-derived for the new
-unroll point before judging the spiking arms' health by it.
+**The derivation–execution gap**: under aligned measurement, every
+softmax-attention variant was repurposed by training — attention learned
+to *expand* the coding-rate term it was derived to compress (12/12
+layers, confirmed by directional derivatives and α-sweeps). The counter
+operator is the only one whose trained dynamics match its derived sign
+throughout training. Derivation supplies a falsifiable mechanistic
+hypothesis, not a guarantee.
 
-Size-control verdict: doubling parameters bought 2.5 ppl (15.37 → 12.89
-at 5,500 steps). The remaining gap to RWKV-mini is architectural, not
-just size — consistent with published CRATE trailing engineered
-architectures at matched scale. (Tied CRATE blocks are 2d², so d=576 is
-"larger," not an exact param match to RWKV's ~14M.)
+**Preregistered probes** (locked before CRSA existed): perfect induction
+(1.00) at every delay up to 89 tokens from 384 counters/layer, tied with
+full attention; the measured cost is selective retention under
+distractors (0.56 vs 0.91) — the operator forgets by *collision*, not by
+time. This deficit predicted the ladder's softmax result before any
+perplexity surfaced it, and appears in generated text as referent drift.
 
-M1 lessons: spike-prox from scratch COLLAPSES (the L0 over-compression
-signature again, ppl stuck ~400) — but warm-started from the trained float
-model it fine-tunes to within 11% relative of its parent.
+**Hardware**: one CRSA counter coordinate = 58–61 gates + 14 registers
+(dyadic decay = shift; price 1/(1+c) = 2-comparator staircase); a
+16-wide bank places and routes at 690 LCs, 103.7 MHz on iCE40. No
+exponential, no divider, no softmax anywhere in the datapath.
 
-The collapse was autopsied, not assumed (CPU reproduction, same seed): the
-collapsed model's text is word salad ("named it was to. to the and They
-and."), and the expansion term R(Z) falls monotonically through depth
-(184.9 → 14.9 by layer 12) while ΔR^c stays deep — degenerate token
-collapse, the failure mode the compression metric alone cannot see. The
-instrument pair now separates the cases cleanly: healthy training = deep
-ΔR^c with stable R(Z); collapse = deep ΔR^c with R(Z) crashing. (The
-warm-started run, for contrast, generates fluent stories at the same
-ΔR^c depth.) The annealing
-lesson (quantized variants fine-tune from float) transfers from RWKV to
-CRATE. Scope honesty: M1 quantizes the inter-block representation only —
-every matmul is still dense float, because LayerNorm sits between the spike
-output and the next consumer and re-densifies the code. M2 (spike-in CRATE)
-moves the quantizer to feed the U projection and both dictionary matmuls
-directly, with per-channel thresholds folded into consumer weight columns —
-near-total weight-matmul spike coverage, vs RWKV's 27%.
+## Repo map
 
-M0 landed with monotone ΔR^c curves (+0.9 → −7.8) under the ORIGINAL
-LOGGING CONVENTION, which the derivation–execution autopsy later showed
-was misaligned (a LayerNorm between the two sides of the comparison).
-Under the aligned substep measurement M0's attention EXPANDS the
-compression term in all layers — see M2.md §5b; the "compresses as
-derived" reading is superseded, not an alternative convention. ISTA
-sparsity settled at 0.62.
-Generated text is recognizable TinyStories with rougher grammar than the
-RWKV baselines, consistent with the perplexity gap. One training lesson,
-found by the instrumentation itself: the derived step-size constant is
-load-bearing (scale init 1.0 → layer-0 over-compression, ΔR^c −74.7 at L0,
-stall at ppl ~420; init 0.1 → healthy descent).
+| file | contents |
+|---|---|
+| `model.py` | Config; MSSA/ISTA (CRATE); SpikeProx/SignedProx; CRSA + uniform ablation + literal TSSA; overcomplete dictionary blocks; MLP control; per-layer instrumentation (aligned ΔR^c, sparsity, frame/coherence/dead-atom) |
+| `train.py` | trainer (AdamW, cosine, matched to the spikelm baseline); all arms reachable by flag; logs `runs/<name>/log.jsonl` + checkpoint |
+| `probes.py`, `probe_train.py` | locked probe suite: 4 tasks × delays {6..89}, fixed seeds, preregistered predictions |
+| `calibrate.py`, `autopsy.py`, `hard_autopsy.py` | spike conversion calibration; derivation–execution gap instruments (g_dir, α-sweeps, Gram decomposition) |
+| `M2.md` | spike-driven weight paths: prox propositions, results, scope freeze, the gap finding |
+| `M3.md` | CRSA: derivation via exponentially weighted measures, ToST prior-art position, validation battery, judgment protocol |
+| `DICTIONARY.md` | overcomplete fork: formalization, factorial, MLP three-way + literal-TSSA close, plateau protocol, claim freezes |
+| `PROBES.md` | preregistration + results scorecard |
+| `PLFP.md` | forward-only learning formalization (not yet run) |
 
-CRATE blocks are ~3d² parameters against a transformer's ~12d² — the table
-reports both param counts and shared step budget; neither normalization is
-"the" fair one, so both are stated.
+## Running
 
-## Deviations from the strict derivation (stated, per house rules)
-
-Pre-LN before each block (as the released CRATE code); the derived step-size
-constant κ·p/(Nε²) folded into a learnable per-layer scale; causal masking
-(compression restricted to past tokens — same move as the JMLR causal
-variant). MSSA head aggregation is weight-tied to the input projection
-(`tied=True`, the derivation's form; `--untied` ablates it).
-
-## Run
-
-```bash
-python3 -m whitebox.train                 # M0: causal CRATE baseline
-python3 -m whitebox.train --spike-prox    # M1: spiking proximal step
+```
+python -m whitebox.train --steps 20000 --width 448 --crsa \
+    --dict 4 --dict-local --m2 b --m2-identity --name my-run
 ```
 
-Logs: `whitebox/runs/<name>/log.jsonl` — val ppl + per-layer ΔR^c
-(aligned substep convention post-autopsy; earlier logs used the
-superseded LN'd convention and are labeled as such) and ISTA sparsity. Data comes from the spikelm checkout (machine-local path in
-train.py).
+Flags select arms: `--crsa` counters, `--tost` uniform ablation,
+`--tssa-lit` literal TSSA, `--mlp` transformer MLP control, `--dict N
+--dict-local` overcomplete dictionary. Data/tokenizer come from the
+spikelm sibling repo (path in `train.py`); checkpoints and logs are
+machine-local and untracked.
 
-## Roadmap
+## Method, briefly
 
-- **M0** causal CRATE at matched budget — the honest baseline.
-- **M1** spiking prox — quality cost + white-box curves under integer codes.
-- **M2** candidates, in order of ambition: threshold annealing 4→2→1 (the
-  schedule that made binary RWKV *better*); spiking MSSA (signed spikes into
-  the U projection); a rate-reduction *recurrence* (unrolled compression as
-  a state update — CRATE×RWKV, a genuinely new architecture if it works).
-- **Hardware close-out**: ISTA-block engines through the Morpho gate-count
-  pipeline; the spiking-CRATE datapath number next to the RWKV ones.
+Formalize before training. Lock probes and predictions before the
+operator exists. Screens (3k steps) eliminate catastrophes only —
+verdicts require plateaus (<0.5% over 2–3k steps after an LR reduction).
+Decompositions in nats. One seed until replicated, and every claim
+carries its caveats. Corrections are published as findings, not patched:
+this repo's history includes a misaligned metric, a naming collision
+with prior art (ToST/TSSA, arXiv:2412.17810 — cited as CRSA's direct
+ancestor), and the reinterpretation of an early headline once a real
+feature block entered the comparison.
+
+## Open work
+
+Replication seeds; two-size scaling law; true plateaus on longer
+schedules; spike conversion of the best CRSA model via the calibration
+protocol; the PLFP forward-only ladder; hardware costing of the full
+model; a representative memory between counters and a full cache
+(the collision repair).
