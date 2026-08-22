@@ -8,131 +8,174 @@
 <style>
   * { margin: 0; box-sizing: border-box; }
   body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
     background: #0d1015;
     color: #d7dae2;
     font: 16px/1.6 -apple-system, "Segoe UI", sans-serif;
+    padding: 56px 20px 80px;
   }
-  h1 { font-size: 28px; font-weight: 600; letter-spacing: 0.04em; }
+  main { max-width: 62em; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 44px; }
+  h1 { font-size: 30px; font-weight: 600; letter-spacing: 0.04em; }
   h1 span { color: #e2a13f; }
-  p { color: #9aa1ad; max-width: 34em; text-align: center; padding: 0 20px; }
-  a.card {
-    display: block;
-    padding: 16px 28px;
-    border: 1px solid #242a35;
-    border-radius: 10px;
-    color: #d7dae2;
-    text-decoration: none;
-    transition: border-color 0.15s;
+  header p { color: #9aa1ad; max-width: 40em; margin: 10px auto 0; }
+  h2 {
+    font-size: 12.5px; font-weight: 600; color: #9aa1ad;
+    text-transform: uppercase; letter-spacing: 0.09em;
+    margin: 38px 0 4px; padding-bottom: 8px;
+    border-bottom: 1px solid #1c212b;
   }
-  a.card:hover { border-color: #e2a13f; }
-  a.card b { color: #e2a13f; }
-  a.card small { color: #6a7280; display: block; margin-top: 4px; }
+  h2 em { font-style: normal; color: #5d6470; text-transform: none;
+          letter-spacing: 0; font-weight: 400; margin-left: 8px; }
+  .grid {
+    display: grid; gap: 10px; margin-top: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(288px, 1fr));
+  }
+  a.card {
+    display: block; padding: 13px 16px;
+    border: 1px solid #242a35; border-radius: 9px;
+    color: #d7dae2; text-decoration: none;
+    transition: border-color .15s, background .15s;
+  }
+  a.card:hover { border-color: #e2a13f; background: #12151b; }
+  a.card b { color: #e2a13f; font-weight: 600; }
+  a.card small { color: #6a7280; display: block; margin-top: 3px; font-size: 12.5px;
+                 line-height: 1.45; }
+  footer { color: #4e5560; font-size: 13px; text-align: center; margin-top: 48px;
+           border-top: 1px solid #1c212b; padding-top: 18px; }
+  footer a { color: #6a7280; text-decoration: none; }
+  footer a:hover { color: #e2a13f; }
 </style>
 </head>
 <body>
-  <h1>sound<span>lark</span></h1>
-  <p>experiments in generative sound</p>
-  <a class="card" href="snn/">
-    <b>morpho·snn</b> — a developmental spiking network you can listen to
-    <small>recursive growth · pruning · walkers · circle-of-fifths drift</small>
-  </a>
-  <a class="card" href="snn/duet.html">
-    <b>morpho·snn duet</b> — play with a developing brain
-    <small>your notes become spikes · it learns what you play · MIDI in/out</small>
-  </a>
-  <a class="card" href="snn/attention.html">
-    <b>morpho·snn attention</b> — a brain that listens back
-    <small>MA-SNN-style regional attention · sparser, focused answers · attention shapes growth</small>
-  </a>
-  <a class="card" href="research.html">
-    <b>research notes</b> — what we measured, including what didn't work
-    <small>controlled ablations · honest nulls · attention reproduced MA-SNN musically</small>
-  </a>
-  <a class="card" href="language.html">
-    <b>language notes</b> — a spiking organism vs tiny shakespeare
-    <small>reservoir prediction · forward-forward readout · error-driven growth</small>
-  </a>
-  <a class="card" href="morpho-defects.html">
-    <b>sparse defects in a traffic jam</b> — evolved cellular automata that count
-    <small>MorphoHDL dynamic systems · two one-bit defects · a law that scales to N=511</small>
-  </a>
-  <a class="card" href="spikelm.html">
-    <b>a spiking model that speaks</b> — chapter two: trained directly, writes stories
-    <small>13M params · spikes at 9% firing cost ~6% perplexity · matched-budget comparison</small>
-  </a>
-  <a class="card" href="changing-tack.html">
-    <b>changing tack</b> — from readouts to a model that can speak
-    <small>what five experiment generations taught us · what survives · what we build next</small>
-  </a>
-  <a class="card" href="morpho-laws.html">
-    <b>laws that grow machines</b> — constant genomes, FSM-exact at unseen sizes
-    <small>developmental vs shared-rule · 22/22 zero-shot transfer · depth-1 systolic parity</small>
-  </a>
-  <a class="card" href="morpho-silicon.html">
-    <b>to silicon</b> — a trained model, placed and routed on an FPGA
-    <small>Morpho netlist → BLIF/Verilog → yosys/nextpnr · 5,648 LCs at 9.8 MHz · every handoff verified</small>
-  </a>
-  <a class="card" href="crsa.html">
-    <b>the counter that replaced attention</b> — no softmax, no cache
-    <small>decaying event counters derived from the same objective · beats its parent · 60 gates per coordinate</small>
-  </a>
-  <a class="card" href="rwkv-spiking.html">
-    <b>spikes in the browser</b> — does skipping silent channels pay?
-    <small>two spiking models vs float · event-driven kernel raced against dense · live firing meters</small>
-  </a>
-  <a class="card" href="hardware-attention.html">
-    <b>attention for silicon</b> — designing the operator for the chip, not the GPU
-    <small>softmax's three hardware bills · the measured trade · what would count as failure</small>
-  </a>
-  <a class="card" href="whitebox-lab.html">
-    <b>the white-box lab</b> — models derived from objectives, held to preregistered probes
-    <small>two findings, one honest reversal, and a trade-frontier where a winner was hoped for</small>
-  </a>
-  <a class="card" href="model-zoo.html">
-    <b>five models, one page</b> — every model we trained, running in your browser
-    <small>RWKV · spiking · binary · fully-spiking · Mamba · live firing rates</small>
-  </a>
-  <a class="card" href="two-recurrences.html">
-    <b>two recurrences</b> — RWKV vs Mamba at matched parameters
-    <small>what selectivity buys · what it costs in gates · the number we can't quote yet</small>
-  </a>
-  <a class="card" href="mamba-live.html">
-    <b>mamba, live</b> — a selective SSM generating text in your browser
-    <small>13.1M params · constant state, no growing cache · verified against PyTorch</small>
-  </a>
-  <a class="card" href="mamba-cell.html">
-    <b>the s6 cell</b> — Mamba as a circuit, beside RWKV's
-    <small>one recurrence, two architectures · the divider isn't the difference</small>
-  </a>
-  <a class="card" href="rwkv-live.html">
-    <b>rwkv, live</b> — the trained model generating text in your browser
-    <small>14.9MB int8 export · float vs Q8.8 circuit numerics · no server, no framework</small>
-  </a>
-  <a class="card" href="wkv-cell.html">
-    <b>the wkv cell</b> — RWKV's attention as a circuit, float vs fixed-point live
-    <small>three registers and a leak · verified 2^(−x) unit · measured precision verdict</small>
-  </a>
-  <a class="card" href="rwkv-atlas.html">
-    <b>rwkv atlas</b> — the whole model as one navigable machine
-    <small>2,304 real trained decays · memory horizons per block · what it costs in gates</small>
-  </a>
-  <a class="card" href="found-machines.html">
-    <b>found machines</b> — designs nobody drew, proven exact
-    <small>beam search · counterexamples · evolution · all running live, sonified</small>
-  </a>
-  <a class="card" href="morpho-nca.html">
-    <b>a neural law that grows, holds, and heals</b> — 450 integers, any lattice
-    <small>quantized neural CA · exact at 16× training area · regenerates after damage</small>
-  </a>
-  <a class="card" href="circuits-that-move.html">
-    <b>circuits that move</b> — interactive, sonified sequential Morpho
-    <small>delay lines · serial adder · LFSR · editable cellular automata · a tentacle that computes</small>
-  </a>
+<main>
+  <header>
+    <h1>sound<span>lark</span></h1>
+    <p>A fork of <a href="https://github.com/paradigms-of-intelligence/morpho"
+       style="color:#9aa1ad">MorphoHDL</a> that wandered: developmental spiking
+       networks you can listen to, language models small enough to read, and
+       circuits small enough to build. Findings are written up with their nulls.</p>
+  </header>
+
+  <h2>Instruments <em>— listen to a network develop</em></h2>
+  <div class="grid">
+    <a class="card" href="snn/">
+      <b>the lab</b> — a developmental spiking network you can hear
+      <small>recursive growth · pruning · walkers · circle-of-fifths drift</small>
+    </a>
+    <a class="card" href="snn/duet.html">
+      <b>the duet</b> — play with a developing brain
+      <small>your notes become spikes · it answers in your gaps · MIDI in/out</small>
+    </a>
+    <a class="card" href="snn/attention.html">
+      <b>attention</b> — a brain that listens back
+      <small>+12% answer relatedness at 85% fewer spikes</small>
+    </a>
+    <a class="card" href="research.html">
+      <b>research notes</b> — what we measured, including what didn't work
+      <small>controlled ablations · honest nulls · the music track in full</small>
+    </a>
+  </div>
+
+  <h2>Models you can run <em>— in the browser, no install</em></h2>
+  <div class="grid">
+    <a class="card" href="model-zoo.html">
+      <b>five models, one page</b> — everything we trained
+      <small>RWKV · spiking · binary · fully-spiking · Mamba · same prompt, read the difference</small>
+    </a>
+    <a class="card" href="rwkv-live.html">
+      <b>rwkv, live</b> — 13M parameters generating text in your browser
+      <small>int8 export · plain JavaScript · float vs Q8.8 circuit numerics</small>
+    </a>
+    <a class="card" href="mamba-live.html">
+      <b>mamba, live</b> — a selective SSM, same size, different recurrence
+      <small>constant state, no growing cache · verified against PyTorch</small>
+    </a>
+    <a class="card" href="rwkv-spiking.html">
+      <b>spikes in the browser</b> — does skipping silent channels pay?
+      <small>event-driven kernel raced against dense · live firing meters</small>
+    </a>
+  </div>
+
+  <h2>The language research <em>— chapters, in order</em></h2>
+  <div class="grid">
+    <a class="card" href="language.html">
+      <b>language notes</b> — chapter one: a spiking organism vs tiny shakespeare
+      <small>reservoir prediction · error-driven growth · where it stalled</small>
+    </a>
+    <a class="card" href="changing-tack.html">
+      <b>changing tack</b> — why we stopped and what survived
+      <small>the substrate contributed · the architecture couldn't reach usable text</small>
+    </a>
+    <a class="card" href="spikelm.html">
+      <b>a spiking model that speaks</b> — chapter two: trained directly
+      <small>spikes at 9% firing cost ~6% perplexity · binary costs a little more</small>
+    </a>
+    <a class="card" href="two-recurrences.html">
+      <b>two recurrences</b> — chapter three: RWKV vs Mamba at matched parameters
+      <small>what selectivity buys · what it costs in gates · the number we can't quote yet</small>
+    </a>
+    <a class="card" href="whitebox-lab.html">
+      <b>the white-box lab</b> — models derived from objectives
+      <small>preregistered probes · two findings and one honest reversal</small>
+    </a>
+    <a class="card" href="crsa.html">
+      <b>the counter that replaced attention</b> — no softmax, no cache
+      <small>decaying event counters · beats its parent · 60 gates per coordinate</small>
+    </a>
+  </div>
+
+  <h2>Morpho experiments <em>— what a growing language can find</em></h2>
+  <div class="grid">
+    <a class="card" href="circuits-that-move.html">
+      <b>circuits that move</b> — interactive, sonified sequential Morpho
+      <small>delay lines · serial adder · LFSR · editable cellular automata</small>
+    </a>
+    <a class="card" href="found-machines.html">
+      <b>found machines</b> — designs nobody drew, proven exact
+      <small>beam search · counterexamples · evolution · all running live</small>
+    </a>
+    <a class="card" href="morpho-nca.html">
+      <b>a neural law that grows, holds, and heals</b> — 450 integers, any lattice
+      <small>exact at 16× the training area · regenerates after damage</small>
+    </a>
+    <a class="card" href="morpho-defects.html">
+      <b>sparse defects in a traffic jam</b> — evolved automata that count
+      <small>two one-bit defects · a law that still works at N=511</small>
+    </a>
+    <a class="card" href="morpho-laws.html">
+      <b>laws that grow machines</b> — constant genomes, FSM-exact at unseen sizes
+      <small>22/22 zero-shot transfer · depth-1 systolic parity</small>
+    </a>
+  </div>
+
+  <h2>Toward silicon <em>— the same models, as hardware</em></h2>
+  <div class="grid">
+    <a class="card" href="morpho-silicon.html">
+      <b>to silicon</b> — a trained model, placed and routed on an FPGA
+      <small>Morpho → BLIF/Verilog → yosys/nextpnr · 5,648 LCs at 9.8 MHz</small>
+    </a>
+    <a class="card" href="wkv-cell.html">
+      <b>the wkv cell</b> — RWKV's attention as a circuit
+      <small>three registers and a leak · float vs fixed-point, live</small>
+    </a>
+    <a class="card" href="mamba-cell.html">
+      <b>the s6 cell</b> — Mamba as a circuit, beside RWKV's
+      <small>one recurrence, two architectures · the divider isn't the difference</small>
+    </a>
+    <a class="card" href="rwkv-atlas.html">
+      <b>rwkv atlas</b> — the whole model as one navigable machine
+      <small>2,304 real trained decays · memory horizons · what it costs in gates</small>
+    </a>
+    <a class="card" href="hardware-attention.html">
+      <b>attention for silicon</b> — designing the operator for the chip
+      <small>softmax's three hardware bills · the trade · what would count as failure</small>
+    </a>
+  </div>
+
+  <footer>
+    Code and experiment logs:
+    <a href="https://github.com/PedalCore/morpho">github.com/PedalCore/morpho</a>
+  </footer>
+</main>
 </body>
 </html>
