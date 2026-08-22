@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — spikes in the browser</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c; --blue: #6fa8dc;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+        line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+        border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 12px 0;
+        color: #b9c7bf; }
+  pre .hl { color: var(--amber); }
+  pre .gn { color: var(--green); }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  td, th { font-variant-numeric: tabular-nums; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { margin-top: 0; }
+  .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button.primary { border-color: var(--amber); color: var(--amber); }
+  button:disabled { opacity: .45; cursor: default; }
+  button:disabled:hover { border-color: var(--line); }
+  input[type=range] { accent-color: var(--amber); }
+  label { color: var(--muted); font-size: 13px; display: inline-flex;
+          align-items: center; gap: 6px; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .selbox { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+            border-radius: 7px; padding: 5px 8px; font: 13px inherit; }
+  textarea { width: 100%; background: #0a0d11; color: var(--text);
+             border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+             font: 14px/1.5 ui-monospace, "SF Mono", monospace; resize: vertical; }
+  input[type=number] { width: 70px; background: var(--panel2); color: var(--text);
+                       border: 1px solid var(--line); border-radius: 7px;
+                       padding: 5px 8px; font: 13px inherit; }
+  .bar { height: 8px; background: #0a0d11; border: 1px solid var(--line);
+         border-radius: 5px; overflow: hidden; margin: 10px 0 4px; }
+  .bar > div { height: 100%; width: 0%; background: var(--amber); transition: width .15s; }
+  #status { font: 13px ui-monospace, monospace; color: var(--muted); min-height: 1.4em; }
+  #status.err { color: var(--red); }
+  #out { min-height: 8em; white-space: pre-wrap; word-break: break-word;
+         font-size: 14.5px; line-height: 1.7; color: #cfd6cf; }
+  #out .prompt { color: var(--amber); }
+  /* firing meters */
+  .meters { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+            margin-top: 12px; }
+  .meter { text-align: center; }
+  .meter .mtrack { height: 56px; background: #0a0d11; border: 1px solid var(--line);
+                   border-radius: 6px; position: relative; overflow: hidden; }
+  .meter .mfill { position: absolute; left: 0; right: 0; bottom: 0;
+                  background: var(--green); transition: height .1s; }
+  .meter .mref { position: absolute; left: 0; right: 0; height: 2px;
+                 background: var(--blue); }
+  .meter .mlab { font: 11px ui-monospace, monospace; color: var(--muted);
+                 margin-top: 4px; }
+  .meter .mval { font: 12px ui-monospace, monospace; color: var(--green); }
+  .counters { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 12px;
+              font: 12.5px ui-monospace, monospace; color: var(--muted); }
+  .counters b { color: var(--green); font-weight: 500; }
+  .race { margin-top: 10px; font: 13px ui-monospace, monospace; color: var(--text); }
+  .race b { color: var(--amber); }
+  .note { border-left: 3px solid var(--amber); padding: 2px 0 2px 14px;
+          color: var(--muted); font-size: 14px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<article>
+<h1>spikes <span>in the browser</span></h1>
+<p class="sub">Two spiking RWKV models — trained with hard integer spikes in
+place of the channel-mix nonlinearity — running from their int8 exports, next
+to the float baseline. The model difference is one line of code. The point of
+this page is the measurement the other pages can't make: on a scalar
+substrate, does <em>skipping the silent channels</em> actually pay?</p>
+
+<div class="links">
+  <a href="/rwkv-live.html">← run the float model</a>
+  <a href="/wkv-cell.html">← the wkv cell</a>
+  <a href="/morpho-silicon.html">← to silicon</a>
+</div>
+
+<h2>the one-line difference</h2>
+<pre>// float baseline (channel-mix nonlinearity):
+t = max(0, v);  k[i] = t * t;                    // squared ReLU
+
+// spiking (levels = 4, threshold = 0.5, uniform):
+<span class="hl">n = min(max(floor(v / 0.5), 0), 4);  k[i] = n * 0.5;</span>   // integer spike count</pre>
+<p>Everything else — layernorms, token-shift, the wkv recurrence, receptance,
+the head, sampling — is byte-identical to <a href="/rwkv-live.html">the float
+runner</a>. The spike unit is its own rectifier (negatives floor to zero
+spikes), and after it, the 1536-wide hidden vector is ~90% exact zeros. The
+matmul that consumes it, W<sub>v</sub> (1536 → 384), is where sparsity either
+pays or doesn't — so that is the matmul this page implements twice.</p>
+
+<h2>honest framing, before the numbers</h2>
+<p><b>These are three separate trainings, not one model quantized.</b> The
+float baseline measures 6.42 perplexity, the 4-level spiking model 6.77, the
+binary model 6.39 — all at their own training budgets. The binary model
+beating the 4-level one is <em>not</em> binarization helping: its annealing
+ladder (4 → 2 → 1 levels) gave it 1,500 extra fine-tuning steps. Unlike
+rwkv-live's int8 toggle — genuinely the same weights — quality gaps here are
+training outcomes.</p>
+<p><b>The thresholds never trained.</b> All 9,216 per-channel thresholds sit
+at exactly their 0.5 init: the training code never routed a gradient to them.
+The page asserts this from the shipped tensors rather than assuming it. It's
+a useful negative result — per-unit spike parameters were the biggest quality
+lever in prior spiking-decoder work, so the 6.77-vs-6.42 gap now has a
+specific untested explanation with an experiment queued.</p>
+
+<div class="demo">
+  <h3>the runner</h3>
+  <p class="teach">Pick a model (~15 MB each, fetched once). The kernel
+  selector switches how W<sub>v</sub> consumes the spike vector — both kernels
+  produce <b>bit-identical output</b> (same seed ⇒ same text), so the race
+  below measures cost, not quality. Firing meters show live per-block spike
+  rates; blue lines are the rates measured at training.</p>
+  <div class="bar"><div id="loadbar"></div></div>
+  <div id="status">no model loaded</div>
+  <div class="controls">
+    <label>model
+      <select id="model" class="selbox">
+        <option value="spiking/">spiking — 4 levels (ppl 6.77)</option>
+        <option value="binary/">binary — 1 level (ppl 6.39)</option>
+        <option value="">float baseline (ppl 6.42)</option>
+      </select>
+    </label>
+    <button id="loadbtn" class="primary">load model</button>
+    <label>W<sub>v</sub> kernel
+      <select id="kernel" class="selbox">
+        <option value="event">event-driven (skip silent channels)</option>
+        <option value="dense">dense (visit every weight)</option>
+      </select>
+    </label>
+  </div>
+  <div style="margin-top:14px">
+    <textarea id="prompt" rows="2">Once upon a time, there was a little girl named</textarea>
+  </div>
+  <div class="controls">
+    <button id="genbtn" disabled>generate</button>
+    <button id="racebtn" disabled>race the kernels</button>
+    <button id="stopbtn" disabled>stop</button>
+    <label>temp <input type="range" id="temp" min="0" max="1.5" step="0.05" value="0.8">
+      <span class="readout" id="tempval">0.80</span></label>
+    <label>tokens <input type="number" id="maxnew" value="120" min="1" max="400"></label>
+    <label>seed <input type="number" id="seed" value="1000"></label>
+    <span class="readout" id="speed"></span>
+  </div>
+  <div style="background:#0a0d11;border:1px solid var(--line);border-radius:8px;
+              padding:12px 14px;margin-top:14px">
+    <div id="out"><span style="color:var(--muted)">output appears here</span></div>
+  </div>
+  <div class="meters" id="meters"></div>
+  <div class="counters" id="counters"></div>
+  <div class="race" id="race"></div>
+</div>
+
+<h2>why the browser is an honest venue</h2>
+<p>On a GPU, dense SIMD matmul beats unstructured sparsity — lanes execute in
+lockstep and skipping a channel saves nothing. Plain JavaScript is the
+opposite: one scalar pipeline, where every skipped channel is 384 array
+operations that never run. So the neuromorphic argument — <em>computation
+should cost in proportion to events, not to capacity</em> — gets a fair
+scalar trial here.</p>
+<p>Locality is part of the design, not a trick: the event-driven kernel walks
+a <b>transposed</b> int8 copy of W<sub>v</sub>, so each fired channel reads
+one contiguous 384-byte row. Iterate the original row-major layout
+column-wise and the same "sparse" kernel loses to dense on cache misses —
+misattributing a memory-layout failure to sparsity itself. Silicon has the
+same requirement; event-driven hardware earns its efficiency only with
+event-major weight layout.</p>
+<p>With the uniform 0.5 threshold the spike vector takes five values
+(0, ½, 1, 1½, 2), so the event kernel accumulates in pure integers —
+<code>acc[j] += n · w8[j]</code>, int8 weight × spike count ≤ 4 — with the
+per-row scale and the ×½ folded in once per output. Exact, not approximate:
+that is why both kernels emit identical text. In silicon that inner op is a
+shift-add; at binary it is a pure add.</p>
+
+<h2>what the numbers mean</h2>
+<table>
+<tr><th>model</th><th>perplexity (float→int8)</th><th>mean firing</th><th>per-block</th></tr>
+<tr><td>spiking, 4 levels</td><td>6.768 → 6.767 (−0.01%)</td><td>9.8%</td><td>5/5/6/9/14/21%</td></tr>
+<tr><td>binary, 1 level</td><td>6.387 → 6.390 (+0.04%)</td><td>11.0%</td><td>5/6/8/10/15/22%</td></tr>
+<tr><td>float baseline</td><td>6.422 → 6.421 (−0.01%)</td><td>—</td><td>—</td></tr>
+</table>
+<p>The firing ladder echoes the <a href="/rwkv-atlas.html">timescale
+ladder</a>: deeper blocks fire more, just as they remember longer. Per token,
+the six W<sub>v</sub> matmuls are 3.54M of the model's 13.1M MACs; at ~10%
+firing the event-driven kernel replaces them with ~0.35M integer accumulates.
+The energy line the counters show uses the standard 45 nm figures (int8
+multiply-accumulate ≈ 4.6 pJ, add ≈ 0.9 pJ) — <b>an accounting exercise on
+counted operations, not a wattmeter</b>, and a saving that exists on
+event-capable substrates, not on GPUs.</p>
+<p style="color:var(--muted);font-size:13.5px">One expected artifact of int8
+under a discontinuous nonlinearity: quantization error occasionally moves a
+channel across a spike threshold, so int8-vs-float logits differ more here
+(rms ≈ 0.11) than in the float baseline (rms ≈ 0.02). The perplexity columns
+above show it costs nothing — but the mechanism deserves naming.</p>
+
+<h2>does spiking reduce logic gates? — measured</h2>
+<p>The question that decides whether any of this matters for silicon. Spiking
+changes hardware in exactly two places, and both are now real compiled Morpho
+circuits, verified bit-exact on 200,000 random cases each and synthesized
+through the same yosys flow as the <a href="/morpho-silicon.html">wkv
+cell</a>:</p>
+<table>
+<tr><th>unit</th><th>morpho gates</th><th>iCE40 LUT4s</th><th>vs dense</th></tr>
+<tr><td>MAC lane, dense — w8 × x8 + 24-bit acc</td><td>324</td><td>247</td><td>—</td></tr>
+<tr><td>MAC lane, spike-4 — w8 × n(0..4) + acc</td><td>145</td><td>119</td><td><b>2.1× smaller</b></td></tr>
+<tr><td>MAC lane, binary — gated add, no multiplier</td><td>55</td><td>48</td><td><b>5.1× smaller</b></td></tr>
+<tr><td>activation, relu² (Q8.8, 16×16 multiply)</td><td>890</td><td>566</td><td>—</td></tr>
+<tr><td>activation, spike threshold (clamp(x≫7, 0, 4))</td><td>15</td><td>5</td><td><b>113× smaller</b></td></tr>
+</table>
+<p>So: <b>yes, and by a lot — where spikes flow.</b> The consumer lane shrinks
+2.1× at 4 levels and 5.1× at binary, because the multiplier's area goes as
+the operand width and a spike count is 3 bits, then 1. The producer collapses
+almost entirely: squared-ReLU is a 16×16 multiplier (566 LUTs), the uniform
+threshold is bit inspection (5 LUTs).</p>
+<p>And the whole-model number is <b>counted by construction, not
+extrapolated</b>: <code>examples/rwkv/count_gates.py</code> builds the actual
+matmul engines at full width — the 384-lane value engine, the 1536-lane key
+engine (497,664 gates, dense), all variants, lane-linearity asserted rather
+than assumed — and assembles the datapath from the emitted netlists (plus the
+measured 7,201-gate wkv cell):</p>
+<table>
+<tr><th>datapath</th><th>per block</th><th>whole model</th><th>vs dense</th></tr>
+<tr><td>all dense (the float model)</td><td>1,252,251</td><td>8,840,610</td><td>—</td></tr>
+<tr><td>current spiking (spike-4 → W<sub>v</sub>)</td><td>1,182,640</td><td>8,422,944</td><td>−4.7%</td></tr>
+<tr><td>current at binary</td><td>1,148,080</td><td>8,215,584</td><td>−7.1%</td></tr>
+<tr><td>fully-spiking, binary (→ W<sub>k</sub> too)</td><td><b>797,872</b></td><td><b>6,114,336</b></td><td><b>−30.8%</b></td></tr>
+</table>
+<p>The signed-ternary input lane the fully-spiking variant needs (add or
+subtract the weight, never scale it) measures 96 gates — 3.4× smaller than
+dense. Two honest boundaries hold throughout: this model routes spikes only
+through W<sub>v</sub> — 27% of its MACs — which is why the current saving is
+single-digit; and event-driven <em>skipping</em> saves energy and time, never
+area — gates are laid down for the worst case.</p>
+<p><b>A correction, published rather than patched:</b> an earlier version of
+this paragraph claimed weight bandwidth is untouched by spiking, so
+bandwidth-bound builds see no tokens/s gain. That's only true of a build that
+fetches densely. An event-driven build never fetches the W<sub>v</sub> rows
+of silent channels — with weights stored event-major (the same transposed
+layout the kernel race above depends on; flash and silicon share the locality
+requirement), per-token traffic drops from 13.1 MB to ~9.9 MB at the measured
+~10% firing, which is a real ~1.2–1.3× on the bandwidth-bound builds from the
+<a href="/morpho-silicon.html">silicon page</a> (the discount from the clean
+1.32×: fired rows are known only after the layer's spikes are computed, so
+those fetches can't be fully prefetched, and row-granular skipping costs some
+random-access efficiency). The fully-spiking variant would roughly double the
+skippable share. What spiking raises unconditionally remains tokens per
+second <b>per unit area</b> and per joule.
+Reproduce: <code>python3 examples/rwkv/spike_mac.py</code> (lanes) and
+<code>python3 examples/rwkv/count_gates.py</code> (engines and totals).</p>
+
+<script>
+'use strict';
+
+/* ---------- constants ---------- */
+const D = 384, FFN = 1536, V = 4096, NL = 6;
+const PJ_MAC = 4.6, PJ_ADD = 0.9;          // 45nm figures (Horowitz)
+const TRAIN_RATES = {                      // measured at training, from manifests
+  'spiking/': [.0472, .0502, .0638, .0864, .1356, .2066],
+  'binary/': [.0542, .0577, .0767, .1029, .1509, .2165],
+};
+
+const M = { ready: false, variant: null, spiking: false, levels: 0, thr: 0.5,
+            t: {}, tok: null };
+
+function tensor(name) {
+  const t = M.t[name];
+  if (!t) throw new Error('missing tensor ' + name);
+  return t;
+}
+
+/* ---------- loading ---------- */
+async function fetchBinary(url, onprogress) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(url + ' → HTTP ' + resp.status);
+  const total = +resp.headers.get('Content-Length') || 0;
+  const reader = resp.body.getReader();
+  const chunks = []; let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); got += value.length;
+    if (total && onprogress) onprogress(got / total);
+  }
+  const buf = new Uint8Array(got); let off = 0;
+  for (const c of chunks) { buf.set(c, off); off += c.length; }
+  return buf.buffer;
+}
+
+async function loadModel(variant, setStatus, setBar) {
+  const base = 'rwkv-export/' + variant;
+  setStatus('fetching manifest + tokenizer…');
+  const [manifest, tokjson] = await Promise.all([
+    fetch(base + 'model-manifest.json').then(r => {
+      if (!r.ok) throw new Error('manifest missing (HTTP ' + r.status + ')');
+      return r.json();
+    }),
+    fetch(base + 'tokenizer.json').then(r => {
+      if (!r.ok) throw new Error('tokenizer missing (HTTP ' + r.status + ')');
+      return r.json();
+    }),
+  ]);
+  M.variant = variant;
+  M.spiking = !!manifest.config.spiking;
+  M.levels = manifest.config.levels || 0;
+  M.tok = makeTokenizer(tokjson);
+
+  setStatus('fetching weights (~15 MB)…');
+  const bin = await fetchBinary(base + 'model-int8.bin', f => setBar(f * 100));
+  setStatus('unpacking tensors…');
+  M.t = {};
+  for (const rec of manifest.tensors) {
+    if (rec.kind === 'int8') {
+      M.t[rec.name] = {
+        shape: rec.shape, kind: 'int8',
+        i8: new Int8Array(bin, rec.offset, rec.nbytes),
+        scales: new Float32Array(bin.slice(rec.scale_offset,
+                                           rec.scale_offset + rec.scale_nbytes)),
+      };
+    } else {
+      M.t[rec.name] = {
+        shape: rec.shape, kind: 'float32',
+        f32: new Float32Array(bin.slice(rec.offset, rec.offset + rec.nbytes)),
+      };
+    }
+  }
+  if (M.spiking) {
+    /* assert the frozen-threshold fact from the shipped tensors */
+    for (let L = 0; L < NL; L++) {
+      const lt = tensor(`blocks.${L}.cm.spike_act.log_threshold`).f32;
+      for (let i = 0; i < lt.length; i++) {
+        if (Math.abs(Math.exp(lt[i]) - 0.5) > 1e-6)
+          throw new Error(`threshold drift at block ${L} ch ${i}: page ` +
+                          'assumptions stale — refuse to run');
+      }
+    }
+    if (M.levels !== (manifest.spike && manifest.spike.threshold === 0.5
+                      ? M.levels : -1))
+      throw new Error('manifest spike metadata inconsistent');
+  }
+  M.layers = [];
+  for (let L = 0; L < NL; L++) {
+    const p = n => tensor(`blocks.${L}.${n}`).f32;
+    const decay = p('tm.time_decay');
+    const w = new Float64Array(decay.length);
+    for (let i = 0; i < w.length; i++) w[i] = -Math.exp(decay[i]);
+    const CWv = tensor(`blocks.${L}.cm.value.weight`);   // [384, 1536]
+    /* transposed int8 copy: event-major layout, one contiguous row per
+       fired channel — the locality the event-driven kernel depends on */
+    const wT = new Int8Array(FFN * D);
+    for (let j = 0; j < D; j++)
+      for (let i = 0; i < FFN; i++) wT[i * D + j] = CWv.i8[j * FFN + i];
+    M.layers.push({
+      ln1w: p('ln1.weight'), ln1b: p('ln1.bias'),
+      ln2w: p('ln2.weight'), ln2b: p('ln2.bias'),
+      mixK: p('tm.mix_k'), mixV: p('tm.mix_v'), mixR: p('tm.mix_r'),
+      w, u: p('tm.time_first'),
+      Wk: tensor(`blocks.${L}.tm.key.weight`),
+      Wv: tensor(`blocks.${L}.tm.value.weight`),
+      Wr: tensor(`blocks.${L}.tm.receptance.weight`),
+      Wo: tensor(`blocks.${L}.tm.output.weight`),
+      cmixK: p('cm.mix_k'), cmixR: p('cm.mix_r'),
+      CWk: tensor(`blocks.${L}.cm.key.weight`),
+      CWv, CWvT: wT,
+      CWr: tensor(`blocks.${L}.cm.receptance.weight`),
+    });
+  }
+  M.lnInW = tensor('ln_in.weight').f32;  M.lnInB = tensor('ln_in.bias').f32;
+  M.lnOutW = tensor('ln_out.weight').f32; M.lnOutB = tensor('ln_out.bias').f32;
+  M.emb = tensor('emb.weight');
+  M.head = tensor('head.weight');
+  M.ready = true;
+}
+
+/* ---------- tokenizer (as rwkv-live) ---------- */
+function makeTokenizer(json) {
+  const vocab = json.vocab;
+  const tok2id = new Map(vocab.map((t, i) => [t, i]));
+  const rank = new Map(json.merges.map((m, r) => [m[0] + ' ' + m[1], r]));
+  const cache = new Map();
+  const PRETOK = / ?[A-Za-z]+| ?[0-9]+| ?[^A-Za-z0-9\s]+|\s+/g;
+  const enc = new TextEncoder();
+  function encodeWord(word) {
+    if (cache.has(word)) return cache.get(word);
+    let seq = [];
+    for (const ch of word) {
+      if (tok2id.has(ch)) seq.push(ch);
+      else for (const b of enc.encode(ch)) seq.push('<byte:' + b + '>');
+    }
+    for (;;) {
+      let best = null, bi = -1;
+      for (let i = 0; i < seq.length - 1; i++) {
+        const r = rank.get(seq[i] + ' ' + seq[i + 1]);
+        if (r !== undefined && (best === null || r < best)) { best = r; bi = i; }
+      }
+      if (best === null) break;
+      seq = seq.slice(0, bi).concat([seq[bi] + seq[bi + 1]]).concat(seq.slice(bi + 2));
+    }
+    const ids = seq.map(t => tok2id.get(t));
+    cache.set(word, ids);
+    return ids;
+  }
+  const dec = new TextDecoder('utf-8', { fatal: false });
+  return {
+    encode(text) {
+      const out = [];
+      for (const w of text.match(PRETOK) || []) out.push(...encodeWord(w));
+      return out;
+    },
+    decodeOne(id, pendingBytes) {
+      const t = vocab[id];
+      if (t.startsWith('<byte:')) {
+        pendingBytes.push(+t.slice(6, -1));
+        const s = dec.decode(new Uint8Array(pendingBytes));
+        if (!s.includes('\uFFFD')) { pendingBytes.length = 0; return s; }
+        return '';
+      }
+      let pre = '';
+      if (pendingBytes.length) {
+        pre = dec.decode(new Uint8Array(pendingBytes));
+        pendingBytes.length = 0;
+      }
+      return pre + t;
+    },
+  };
+}
+
+/* ---------- math ---------- */
+function matvec(t, x, out) {
+  const R = t.shape[0], C = t.shape[1], w = t.i8, s = t.scales;
+  for (let r = 0; r < R; r++) {
+    const base = r * C;
+    let acc = 0;
+    for (let c = 0; c < C; c++) acc += w[base + c] * x[c];
+    out[r] = acc * s[r];
+  }
+  return out;
+}
+
+function layernorm(x, w, b, out) {
+  const n = x.length;
+  let m = 0;
+  for (let i = 0; i < n; i++) m += x[i];
+  m /= n;
+  let v = 0;
+  for (let i = 0; i < n; i++) { const d = x[i] - m; v += d * d; }
+  v /= n;
+  const inv = 1 / Math.sqrt(v + 1e-5);
+  for (let i = 0; i < n; i++) out[i] = (x[i] - m) * inv * w[i] + b[i];
+  return out;
+}
+const sigmoid = z => 1 / (1 + Math.exp(-z));
+
+/* the two Wv kernels — bit-identical outputs, different cost */
+const accInt = new Int32Array(D);
+function wvDense(P, ff, out) {                 // visit all 1536 columns
+  return matvec(P.CWv, ff, out);
+}
+function wvEvent(P, ff, out) {                 // visit only fired channels
+  accInt.fill(0);
+  const wT = P.CWvT, thr = M.thr;
+  let touched = 0;
+  for (let i = 0; i < FFN; i++) {
+    const z = ff[i];
+    if (z === 0) continue;
+    const n = Math.round(z / thr);             // integer spike count 1..levels
+    const base = i * D;
+    for (let j = 0; j < D; j++) accInt[j] += n * wT[base + j];
+    touched++;
+  }
+  const s = P.CWv.scales;
+  for (let j = 0; j < D; j++) out[j] = (accInt[j] * thr) * s[j];
+  stats.touched += touched;
+  return out;
+}
+
+/* ---------- state + forward ---------- */
+function freshState() {
+  return Array.from({ length: NL }, () => ({
+    tmPrev: new Float64Array(D), cmPrev: new Float64Array(D),
+    aa: new Float64Array(D), bb: new Float64Array(D),
+    pp: new Float64Array(D).fill(-1e38),
+  }));
+}
+
+const buf = {
+  x: new Float64Array(D), xx: new Float64Array(D), mix: new Float64Array(D),
+  k: new Float64Array(D), v: new Float64Array(D), r: new Float64Array(D),
+  wkv: new Float64Array(D), tmp: new Float64Array(D),
+  ff: new Float64Array(FFN), logits: new Float64Array(V),
+};
+const stats = { fired: new Float64Array(NL), tokens: 0, touched: 0,
+                wvNs: 0, reset() { this.fired.fill(0); this.tokens = 0;
+                                   this.touched = 0; this.wvNs = 0; } };
+
+function forward(token, state, kernel) {
+  const { x, xx, mix, k, v, r, wkv, tmp, ff, logits } = buf;
+  {
+    const t = M.emb, base = token * D, s = t.scales[token];
+    for (let i = 0; i < D; i++) tmp[i] = t.i8[base + i] * s;
+    layernorm(tmp, M.lnInW, M.lnInB, x);
+  }
+  for (let L = 0; L < NL; L++) {
+    const P = M.layers[L], S = state[L];
+    layernorm(x, P.ln1w, P.ln1b, xx);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.mixK[i] + S.tmPrev[i] * (1 - P.mixK[i]);
+    matvec(P.Wk, mix, k);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.mixV[i] + S.tmPrev[i] * (1 - P.mixV[i]);
+    matvec(P.Wv, mix, v);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.mixR[i] + S.tmPrev[i] * (1 - P.mixR[i]);
+    matvec(P.Wr, mix, r);
+    S.tmPrev.set(xx);
+    for (let i = 0; i < D; i++) {
+      const kt = k[i], vt = v[i], aa = S.aa[i], bb = S.bb[i], pp = S.pp[i];
+      const ww = P.u[i] + kt;
+      const p = Math.max(pp, ww);
+      const e1 = Math.exp(pp - p), e2 = Math.exp(ww - p);
+      wkv[i] = (e1 * aa + e2 * vt) / (e1 * bb + e2 + 1e-9);
+      const ww2 = pp + P.w[i];
+      const p2 = Math.max(ww2, kt);
+      const f1 = Math.exp(ww2 - p2), f2 = Math.exp(kt - p2);
+      S.aa[i] = f1 * aa + f2 * vt;
+      S.bb[i] = f1 * bb + f2;
+      S.pp[i] = p2;
+    }
+    for (let i = 0; i < D; i++) tmp[i] = sigmoid(r[i]) * wkv[i];
+    matvec(P.Wo, tmp, mix);
+    for (let i = 0; i < D; i++) x[i] += mix[i];
+    /* ---- channel-mix ---- */
+    layernorm(x, P.ln2w, P.ln2b, xx);
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.cmixK[i] + S.cmPrev[i] * (1 - P.cmixK[i]);
+    matvec(P.CWk, mix, ff);
+    if (M.spiking) {
+      /* THE one-line model difference */
+      const thr = M.thr, lv = M.levels;
+      let fired = 0;
+      for (let i = 0; i < FFN; i++) {
+        const n = Math.min(Math.max(Math.floor(ff[i] / thr), 0), lv);
+        ff[i] = n * thr;
+        if (n > 0) fired++;
+      }
+      stats.fired[L] += fired / FFN;
+    } else {
+      for (let i = 0; i < FFN; i++) { const z = Math.max(0, ff[i]); ff[i] = z * z; }
+    }
+    for (let i = 0; i < D; i++)
+      mix[i] = xx[i] * P.cmixR[i] + S.cmPrev[i] * (1 - P.cmixR[i]);
+    matvec(P.CWr, mix, r);
+    S.cmPrev.set(xx);
+    const t0 = performance.now();
+    if (M.spiking && kernel === 'event') wvEvent(P, ff, tmp);
+    else wvDense(P, ff, tmp);
+    stats.wvNs += performance.now() - t0;
+    for (let i = 0; i < D; i++) x[i] += sigmoid(r[i]) * tmp[i];
+  }
+  layernorm(x, M.lnOutW, M.lnOutB, tmp);
+  matvec(M.head, tmp, logits);
+  return logits;
+}
+
+/* ---------- sampling ---------- */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function sample(logits, temp, rnd) {
+  if (temp <= 0) {
+    let best = 0;
+    for (let i = 1; i < logits.length; i++) if (logits[i] > logits[best]) best = i;
+    return best;
+  }
+  const n = logits.length;
+  let mx = -Infinity;
+  for (let i = 0; i < n; i++) if (logits[i] > mx) mx = logits[i];
+  const probs = new Float64Array(n);
+  let z = 0;
+  for (let i = 0; i < n; i++) { probs[i] = Math.exp((logits[i] - mx) / temp); z += probs[i]; }
+  const idx = Array.from(probs.keys()).sort((a, b) => probs[b] - probs[a]);
+  let mass = 0, cut = n;                       // top-p 0.9, as rwkv-live
+  for (let j = 0; j < n; j++) { mass += probs[idx[j]] / z; if (mass >= 0.9) { cut = j + 1; break; } }
+  let z2 = 0;
+  for (let j = 0; j < cut; j++) z2 += probs[idx[j]];
+  let u = rnd() * z2;
+  for (let j = 0; j < cut; j++) { u -= probs[idx[j]]; if (u <= 0) return idx[j]; }
+  return idx[cut - 1];
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+let running = false, stopFlag = false;
+function setStatus(s, err) { $('status').textContent = s;
+                             $('status').className = err ? 'err' : ''; }
+$('temp').oninput = e => $('tempval').textContent = (+e.target.value).toFixed(2);
+
+function buildMeters() {
+  const ref = TRAIN_RATES[M.variant] || null;
+  $('meters').innerHTML = Array.from({ length: NL }, (_, L) => `
+    <div class="meter">
+      <div class="mtrack">
+        <div class="mfill" id="mf${L}" style="height:0%"></div>
+        ${ref ? `<div class="mref" style="bottom:${Math.min(100, ref[L] / 0.25 * 100)}%"></div>` : ''}
+      </div>
+      <div class="mval" id="mv${L}">—</div>
+      <div class="mlab">block ${L}</div>
+    </div>`).join('');
+}
+
+function updateInstruments(tokens) {
+  if (!M.spiking || !tokens) return;
+  let meanRate = 0;
+  for (let L = 0; L < NL; L++) {
+    const rate = stats.fired[L] / tokens;
+    meanRate += rate / NL;
+    $('mf' + L).style.height = Math.min(100, rate / 0.25 * 100) + '%';
+    $('mv' + L).textContent = (rate * 100).toFixed(1) + '%';
+  }
+  const wvDenseMacs = NL * FFN * D;
+  const accs = Math.round(stats.touched / tokens) * D;
+  const denseE = 13.07e6 * PJ_MAC / 1e6;                    // µJ, all-MAC
+  const spikeE = ((13.07e6 - wvDenseMacs) * PJ_MAC + accs * PJ_ADD) / 1e6;
+  $('counters').innerHTML =
+    `<span>firing mean <b>${(meanRate * 100).toFixed(1)}%</b></span>` +
+    `<span>W<sub>v</sub> work/token <b>${(accs / 1e3).toFixed(0)}k accumulates</b>` +
+    ` vs <b>${(wvDenseMacs / 1e6).toFixed(2)}M multiplies</b> dense</span>` +
+    `<span>energy proxy <b>${spikeE.toFixed(1)} µJ</b> vs ${denseE.toFixed(1)} µJ ` +
+    `all-MAC <i style="color:var(--muted)">(counted ops × 45nm pJ — accounting, not a wattmeter)</i></span>`;
+}
+
+$('loadbtn').onclick = async () => {
+  $('loadbtn').disabled = true;
+  try {
+    M.ready = false;
+    await loadModel($('model').value, setStatus,
+                    f => $('loadbar').style.width = f + '%');
+    $('loadbar').style.width = '100%';
+    setStatus(`loaded: ${M.spiking ? `spiking, levels=${M.levels}, thresholds ` +
+              'verified uniform 0.5 from tensors' : 'float baseline'} — ready`);
+    $('genbtn').disabled = false;
+    $('racebtn').disabled = !M.spiking;
+    $('kernel').disabled = !M.spiking;
+    buildMeters();
+    $('counters').innerHTML = ''; $('race').innerHTML = '';
+  } catch (e) {
+    if (/HTTP 40/.test(e.message)) {
+      setStatus('the model files are not hosted here — this preview is the ' +
+        'page alone (the weights are ~15 MB per model). The runner works ' +
+        'where rwkv-export/ travels with the page: the deployed site, or ' +
+        'locally via  python3 -m http.server  in site/.', true);
+    } else {
+      setStatus('load failed: ' + e.message, true);
+    }
+  }
+  $('loadbtn').disabled = false;
+};
+
+$('stopbtn').onclick = () => { stopFlag = true; };
+
+async function generate(kernel, maxNew, quiet) {
+  const rnd = mulberry32(+$('seed').value || 0);
+  const state = freshState();
+  const ids = M.tok.encode($('prompt').value);
+  stats.reset();
+  let logits = null;
+  for (const id of ids) logits = forward(id, state, kernel);
+  const pending = [];
+  let text = '', made = 0;
+  const times = [];
+  while (!stopFlag && made < maxNew) {
+    const t0 = performance.now();
+    const id = sample(logits, +$('temp').value, rnd);
+    text += M.tok.decodeOne(id, pending);
+    logits = forward(id, state, kernel);
+    times.push(performance.now() - t0);
+    made++;
+    if (!quiet && made % 4 === 0) {
+      renderOut(text);
+      updateInstruments(ids.length + made);
+      const secs = times.reduce((a, b) => a + b, 0) / 1000;
+      $('speed').textContent = (made / secs).toFixed(1) + ' tok/s';
+      await new Promise(r => setTimeout(r));
+    }
+  }
+  renderOut(text);
+  updateInstruments(ids.length + made);
+  times.sort((a, b) => a - b);
+  return { text, made,
+           median: times[Math.floor(times.length / 2)] || 0,
+           wvMs: stats.wvNs / Math.max(1, ids.length + made) };
+}
+
+function renderOut(text) {
+  const out = $('out');
+  out.innerHTML = '';
+  const ps = document.createElement('span');
+  ps.className = 'prompt'; ps.textContent = $('prompt').value;
+  const gs = document.createElement('span');
+  gs.textContent = text;
+  out.append(ps, gs);
+}
+
+$('genbtn').onclick = async () => {
+  if (!M.ready || running) return;
+  running = true; stopFlag = false;
+  $('genbtn').disabled = true; $('stopbtn').disabled = false;
+  const kernel = $('kernel').value;
+  const r = await generate(kernel, Math.min(400, +$('maxnew').value || 120), false);
+  setStatus(`done: ${r.made} tokens, median ${r.median.toFixed(1)} ms/token ` +
+            `(${M.spiking ? kernel + ' kernel' : 'float model'})`);
+  running = false;
+  $('genbtn').disabled = false; $('stopbtn').disabled = true;
+};
+
+$('racebtn').onclick = async () => {
+  if (!M.ready || running || !M.spiking) return;
+  running = true; stopFlag = false;
+  $('racebtn').disabled = true; $('genbtn').disabled = true;
+  $('stopbtn').disabled = false;
+  setStatus('racing: warmup…');
+  await generate('dense', 5, true);            // warmup both paths
+  await generate('event', 5, true);
+  setStatus('racing: dense kernel, 50 tokens…');
+  const d = await generate('dense', 50, true);
+  await new Promise(r => setTimeout(r));
+  setStatus('racing: event-driven kernel, 50 tokens…');
+  const e = await generate('event', 50, true);
+  const same = d.text === e.text;
+  $('race').innerHTML =
+    `dense: <b>${d.median.toFixed(2)} ms/token</b> (W<sub>v</sub> ${d.wvMs.toFixed(2)} ms) · ` +
+    `event-driven: <b>${e.median.toFixed(2)} ms/token</b> (W<sub>v</sub> ${e.wvMs.toFixed(2)} ms) · ` +
+    `whole-token speedup <b>${(d.median / e.median).toFixed(2)}×</b>, ` +
+    `W<sub>v</sub>-only <b>${(d.wvMs / e.wvMs).toFixed(1)}×</b> · ` +
+    (same ? '<span style="color:var(--green)">outputs bit-identical ✓</span>'
+          : '<span style="color:var(--red)">OUTPUT MISMATCH — kernels diverged</span>');
+  setStatus(`race done (50 tokens each, same seed, median times)`);
+  running = false;
+  $('racebtn').disabled = false; $('genbtn').disabled = false;
+  $('stopbtn').disabled = true;
+};
+</script>
+</article>
+</body>
+</html>

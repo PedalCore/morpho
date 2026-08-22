@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the counter that replaced attention</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c; --blue: #6fa8dc;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  pre { font-family: ui-monospace, "SF Mono", monospace; font-size: 13px;
+        line-height: 1.5; background: var(--panel2); border: 1px solid var(--line);
+        border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 12px 0;
+        color: #b9c7bf; }
+  pre .hl { color: var(--amber); }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  td, th { font-variant-numeric: tabular-nums; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .demo { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px 16px; margin: 16px 0 28px; }
+  .demo h3 { margin-top: 0; }
+  .teach { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+              margin-top: 12px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+           border-radius: 7px; padding: 6px 14px; font: 13.5px inherit; cursor: pointer; }
+  button:hover { border-color: var(--amber); }
+  button.primary { border-color: var(--amber); color: var(--amber); }
+  canvas { border: 1px solid var(--line); border-radius: 8px; display: block;
+           background: #0a0d11; max-width: 100%; }
+  .readout { font: 13px ui-monospace, monospace; color: var(--green); }
+  .note { border-left: 3px solid var(--amber); padding: 2px 0 2px 14px;
+          color: var(--muted); font-size: 14px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<article>
+<h1>the counter that <span>replaced attention</span></h1>
+<p class="sub">A language model whose attention is a bank of decaying event
+counters — no token pairs, no softmax, no growing cache — derived from the
+same objective that derives the transformer it replaced. It slightly
+outperforms its softmax parent, solves induction perfectly at every tested
+distance, and its state machinery is 60 gates per coordinate, placed and
+routed. Working name: <b>CRSA</b> — Causal Rate-Statistics Attention.</p>
+
+<div class="links">
+  <a href="/wkv-cell.html">← the wkv cell</a>
+  <a href="/morpho-silicon.html">← to silicon</a>
+  <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code</a>
+</div>
+
+<h2>the operator, in four verbs</h2>
+<pre>project   h = U z                      the CRATE subspace projection, unchanged
+count     c ← ρc + h²                  decaying activity per coordinate; per-head
+                                       half-lives 5 / 11 / 22 / 44 tokens
+price     d = f′(c)                    marginal coding cost: 1/(1+c), or two
+                                       comparator bits in the hardware staircase
+gate      out = −η·Uᵀ(d ⊙ h)           suppress what recent context made cheap;
+                                       pass what is still informative</pre>
+<p>Where softmax attention asks "which past tokens resemble this one?" —
+requiring every pairwise comparison and a cache of the entire past — CRSA
+asks "which <i>directions</i> has recent context already made cheap to
+encode?", a question a fixed bank of counters answers. The derivation
+follows the white-box program (CRATE → ToST): attention as a step on a
+coding-rate objective, with the honesty note carried in full in the repo —
+the step is a prox-linear frozen-code surrogate, verified empirically, not
+a proven descent.</p>
+
+<div class="demo">
+  <h3>the counters, live</h3>
+  <p class="teach">One coordinate per horizon. Click <b>event</b> (or hold
+  the key E) to inject activity; watch each counter charge, decay at its
+  own half-life, and trip its two price comparators — amber while the
+  coordinate is cheap to process (price 2), dim when saturated (price 0).
+  This is the entire attention state mechanism: what you see is what the
+  circuit does, 60 gates per coordinate.</p>
+  <canvas id="cv" width="820" height="240"></canvas>
+  <div class="controls">
+    <button id="evt" class="primary">event (E)</button>
+    <button id="burst">burst ×20</button>
+    <button id="pause">pause</button>
+    <span class="readout" id="ro"></span>
+  </div>
+</div>
+
+<h2>what it did as a language model</h2>
+<table>
+<tr><th>model (matched budget, 5,500 steps)</th><th>params</th><th>ppl</th></tr>
+<tr><td>softmax CRATE (M0)</td><td>5.2M</td><td>15.37</td></tr>
+<tr><td>softmax CRATE, reordered (the parent)</td><td>5.2M</td><td>14.22</td></tr>
+<tr><td><b>CRSA — counters instead of attention</b></td><td>5.2M</td><td><b>13.78</b></td></tr>
+<tr><td>RWKV-mini (reference architecture)</td><td>~14M</td><td>6.42</td></tr>
+</table>
+<p>The counter model beats the softmax model it warm-started from by 3.1%,
+holding <b>384 counters per layer</b> where attention keeps a cache that
+grows with every token (~98k values per layer at this context — a ~256×
+state reduction, unbounded with length). A 13.8M scratch-trained scale-up
+against the RWKV reference is running as this page is written; its
+expectations are logged before its results, as this project does.</p>
+
+<h2>the mechanism finding under it</h2>
+<p>Every softmax variant we trained was <i>repurposed</i> by training: under
+aligned measurement, attention learned to <b>expand</b> the coding-rate
+term it was derived to compress (while helping the broader objective — the
+"derivation–execution gap"). The counter operator is the first whose
+trained dynamics <b>match its derived sign</b>, descent-form monotonically
+across all of training. Three measured points: softmax — good quality,
+repurposed; reordered softmax — better quality, more strongly repurposed;
+counters — best quality, faithful. The gap is an operator-dependent
+variable, not a law.</p>
+
+<h2>ruthless probes, preregistered</h2>
+<p>Locked before the operator existed: copy, associative recall, induction,
+selective retention, at delays 0.25–4× the counters' half-lives, against
+matched-parameter baselines (two seeds; full table and prediction
+scorecard in the repo):</p>
+<table>
+<tr><th>task @ delay 89 tok</th><th>full attention</th><th>window-32</th><th>CRSA</th></tr>
+<tr><td>induction (A B … A → B)</td><td>1.00</td><td>0.11</td><td><b>1.00</b></td></tr>
+<tr><td>copy (8 symbols)</td><td>0.70</td><td>0.08</td><td><b>0.58</b></td></tr>
+<tr><td>selective retention</td><td>0.92</td><td>0.07</td><td>0.52</td></tr>
+</table>
+<p><b>A constant-state operator with no token pairs solves induction
+perfectly at every tested distance</b> — including 89 tokens, twice the
+slowest counter's half-life. Retention does not decay with the horizon
+ladder: the multiscale population retains what no single counter could.
+And the operator's cost concentrates exactly where its mechanism predicts:
+interference-prone retrieval under distractors — it forgets by
+<i>collision</i>, not by <i>time</i>. (One baseline — a decayed-value
+recurrence — floored at chance both seeds and is declared invalid pending
+an input-rescaling fix; no comparative claims against it.)</p>
+
+<h2>and as a circuit</h2>
+<p>The deployable form (event-bit counters, comparator staircase) is a
+compiled Morpho circuit — <code>examples/crsa/crsa_unit.py</code> —
+verified bit-exact on 100,000+ event streams at every horizon:</p>
+<table>
+<tr><th>unit</th><th>gates + regs</th><th>placed & routed</th></tr>
+<tr><td>one counter coordinate (any m)</td><td>58–61 + 14</td><td>—</td></tr>
+<tr><td>16-coordinate bank</td><td>944 + 224</td><td><b>690 LCs, 103.7 MHz</b> (iCE40 HX8K)</td></tr>
+</table>
+<p>Compare the wkv cell (7,201 gates per channel): its area went to
+exponentials and a restoring divider — softmax-lineage machinery. CRSA's
+attention has <b>no exponential, no divider, no softmax</b>; decay is a
+shift, prices are comparators. A full 672-counter layer extrapolates to
+~40k gates of state machinery at over 100 MHz. One design decision made
+visible: integer dyadic decay is <i>sticky</i> below 2^m, so each counter
+carries six fraction bits — a bug you meet only when the mathematics
+becomes registers.</p>
+
+<h2>a reversal, published rather than patched</h2>
+<p class="note" style="border-left-color:var(--blue);color:#c4c9d4">
+Subsequent controls reframed this page's headline. The 13.78-vs-14.22
+comparison ran in blocks with no real elementwise nonlinearity — a
+feature-starved regime. With a transformer-grade MLP in both models,
+softmax attention wins decisively (12.54 vs 16.79): <b>constant-statistics
+attention trades retrieval capacity for state efficiency</b>, exactly
+where the probes located the cost (selective retention: 0.56 vs 0.91).
+What survives strengthened: perfect induction at constant state, the
+dyadic ladder worth +7.8 ppl over uniform statistics, derivation fidelity,
+and the 60-gate hardware. And the best constant-state model so far is
+CRSA <i>plus</i> an overcomplete sparse dictionary: 8.40 at 14M over a
+matched 20k horizon, beating plain CRSA's 9.72. Full campaign:
+<a href="/whitebox-lab.html">the white-box lab</a>.</p>
+
+<h2>honest edges</h2>
+<p>One corpus (TinyStories), one scale (5.2M), one seed for the LM result
+so far — the robust claim until replicated is <i>matches</i> softmax, not
+beats it. The trained float model is not a circuit for free: fixed-point
+conversion of the full LM is the semantic-alignment axis our M2
+experiments left unresolved (activity calibration is solved; meaning
+preservation is not). The name is provisional — "TSSA" was taken — and the
+prior-art boundary is drawn precisely: RetNet shares the dyadic-decay
+implementation family; what appears distinct is the combination of derived
+subspace statistics, the rate-derived price, no attention matrix, K·p
+state, and the measured derivation-fidelity result. The full
+qualifications, prediction scorecards, and negative results live in the
+repo — this page is the view from above, not the evidence.</p>
+
+<script>
+'use strict';
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const MS = [3, 4, 5, 6], F = 64, K1 = 8 * F, K2 = 32 * F, CMAX = 70 * F;
+const state = MS.map(m => ({ m, c: 0 }));
+let paused = false, tick = 0, pending = 0;
+
+function step() {
+  if (!paused) {
+    tick++;
+    const e = pending > 0 ? 1 : 0;
+    if (pending > 0) pending--;
+    for (const s of state) {
+      s.c = s.c - (s.c >> s.m) + e * F;   // the exact circuit recurrence
+    }
+  }
+  draw();
+  setTimeout(step, 90);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const rowH = 52, x0 = 120, w = cv.width - x0 - 90;
+  state.forEach((s, i) => {
+    const y = 24 + i * rowH;
+    const half = (Math.LN2 * (1 << s.m)).toFixed(0);
+    ctx.fillStyle = '#9aa1ad';
+    ctx.font = '12px ui-monospace';
+    ctx.fillText(`m=${s.m}  t½≈${half} tok`, 10, y + 18);
+    ctx.fillStyle = '#0d1015';
+    ctx.fillRect(x0, y, w, 26);
+    ctx.strokeStyle = '#242a35';
+    ctx.strokeRect(x0, y, w, 26);
+    const frac = Math.min(1, s.c / CMAX);
+    const price = (s.c < K1 ? 1 : 0) + (s.c < K2 ? 1 : 0);
+    ctx.fillStyle = price === 2 ? '#e2a13f' : price === 1 ? '#8a6d33' : '#3a3f4a';
+    ctx.fillRect(x0, y, w * frac, 26);
+    for (const [k, lab] of [[K1, 'κ1'], [K2, 'κ2']]) {
+      const kx = x0 + w * Math.min(1, k / CMAX);
+      ctx.strokeStyle = '#6fa8dc';
+      ctx.beginPath(); ctx.moveTo(kx, y - 3); ctx.lineTo(kx, y + 29); ctx.stroke();
+      ctx.fillStyle = '#6fa8dc';
+      ctx.fillText(lab, kx - 8, y - 6);
+    }
+    ctx.fillStyle = '#7bd8a5';
+    ctx.fillText(`price ${price}`, x0 + w + 12, y + 18);
+  });
+  document.getElementById('ro').textContent =
+    `tick ${tick} — the recurrence shown is bit-identical to the 60-gate circuit`;
+}
+
+document.getElementById('evt').onclick = () => pending += 1;
+document.getElementById('burst').onclick = () => pending += 20;
+document.getElementById('pause').onclick = function () {
+  paused = !paused;
+  this.textContent = paused ? 'resume' : 'pause';
+};
+addEventListener('keydown', e => { if (e.key === 'e') pending += 1; });
+step();
+</script>
+</article>
+</body>
+</html>

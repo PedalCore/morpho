@@ -81,6 +81,8 @@
   <div class="links">
     <a href="/found-machines.html">← found machines</a>
     <a href="/circuits-that-move.html">← circuits that move</a>
+    <a href="/rwkv-live.html">run the whole model live →</a>
+    <a href="/morpho-silicon.html">to silicon →</a>
     <a href="https://github.com/PedalCore/morpho/tree/dynamic-systems">code</a>
   </div>
 
@@ -168,6 +170,15 @@ pp′ = p2</pre>
   </div>
 
   <h2>evidence, not illustration</h2>
+  <p><b>The whole cell is now a compiled circuit.</b>
+  <code>examples/rwkv/wkv_cell.py</code> builds this page's entire
+  <code>Q.step</code> — saturating Q8.8 registers, base-2 exponentials,
+  floor-semantics multiplies, restoring division, the lot — as one MorphoHDL
+  netlist (7,201 gates + 48 flip-flops), verified <b>bit-exact against this
+  page's own JavaScript</b> on shared token streams over trained-model
+  presets (0 mismatches in 2,000 steps, checked in a real browser), and
+  synthesized to a real FPGA through the yosys → nextpnr flow
+  (<code>examples/hardware/</code>).</p>
   <p>The simulator's <code>2^(−x)</code> unit is <b>bit-identical to a compiled
   MorphoHDL circuit</b>: <code>examples/arithmetic/exp2.py</code> implements it
   as ROM LUTs + the article's logarithmic shifter + an 11×3 Wallace
