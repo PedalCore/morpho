@@ -199,3 +199,16 @@ Ladder ordering: softmax > CRSA-leaky >> CRSA-uniform. Caveats standing:
 CRSA-uniform ≠ published TSSA (literal Algorithm-2 arm with numerical
 equivalence owed); CRSA+MLP's 16.79 carries the +10M-params caveat vs
 the dictionary arm; one seed; screen scope.
+
+
+## Matched-20k results (overnight; NOT plateaus — both still descending
+~1%/1.5k steps at schedule end, so true floors are lower)
+
+CRSA + overcomplete dictionary (14.0M): **8.40** | plain CRSA d=672
+(13.8M): 9.72. The dictionary wins by 1.32 at matched horizon — the
+converging screen trajectory cashed out (parity at 3k, decisive at 20k):
+slower to organize, lower floor. Screen-vs-20k gaps (19.75→8.40,
+19.62→9.72) empirically validate every screen-scope qualification in
+this file. Comparisons to the 5,500-step baseline table (RWKV 6.42 etc.)
+are NOT licensed across budgets; within-pair matched-horizon comparison
+only. One seed; longer schedules needed for true plateau per protocol.
