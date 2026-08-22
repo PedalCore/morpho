@@ -309,3 +309,29 @@ plateau-dict-ext20k/ckpt.pt (8.08, 28.5k total steps). Generation
 qualitatively improved: complete story arcs with endings now occur
 (one drift-free full story observed); name drift persists in other
 samples (Billy->Sarah).
+
+
+## CRATE-alpha (arXiv:2405.20299, NeurIPS 2024) — independent convergence
+
+Yang et al. scale CRATE for vision by identifying the ISTA block (not
+attention) as the bottleneck; vanilla CRATE gains only +0.5% B->L.
+Their three modifications: (1) overcomplete dictionary, C=4, prox,
+TWO prox steps from A0=0 (+5.3%) — INDEPENDENTLY CONVERGENT with this
+fork's q=4d active-prox design (our factorial additionally isolates
+that overcompleteness pays ONLY through the prox — a decomposition
+their paper does not make); (2) DECOUPLED dictionary — encode with D,
+decode with a different learned D-hat (+2.0%) — NOT in our block
+(ours ties encode/decode); (3) residual around the sparse block
+(+0.7%) — already our gamma-mixed block-local form. Results: 76.5
+B/32 (vanilla 68.5), 83.2 B/8, 85.1 L/8, 72.3 zero-shot Huge.
+
+Language (their Table 4, OpenWebText/nanoGPT): CRATE-alpha-base 120M
+CE 3.14 vs GPT-2-base 124M CE 2.85 — they fixed the feature half and
+STILL trail a standard transformer at matched size, with tied MSSA
+untouched. Consistent with this program's diagnosis: the CRATE line's
+second deficit is retrieval/binding in the tied attention (our
+query-map + slots work). The two programs are complementary halves.
+
+CANDIDATE UPGRADES QUEUED (cheap screens when the LM ladder resumes):
+decoupled D-hat decode; two-step prox (already on the deferred list,
+now externally evidenced). Both compose with the dictionary model.
