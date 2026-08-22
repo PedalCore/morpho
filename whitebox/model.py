@@ -69,6 +69,13 @@ class Config:
                                # over last W tokens, gamma ZERO-INIT residual
     local_qkv: bool = False    # cache's local branch = untied QKV (the
                                # decisive factorial cell: local x role-sep)
+    local_gamma_init: float = 0.0  # 0 = zero-init contract (warm starts);
+                                   # >0 tests the recruitment-failure
+                                   # hypothesis (multi-layer circuits can't
+                                   # bootstrap through all-zero gammas)
+    qkv_tie: str = ''          # minimum-untying factorial: '' (all
+                               # separate) | 'qk' (Q=K, V separate) |
+                               # 'kv' (K=V, Q separate)
 
 
 class SpikeProx(nn.Module):
@@ -395,7 +402,7 @@ class CacheCRSA(nn.Module):
         self.crsa = CRSA(cfg)
         local_cfg = dataclasses.replace(cfg, window=cfg.local_window)
         self.local = (QKV if cfg.local_qkv else MSSA)(local_cfg)
-        self.gamma = nn.Parameter(torch.zeros(1))
+        self.gamma = nn.Parameter(torch.full((1,), cfg.local_gamma_init))
         # expose the CRSA internals layer_metrics/autopsies read
         self.U, self.K, self.p = self.crsa.U, self.crsa.K, self.crsa.p
         self.scale, self.tied = self.crsa.scale, self.crsa.tied
@@ -440,9 +447,10 @@ class QKV(nn.Module):
         super().__init__()
         d, K = cfg.n_embd, cfg.n_head
         self.K, self.p = K, d // K
+        self.tie = getattr(cfg, 'qkv_tie', '')
         self.q = nn.Linear(d, d, bias=False)
-        self.k = nn.Linear(d, d, bias=False)
-        self.v = nn.Linear(d, d, bias=False)
+        self.k = self.q if self.tie == 'qk' else nn.Linear(d, d, bias=False)
+        self.v = self.k if self.tie == 'kv' else nn.Linear(d, d, bias=False)
         self.o = nn.Linear(d, d, bias=False)
         mask = torch.triu(torch.full((cfg.ctx, cfg.ctx), float('-inf')), 1)
         if cfg.window:                     # banded local variant (M4)

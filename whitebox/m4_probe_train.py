@@ -33,6 +33,13 @@ ARCHS = {
     'crsa-sm': dict(attn='crsa', signed_moment=True),
     'cache16': dict(attn='crsa', local_window=16),
     'cache16-qkv': dict(attn='crsa', local_window=16, local_qkv=True),
+    'cache16-qkv-g01': dict(attn='crsa', local_window=16, local_qkv=True,
+                            local_gamma_init=0.1),
+    'qkv-w16': dict(attn='qkv', window=16),      # local-only: can a 16-token
+                                                 # role-separated branch bind
+                                                 # inside its window, alone?
+    'qk-v':    dict(attn='qkv', qkv_tie='qk'),   # Q=K shared, V separate
+    'q-kv':    dict(attn='qkv', qkv_tie='kv'),   # Q separate, K=V shared
     # 'slots':  gated on the cache16 oracle verdict (M4.md rung 3)
 }
 
