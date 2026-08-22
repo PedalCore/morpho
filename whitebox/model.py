@@ -62,6 +62,11 @@ class Config:
     dict_local: bool = False   # block-local a0=0 form (the factorial's design)
     dict_identity: bool = False  # factorial arms F1/F3: prox disabled (LINEAR)
     mlp: bool = False          # conventional transformer MLP control block
+    # ---- M4: memory binding & retrieval (M4.md) ----
+    signed_moment: bool = False  # s_t = rho s + h alongside c_t = rho c + h^2;
+                                 # read: dcoef*(h + beta*s), beta ZERO-INIT
+    local_window: int = 0      # >0: retrieval ORACLE — exact local attention
+                               # over last W tokens, gamma ZERO-INIT residual
 
 
 class SpikeProx(nn.Module):
@@ -335,31 +340,66 @@ class CRSA(nn.Module):
         ms = [3 + (k % 4) for k in range(K)]
         self.register_buffer('rho', torch.tensor(
             [1.0 - 2.0 ** (-m) for m in ms]).float())
+        # M4 signed-moment ablation: restores the sign information h^2
+        # destroys. beta = 0 => EXACTLY the parent operator (warm-start
+        # contract; same protocol as the cache oracle's gamma).
+        self.beta = (nn.Parameter(torch.zeros(1))
+                     if cfg.signed_moment else None)
+
+    def _scan(self, v, rho, B, device):
+        """Causal decayed cumsum along dim 2: y_t = rho y_{t-1} + v_t."""
+        C = self.CHUNK
+        T = v.shape[2]
+        ys = []
+        carry = torch.zeros(B, self.K, 1, self.p, device=device,
+                            dtype=v.dtype)
+        for ci in range((T + C - 1) // C):
+            vc = v[:, :, ci * C:(ci + 1) * C]
+            L = vc.shape[2]
+            t = torch.arange(L, device=device, dtype=v.dtype).view(1, 1, L, 1)
+            y = (rho ** (t + 1)) * carry + \
+                (rho ** t) * torch.cumsum(vc * (rho ** (-t)), dim=2)
+            ys.append(y)
+            carry = y[:, :, -1:]
+        return torch.cat(ys, dim=2)
 
     def forward(self, x):                          # (B, T, d)
         B, T, d = x.shape
         h = self.U(x).view(B, T, self.K, self.p).permute(0, 2, 1, 3)
         rho = self.rho.view(1, self.K, 1, 1)
-        C = self.CHUNK
-        n_chunks = (T + C - 1) // C
-        cs = []
-        carry = torch.zeros(B, self.K, 1, self.p, device=x.device,
-                            dtype=h.dtype)
-        for ci in range(n_chunks):
-            hc = h[:, :, ci * C:(ci + 1) * C]
-            L = hc.shape[2]
-            t = torch.arange(L, device=x.device, dtype=h.dtype).view(1, 1, L, 1)
-            down = rho ** (t + 1)                  # rho^{t+1} for the carry
-            local = (rho ** t) * torch.cumsum(hc * hc * (rho ** (-t)), dim=2)
-            c = down * carry + local
-            cs.append(c)
-            carry = c[:, :, -1:]
-        c = torch.cat(cs, dim=2)
+        c = self._scan(h * h, rho, B, x.device)
         dcoef = 1.0 / (1.0 + c)
-        agg = (dcoef * h).permute(0, 2, 1, 3).reshape(B, T, d)
+        read = h if self.beta is None else \
+            h + self.beta * self._scan(h, rho, B, x.device)
+        agg = (dcoef * read).permute(0, 2, 1, 3).reshape(B, T, d)
         out = (F.linear(agg, self.U.weight.t()) if self.tied
                else self.out(agg))
         return -self.scale * out
+
+
+class CacheCRSA(nn.Module):
+    """M4 retrieval ORACLE: y = CRSA(x) + gamma * MSSA_window(x).
+
+    Exact softmax attention restricted to the last W tokens, added as a
+    zero-initialized residual (gamma = 0 => exactly the trained parent;
+    no conversion shock). Fixed state in total context length (a W-token
+    ring), but NOT counters-only — this arm is a diagnostic for whether
+    query-selective retrieval is the missing mechanism, not a proposed
+    final design (M4.md; the derived repair is representative slots)."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        import dataclasses
+        self.crsa = CRSA(cfg)
+        self.local = MSSA(dataclasses.replace(cfg, window=cfg.local_window))
+        self.gamma = nn.Parameter(torch.zeros(1))
+        # expose the CRSA internals layer_metrics/autopsies read
+        self.U, self.K, self.p = self.crsa.U, self.crsa.K, self.crsa.p
+        self.scale, self.tied = self.crsa.scale, self.crsa.tied
+        self.rho = self.crsa.rho
+
+    def forward(self, x):
+        return self.crsa(x) + self.gamma * self.local(x)
 
 
 class TOST(CRSA):
@@ -468,6 +508,17 @@ class DecayedValue(nn.Module):
 
 # ------------------------------------------------------- M2: spike-driven paths
 
+
+
+def _make_attn(cfg):
+    """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
+    if cfg.attn in ('crsa', 'tssa') and cfg.local_window > 0:
+        return CacheCRSA(cfg)
+    return ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit,
+             'dval': DecayedValue}.get(cfg.attn, MSSA))(cfg)
+
+
+
 class BlockM2(nn.Module):
     """M2 block (M2.md eq.): the layer state is a CODE vector; U and D
     consume it raw (no LN in between), the ISTA step unrolls from the
@@ -477,8 +528,7 @@ class BlockM2(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
-                     .get(cfg.attn, MSSA))(cfg)
+        self.attn = _make_attn(cfg)
         self.ln = nn.LayerNorm(d)
         self.D = nn.Parameter(torch.empty(d, d))
         nn.init.orthogonal_(self.D)
@@ -508,8 +558,7 @@ class BlockOD(nn.Module):
         super().__init__()
         d = cfg.n_embd
         n = cfg.dict_expand * d
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
-                     .get(cfg.attn, MSSA))(cfg)
+        self.attn = _make_attn(cfg)
         self.ln = nn.LayerNorm(d)
         D = torch.randn(d, n)
         D = D / D.norm(dim=0, keepdim=True)          # column-normalized init
@@ -539,8 +588,7 @@ class BlockODLocal(nn.Module):
         super().__init__()
         d = cfg.n_embd
         q = cfg.dict_expand * d
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
-                     .get(cfg.attn, MSSA))(cfg)
+        self.attn = _make_attn(cfg)
         self.ln = nn.LayerNorm(d)
         D = torch.randn(d, q)
         self.D = nn.Parameter(D / D.norm(dim=0, keepdim=True))
@@ -570,8 +618,7 @@ class BlockMLP(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
-        self.attn = ({'crsa': CRSA, 'tssa': CRSA, 'tost': TOST, 'tssalit': TSSALit, 'dval': DecayedValue}
-                     .get(cfg.attn, MSSA))(cfg)
+        self.attn = _make_attn(cfg)
         self.ln = nn.LayerNorm(d)
         self.w1 = nn.Linear(d, 4 * d)
         self.w2 = nn.Linear(4 * d, d)
