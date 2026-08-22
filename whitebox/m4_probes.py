@@ -32,6 +32,7 @@ from whitebox.probes import (KEYS, VALS, FILL, QUERY, PAD, VOCAB,  # noqa
                              TASKS as M3_TASKS, DATA_SEED)
 
 NULL = 53
+OF = 54                 # possessive marker: [attr, OF, name] patterns
 CTX = 128
 GAP_FIXED = 64          # distractor axis: total gap constant
 DELAY_GRID = (8, 16, 32, 64, 96)
@@ -102,7 +103,70 @@ def eval_sets(n=200, seed=7):
     return out
 
 
-def train_stream(seed=TRAIN_SEED, batch=16, reachable=0):
+def make_binding_pat(rng, facts=2, gap=16, pattern='pre', offset=2,
+                     perm=None, qi=None):
+    """Offset-varied binding (gate 3): the owner is NOT always the
+    previous token. Patterns per stored pair:
+      pre : [name, attr]                (owner at t-1 — the oracle's case)
+      post: [attr, OF, name]            (owner AFTER the attribute)
+      far : [name, f1..f_offset, attr]  (owner offset+1 back)
+    Query unchanged: QUERY name -> attr. The prev-token oracle fails
+    post and far BY CONSTRUCTION."""
+    ks = rng.choice(KEYS, facts, replace=False)
+    vs = rng.choice(VALS, facts, replace=False)
+    if perm is None:
+        perm = rng.permutation(facts)
+    body = []
+    for i in range(facts):
+        k, v = int(ks[i]), int(vs[perm[i]])
+        if pattern == 'pre':
+            body += [k, v]
+        elif pattern == 'post':
+            body += [v, OF, k]
+        else:                                    # far
+            body += [k] + list(rng.choice(FILL, offset)) + [v]
+    filler = np.full(gap, NULL)
+    if qi is None:
+        qi = int(rng.integers(facts))
+    seq = np.concatenate([body, filler, [QUERY, ks[qi]],
+                          [vs[perm[qi]]]]).astype(np.int64)
+    assert len(seq) <= CTX, (pattern, facts, offset, len(seq))
+    return seq, len(body) + gap + 2, [int(vs[perm[qi]])]
+
+
+def swap_pair_pat(rng, facts=2, gap=16, pattern='pre', offset=2):
+    state = rng.bit_generator.state
+    p1 = rng.permutation(facts)
+    p2 = p1.copy()
+    i, j = rng.choice(facts, 2, replace=False)
+    p2[i], p2[j] = p2[j], p2[i]
+    out = []
+    for perm in (p1, p2):
+        rng.bit_generator.state = state
+        out.append(make_binding_pat(rng, facts, gap, pattern, offset,
+                                    perm=perm, qi=int(i)))
+    rng.permutation(2 * facts + gap)
+    return out
+
+
+def eval_sets_pat(n=200, seed=11):
+    """Gate-3 grid: preregistered offset-varied cells."""
+    out = {}
+    def cells(tag, **kw):
+        rng = np.random.default_rng(seed + hash(tag) % 1000)
+        ex = []
+        for _ in range(n // 2):
+            ex.extend(swap_pair_pat(rng, **kw))
+        out[tag] = ex
+    for f in (2, 4):
+        cells(f'pat-pre@{f}', facts=f, gap=16, pattern='pre')
+        cells(f'pat-post@{f}', facts=f, gap=16, pattern='post')
+        cells(f'pat-far2@{f}', facts=f, gap=16, pattern='far', offset=2)
+    cells('pat-far4@2', facts=2, gap=16, pattern='far', offset=4)
+    return out
+
+
+def train_stream(seed=TRAIN_SEED, batch=16, reachable=0, patterns=False):
     """Mixed stream: the four locked M3 tasks + binding (equal weight).
     Binding params sampled across the sweep ranges so no eval cell is
     out-of-distribution. NOTE: this is a DIFFERENT training distribution
@@ -114,7 +178,13 @@ def train_stream(seed=TRAIN_SEED, batch=16, reachable=0):
         ex = []
         for _ in range(batch):
             t = names[int(rng.integers(len(names)))]
-            if t == 'binding':
+            if t == 'binding' and patterns:
+                pat = ['pre', 'post', 'far'][int(rng.integers(3))]
+                facts = int(rng.choice([2, 4]))
+                gap = int(rng.integers(4, 49))
+                off = int(rng.integers(1, 5))
+                ex.append(make_binding_pat(rng, facts, gap, pat, off))
+            elif t == 'binding':
                 if reachable:
                     # reachability-aware curriculum (round-2 amendment):
                     # a W-token branch cannot solve store->query gaps

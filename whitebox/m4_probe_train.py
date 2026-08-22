@@ -53,6 +53,11 @@ ARCHS = {
                       slot_prev_route=True, slot_m=16),
     'slots-prev-shared': dict(attn='slots', slot_prev_route=True),
     # basis recheck ON the working mechanism (v1 verdict confounded)
+    'slots-sel':      dict(attn='slots', slot_own_basis=True,
+                           slot_owner_sel=True),   # gate 3: learned selector
+    'slots-prev-pat': dict(attn='slots', slot_own_basis=True,
+                           slot_prev_route=True),  # oracle on pattern grammar
+                                                   # (must FAIL post/far)
 }
 
 
@@ -94,9 +99,11 @@ def main():
     print(f'm4probe {args.arch} s{args.seed}: '
           f'{model.num_params()/1e3:.0f}k params on {device}', flush=True)
 
+    patterns = args.arch in ('slots-sel', 'slots-prev-pat')
     stream = m4_probes.train_stream(
         seed=m4_probes.TRAIN_SEED + args.seed, batch=16,
-        reachable=16 if args.arch.endswith('-reach') else 0)
+        reachable=16 if args.arch.endswith('-reach') else 0,
+        patterns=patterns)
     opt = torch.optim.AdamW(model.parameters(), lr=6e-4, betas=(0.9, 0.99),
                             weight_decay=0.01)
     warmup = 200
@@ -126,6 +133,24 @@ def main():
 
     m3 = eval_grid(model, device)      # locked grid: gates 1-2
     b = eval_binding(model, device)    # binding grid: gates 3-4
+    if patterns:                       # gate-3 offset-varied grid
+        from whitebox.m4_probes import eval_sets_pat
+        import whitebox.m4_probe_train as _self
+        ev = eval_sets_pat(n=200)
+        for tag, ex in ev.items():
+            L = max(len(e[0]) for e in ex)
+            xg = np.full((len(ex), L), probes.PAD, dtype=np.int64)
+            for i, (seq, _s, _a) in enumerate(ex):
+                xg[i, :len(seq)] = seq
+            with torch.no_grad():
+                lg, _ = model(torch.from_numpy(xg).to(device)[:, :-1])
+            pred = lg.argmax(-1).cpu().numpy()
+            c = t_ = 0
+            for i, (_seq, start, ans) in enumerate(ex):
+                for j, aa in enumerate(ans):
+                    c += int(pred[i, start + j - 1] == aa)
+                    t_ += 1
+            b[tag] = round(c / t_, 4)
     rec = dict(arch=args.arch, seed=args.seed, steps=args.steps,
                params=model.num_params(), m3=m3, binding=b)
     outdir = pathlib.Path(__file__).parent / 'runs' / 'm4probes'
