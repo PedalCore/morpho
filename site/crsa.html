@@ -172,6 +172,21 @@ visible: integer dyadic decay is <i>sticky</i> below 2^m, so each counter
 carries six fraction bits — a bug you meet only when the mathematics
 becomes registers.</p>
 
+<h2>a reversal, published rather than patched</h2>
+<p class="note" style="border-left-color:var(--blue);color:#c4c9d4">
+Subsequent controls reframed this page's headline. The 13.78-vs-14.22
+comparison ran in blocks with no real elementwise nonlinearity — a
+feature-starved regime. With a transformer-grade MLP in both models,
+softmax attention wins decisively (12.54 vs 16.79): <b>constant-statistics
+attention trades retrieval capacity for state efficiency</b>, exactly
+where the probes located the cost (selective retention: 0.56 vs 0.91).
+What survives strengthened: perfect induction at constant state, the
+dyadic ladder worth +7.8 ppl over uniform statistics, derivation fidelity,
+and the 60-gate hardware. And the best constant-state model so far is
+CRSA <i>plus</i> an overcomplete sparse dictionary: 8.40 at 14M over a
+matched 20k horizon, beating plain CRSA's 9.72. Full campaign:
+<a href="/whitebox-lab.html">the white-box lab</a>.</p>
+
 <h2>honest edges</h2>
 <p>One corpus (TinyStories), one scale (5.2M), one seed for the LM result
 so far — the robust claim until replicated is <i>matches</i> softmax, not
