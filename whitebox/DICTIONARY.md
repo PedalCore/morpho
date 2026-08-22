@@ -244,7 +244,50 @@ ALL-HISTORY STATISTICS, not to routing machinery. The published extras
 recover none of the gap — both all-history arms dilute as context
 accumulates regardless of how tokens are routed to heads. CRSA's dyadic
 forgetting is the load-bearing modification to its ancestor, on this
-corpus, at this scale, one seed, screen scope. Param caveat: the
+corpus, at this scale, one seed, screen scope. Param caveat (corrected wording): the
 literal arm carries +2.4M over the other MLP arms (untied W is the
-published form's own choice) and still trails — the deficit is not
-capacity.
+published form's own choice) and still trails — this shows the deficit
+is NOT caused by having fewer raw parameters; it does NOT prove
+capacity is irrelevant, because parameter placement and optimization
+still matter.
+
+
+## Ladder in cross-entropy nats/token (agreed convention) + the close
+
+CRSA-leaky vs CRSA-uniform: **-0.381**. CRSA-leaky vs literal TSSA:
+**-0.415**. TSSA vs CRSA-uniform: +0.034 (same performance class at
+one seed). Softmax vs CRSA-leaky: -0.292.
+
+Result vs mechanism, kept distinct: the CONTROLLED RESULT isolates
+exponential temporal weighting as the load-bearing CRSA modification.
+The PROPOSED MECHANISM — uniform all-history second moments become
+increasingly stale/diluted while dyadic exponential measures remain
+responsive — is a hypothesis, testable later by measuring adaptation
+after a controlled distribution change or by sweeping context length.
+
+Defensible conclusions (agreed): (1) softmax retains a substantial
+retrieval advantage; (2) dyadic exponential forgetting improves CRSA
+by 7.78 ppl over its otherwise matched uniform-prefix ablation;
+(3) literal TSSA clusters with CRSA-uniform despite +2.4M params;
+(4) the 0.86 gap between the all-history arms supports no claim at one
+seed; (5) CRSA's contribution beyond TSSA is now measured. The 6e-8
+equation-level equivalence licenses reporting this as a literal
+causal-TSSA reproduction, not a uniform-CRSA proxy.
+
+PAPER-READY STATEMENT: *At matched width, feature block, data, seed,
+and 3,000-step schedule, dyadic-leaky CRSA improves by 0.381
+nats/token over its uniform-measure ablation and by 0.415 nats/token
+over a numerically verified reproduction of causal TSSA, despite TSSA
+carrying 2.4M additional parameters. This identifies multiscale
+exponential temporal weighting — not routing simplification or
+parameter count — as the principal source of CRSA's advantage over
+cumulative token-statistics attention in this setting.*
+
+PAGE-LEVEL SENTENCE (agreed): *On a one-seed, 3,000-step TinyStories
+screen with identical MLP feature blocks, softmax led at 12.54 PPL,
+dyadic-leaky CRSA reached 16.79, and both all-history statistics
+operators trailed at 24.57-25.43. CRSA therefore recovers substantial
+capability over its direct cumulative-statistics ancestor while
+preserving bounded recurrent state, but does not eliminate the
+retrieval advantage of full attention.* An honest trade frontier — a
+stronger close than claiming CRSA universally replaced attention.

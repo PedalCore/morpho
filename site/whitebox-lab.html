@@ -127,7 +127,7 @@ demotion, which is the strongest thing we can say for the methodology.</div>
 <table>
 <tr><th>claim</th><th>evidence</th></tr>
 <tr><td>perfect induction, all distances, constant state</td><td>1.00 at every delay incl. 89 tok — tied with full attention, from 384 counters/layer</td></tr>
-<tr><td>the dyadic ladder is load-bearing</td><td>+7.8 ppl over uniform prefix statistics (the campaign's largest single effect) — and the literal published-TSSA baseline (numerically verified against the paper's eq. 28) lands at 25.43, lockstep with the uniform arm: the effect is <i>forgetting vs. all-history</i>, not routing machinery</td></tr>
+<tr><td>the dyadic ladder is load-bearing</td><td>−0.381 nats/token over uniform prefix statistics, −0.415 over a numerically verified literal-TSSA reproduction (which lands at 25.43, the same performance class as the uniform arm despite +2.4M params) — the isolated variable is <i>multiscale exponential temporal weighting</i>, not routing or parameter count</td></tr>
 <tr><td>derivation fidelity under training</td><td>the only operator whose ΔR^c sign survives (finding one)</td></tr>
 <tr><td>hardware</td><td>60 gates + 14 registers per counter coordinate; a 16-wide bank placed &amp; routed at 690 LCs, 103.7 MHz; no exponential, no divider, no softmax anywhere</td></tr>
 </table>
@@ -135,6 +135,18 @@ demotion, which is the strongest thing we can say for the methodology.</div>
 <i>collision</i>, not by <i>time</i> — which names its repair (a small
 representative memory between counters and a full cache) without
 undermining what works.</p>
+<div class="rev">The close, stated as a trade frontier: on a one-seed,
+3,000-step TinyStories screen with identical MLP feature blocks, softmax
+led at 12.54 PPL, dyadic-leaky CRSA reached 16.79, and both all-history
+statistics operators — the uniform ablation and a numerically verified
+reproduction of causal TSSA — trailed at 24.57–25.43. CRSA therefore
+recovers substantial capability over its direct cumulative-statistics
+ancestor while preserving bounded recurrent state, but does not
+eliminate the retrieval advantage of full attention. The staleness
+mechanism behind the forgetting effect remains a hypothesis (testable by
+distribution-change adaptation or a context-length sweep); the
+controlled result — exponential temporal weighting as the load-bearing
+modification — is measured.</div>
 
 <h2>methods, because they carried the campaign</h2>
 <p>Probes locked with seeds and predictions before the operator existed
