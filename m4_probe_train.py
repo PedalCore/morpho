@@ -43,6 +43,8 @@ ARCHS = {
     'qk-v':    dict(attn='qkv', qkv_tie='qk'),   # Q=K shared, V separate
     'q-kv':    dict(attn='qkv', qkv_tie='kv'),   # Q separate, K=V shared
     'slots':   dict(attn='slots'),   # rung 3: gate fired (reach arm failed)
+    'slots-frozen': dict(attn='slots', slot_frozen_basis=True),  # middle rung
+    'slots-own': dict(attn='slots', slot_own_basis=True),  # own k=v basis
 }
 
 
