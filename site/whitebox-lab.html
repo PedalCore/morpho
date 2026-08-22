@@ -46,6 +46,12 @@
   .finding .m { color: var(--muted); font-size: 13.5px; }
   .rev { border-left: 3px solid var(--blue); padding: 2px 0 2px 14px;
          font-size: 14.5px; color: #c4c9d4; margin: 14px 0; }
+  .gen { background: var(--panel); border: 1px solid var(--line);
+         border-radius: 10px; padding: 14px 18px; margin: 14px 0;
+         font-size: 14.5px; line-height: 1.6; color: #c4c9d4; }
+  .gen .prompt { color: var(--amber); }
+  .gen .drift { color: var(--red); }
+  .gen .cap { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -162,6 +168,37 @@ direct ancestor (Token Statistics Transformer) is cited as ancestor, with
 CRSA's claim narrowed to what it adds: multiscale exponential event
 statistics, bounded shift-update state, spike compatibility, and a
 gate-counted implementation.</p>
+
+<h2>what 8.40 sounds like</h2>
+<p>Perplexity is only a number; here is the best constant-state model
+(CRSA + overcomplete dictionary, 14.0M, one seed) actually writing —
+unedited samples, greedy-free decoding from fixed seeds.</p>
+<div class="gen">
+<span class="prompt">Once upon a time, there was a little girl named</span>
+Lily. She loved to play outside. One day, she went outside to play in
+the park with her friends. She saw something unusual. It was a big, red
+ball. Lily wanted to play with it, so she ran after it.<br>
+Lily said, "Look at my ball, mommy! It's so pretty!" Her mommy smiled
+and said, "Yes, it's so big."
+<div class="cap">Sentence-level grammar, dialogue formatting, and short
+story beats are solid.</div>
+</div>
+<div class="gen">
+<span class="prompt">Tom and his mom went to the park.</span>
+They saw a big pile of leaves. They had fun playing with the leaves.
+They were very happy.<br>
+But then, <span class="drift">Sam</span> noticed something shiny behind
+the tree. It was a tree. He had never seen anything like it before. He
+thought it was a stone like a magic stone. He reached out his hand to
+touch the stone. He was curious.<br>
+"Hello, I'm <span class="drift">Ben</span>."
+<div class="cap">And the characteristic failure, marked in red: within
+one unedited story, Tom drifts to Sam and then Ben. This is the probe
+suite's selective-retention deficit rendered as prose — the counters
+forget by collision, so entities blur into one another over distance.
+The model's weakness in text is the same weakness the preregistered
+probes measured in numbers.</div>
+</div>
 
 <h2>honest edges</h2>
 <p>Every number above is one controlled seed on one corpus (TinyStories) at
