@@ -38,6 +38,8 @@ ARCHS = {
     'qkv-w16': dict(attn='qkv', window=16),      # local-only: can a 16-token
                                                  # role-separated branch bind
                                                  # inside its window, alone?
+    'qkv-w16-reach': dict(attn='qkv', window=16),  # + reachability-aware
+                                                   # binding curriculum
     'qk-v':    dict(attn='qkv', qkv_tie='qk'),   # Q=K shared, V separate
     'q-kv':    dict(attn='qkv', qkv_tie='kv'),   # Q separate, K=V shared
     # 'slots':  gated on the cache16 oracle verdict (M4.md rung 3)
@@ -83,7 +85,8 @@ def main():
           f'{model.num_params()/1e3:.0f}k params on {device}', flush=True)
 
     stream = m4_probes.train_stream(
-        seed=m4_probes.TRAIN_SEED + args.seed, batch=16)
+        seed=m4_probes.TRAIN_SEED + args.seed, batch=16,
+        reachable=16 if args.arch.endswith('-reach') else 0)
     opt = torch.optim.AdamW(model.parameters(), lr=6e-4, betas=(0.9, 0.99),
                             weight_decay=0.01)
     warmup = 200
