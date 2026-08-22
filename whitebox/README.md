@@ -19,7 +19,11 @@ a leaderboard entry.
 | CRSA + overcomplete dictionary | 14.0M | **8.40** |
 | plain CRSA d=672 | 13.8M | 9.72 |
 
-Neither had plateaued at schedule end; true floors are lower.
+Neither had plateaued at schedule end. A reduced-LR extension of the
+dictionary model reached **8.08** (28.5k total steps, stopped early by
+decision — censored, still descending; schedule-limited estimate
+~7.8-8.0) before compute was redirected to the M4 binding/retrieval
+program, where the measured deficit actually lives.
 
 **The operator ladder** (matched d=448 + identical 4d MLP, 3,000-step
 screens, one seed):
