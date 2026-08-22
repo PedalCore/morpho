@@ -47,6 +47,12 @@ ARCHS = {
     'slots-own': dict(attn='slots', slot_own_basis=True),  # own k=v basis
     'slots-prev': dict(attn='slots', slot_own_basis=True,
                        slot_prev_route=True),  # v2: route write by owner
+    'slots-m4':  dict(attn='slots', slot_own_basis=True,
+                      slot_prev_route=True, slot_m=4),
+    'slots-m16': dict(attn='slots', slot_own_basis=True,
+                      slot_prev_route=True, slot_m=16),
+    'slots-prev-shared': dict(attn='slots', slot_prev_route=True),
+    # basis recheck ON the working mechanism (v1 verdict confounded)
 }
 
 

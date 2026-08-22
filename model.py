@@ -87,6 +87,7 @@ class Config:
                                      # co-locate — v1 routed tokens by their
                                      # own content, making ownership
                                      # unrepresentable
+    slot_m: int = 8                  # number of representative slots
 
 
 class SpikeProx(nn.Module):
@@ -578,11 +579,10 @@ class SlotCRSA(nn.Module):
     binary/WTA is the hardware step after mechanism confirmation.
     Trained from scratch at probe scale (no zero-init gate needed)."""
 
-    M = 8
-
     def __init__(self, cfg):
         super().__init__()
         d = cfg.n_embd
+        self.M = cfg.slot_m
         self.crsa = CRSA(cfg)
         self.U, self.K, self.p = self.crsa.U, self.crsa.K, self.crsa.p
         self.scale, self.tied = self.crsa.scale, self.crsa.tied
