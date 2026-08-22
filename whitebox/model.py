@@ -76,6 +76,12 @@ class Config:
     qkv_tie: str = ''          # minimum-untying factorial: '' (all
                                # separate) | 'qk' (Q=K, V separate) |
                                # 'kv' (K=V, Q separate)
+    slot_own_basis: bool = False  # slots get their OWN k=v projection
+                                  # instead of reusing CRSA's U (rules
+                                  # out basis-sharing conflict)
+    slot_frozen_basis: bool = False  # slots READ CRSA's U but their loss
+                                     # cannot reshape it (weight-detached
+                                     # projection) — the middle rung
 
 
 class SpikeProx(nn.Module):
@@ -577,6 +583,9 @@ class SlotCRSA(nn.Module):
         self.scale, self.tied = self.crsa.scale, self.crsa.tied
         self.rho = self.crsa.rho
         self.Wq = nn.Linear(d, d, bias=False)
+        self.Ukv = (nn.Linear(d, d, bias=False)
+                    if cfg.slot_own_basis else None)
+        self.frozen = cfg.slot_frozen_basis
         self.slot_keys = nn.Parameter(torch.randn(self.M, d) / d ** 0.5)
         self.log_tau = nn.Parameter(torch.zeros(1))
         self.out_scale = nn.Parameter(torch.tensor(0.1))
@@ -602,7 +611,12 @@ class SlotCRSA(nn.Module):
     def forward(self, x):                          # (B, T, d)
         B, T, d = x.shape
         base = self.crsa(x)
-        kv = self.U(x)                             # tied write key = value
+        if self.Ukv is not None:
+            kv = self.Ukv(x)                       # own basis
+        elif self.frozen:
+            kv = F.linear(x, self.U.weight.detach())  # read, don't reshape
+        else:
+            kv = self.U(x)                         # fully shared basis
         q = self.Wq(x)
         tau = torch.nn.functional.softplus(self.log_tau) + 0.1
         write = torch.softmax((kv @ self.slot_keys.t()) / (tau * d ** 0.5),
