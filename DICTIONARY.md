@@ -335,3 +335,17 @@ query-map + slots work). The two programs are complementary halves.
 CANDIDATE UPGRADES QUEUED (cheap screens when the LM ladder resumes):
 decoupled D-hat decode; two-step prox (already on the deferred list,
 now externally evidenced). Both compose with the dictionary model.
+
+
+## Neuron-interpretability dividend (arXiv:2410.16443, CPAL 2025 oral)
+
+Bai & Ma: CRATE-architecture language models show up to 103% relative
+improvement in NEURON-LEVEL interpretability over post-hoc dictionary
+methods (SAE route), consistent across layers — in-architecture sparse
+coding makes neurons activate distinctively on relevant tokens.
+Program relevance: external, citable support for the third leg of the
+MLP-vs-dictionary trade (alongside the exact local objective and the
+spike/hardware route): the dense MLP control's ppl advantage forfeits
+measured interpretability that post-hoc methods only partially
+recover. No architectural implications (attention untouched there);
+the binding program is unaffected.
