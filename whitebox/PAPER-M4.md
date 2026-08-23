@@ -1,5 +1,8 @@
 # Owner-Routed Slot Memory: Arbitrary Key–Value Binding at Constant State
-### DRAFT v0.1 (2026-08-23) — all single-seed results marked; replication running
+### DRAFT v0.2 (2026-08-23) — replication: binding replicates at 0.71-0.94
+### (n=2, induction/selective 1.00 both seeds); integrated 18.9M LM sets the
+### family screen record (13.81@3k) but its counterfactual S ~ 0 — the write
+### policy is not discovered from language at 3k steps (Sec. 8 updated)
 
 ## Abstract
 
