@@ -58,6 +58,13 @@ ARCHS = {
     'slots-prev-pat': dict(attn='slots', slot_own_basis=True,
                            slot_prev_route=True),  # oracle on pattern grammar
                                                    # (must FAIL post/far)
+    'slots-conv-self': dict(attn='slots', slot_own_basis=True,
+                            local_conv=4),  # conv transports owner ->
+                                            # SELF-routing may bind w/o oracle
+    'slots-prev-gated': dict(attn='slots', slot_own_basis=True,
+                             slot_prev_route=True, slot_gated=True),
+    'slots-prev-g4': dict(attn='slots', slot_own_basis=True,
+                          slot_prev_route=True, slot_groups=4),
 }
 
 

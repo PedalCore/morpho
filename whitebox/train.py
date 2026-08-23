@@ -78,6 +78,9 @@ def main():
                     help='CRSA statistics attention instead of MSSA')
     ap.add_argument('--tssa-lit', action='store_true', dest='tssalit',
                     help='LITERAL published causal TSSA (ToST eq.28/31)')
+    ap.add_argument('--qkv', action='store_true',
+                    help='untied standard attention (separate Q/K/V/O) — '
+                         'the true pairwise-attention reference')
     ap.add_argument('--slots', action='store_true',
                     help='M4: own-basis owner-routed slot memory (attn=slots)')
     ap.add_argument('--slot-m', type=int, default=8, dest='slot_m')
@@ -111,7 +114,7 @@ def main():
                  dict_expand=args.dict_expand,
                  dict_local=args.dict_local, dict_identity=args.dict_identity,
                  mlp=args.mlp,
-                 attn='slots' if args.slots else 'tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
+                 attn='slots' if args.slots else 'qkv' if args.qkv else 'tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
                  slot_own_basis=args.slots, slot_prev_route=args.slots,
                  slot_m=args.slot_m,
                  signed_moment=args.signed_moment, local_window=args.local_window)

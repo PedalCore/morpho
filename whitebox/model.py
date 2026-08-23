@@ -88,6 +88,15 @@ class Config:
                                      # own content, making ownership
                                      # unrepresentable
     slot_m: int = 8                  # number of representative slots
+    local_conv: int = 0              # k>0: causal depthwise conv branch
+                                     # (SummaryMixing lesson: cheap local
+                                     # mixer alongside global memory;
+                                     # d*k params, shift-register hardware)
+    slot_gated: bool = False         # energy-gated fusion for the slot read
+                                     # (vs plain residual addition)
+    slot_groups: int = 0             # g>0: block-diagonal U_slot (grouped
+                                     # basis, d^2/g params — the compression
+                                     # alternative to low-rank)
     slot_owner_sel: bool = False     # gate 3: LEARNED owner selector —
                                      # two banded micro-attentions (last 8
                                      # tokens) pick the write ADDRESS and
@@ -466,6 +475,8 @@ class QKV(nn.Module):
         self.K, self.p = K, d // K
         self.tie = getattr(cfg, 'qkv_tie', '')
         self.q = nn.Linear(d, d, bias=False)
+        self.U = self.q          # alias for the coding-rate instrumentation
+        self.scale = nn.Parameter(torch.tensor(1.0), requires_grad=False)
         self.k = self.q if self.tie == 'qk' else nn.Linear(d, d, bias=False)
         self.v = self.k if self.tie == 'kv' else nn.Linear(d, d, bias=False)
         self.o = nn.Linear(d, d, bias=False)
@@ -593,8 +604,26 @@ class SlotCRSA(nn.Module):
         self.scale, self.tied = self.crsa.scale, self.crsa.tied
         self.rho = self.crsa.rho
         self.Wq = nn.Linear(d, d, bias=False)
-        self.Ukv = (nn.Linear(d, d, bias=False)
-                    if cfg.slot_own_basis else None)
+        g = cfg.slot_groups
+        if g and cfg.slot_own_basis:
+            assert d % g == 0
+            self.Ukv = None
+            self.Ug = nn.Conv1d(d, d, 1, groups=g, bias=False)  # blockdiag
+        else:
+            self.Ug = None
+            self.Ukv = (nn.Linear(d, d, bias=False)
+                        if cfg.slot_own_basis else None)
+        if cfg.local_conv:
+            k = cfg.local_conv
+            self.conv = nn.Conv1d(d, d, k, groups=d, bias=False)
+            self.conv_pad = k - 1
+        else:
+            self.conv = None
+        if cfg.slot_gated:
+            self.gate_a = nn.Linear(d, d, bias=False)
+            self.gate_b = nn.Linear(d, d, bias=False)
+        else:
+            self.gate_a = None
         self.frozen = cfg.slot_frozen_basis
         self.prev_route = cfg.slot_prev_route
         self.owner_sel = cfg.slot_owner_sel
@@ -631,7 +660,9 @@ class SlotCRSA(nn.Module):
     def forward(self, x):                          # (B, T, d)
         B, T, d = x.shape
         base = self.crsa(x)
-        if self.Ukv is not None:
+        if self.Ug is not None:                    # grouped block-diagonal
+            kv = self.Ug(x.transpose(1, 2)).transpose(1, 2)
+        elif self.Ukv is not None:
             kv = self.Ukv(x)                       # own basis
         elif self.frozen:
             kv = F.linear(x, self.U.weight.detach())  # read, don't reshape
@@ -661,7 +692,15 @@ class SlotCRSA(nn.Module):
         match = torch.softmax((q @ self.slot_keys.t()) / (tau * d ** 0.5),
                               dim=-1)              # (B,T,M)
         r = torch.einsum('btm,bmtd->btd', match, slots)
-        return base + self.out_scale * F.linear(r, self.U.weight.t())
+        read = self.out_scale * F.linear(r, self.U.weight.t())
+        if self.gate_a is not None:                # energy-gated fusion
+            gate = torch.sigmoid(self.gate_a(x) + self.gate_b(read))
+            read = gate * read
+        out = base + read
+        if self.conv is not None:                  # causal depthwise local
+            xc = F.pad(x.transpose(1, 2), (self.conv_pad, 0))
+            out = out + self.conv(xc).transpose(1, 2)
+        return out
 
 
 def _make_attn(cfg):
