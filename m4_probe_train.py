@@ -65,6 +65,13 @@ ARCHS = {
                              slot_prev_route=True, slot_gated=True),
     'slots-prev-g4': dict(attn='slots', slot_own_basis=True,
                           slot_prev_route=True, slot_groups=4),
+    'slots-conv-g4': dict(attn='slots', slot_own_basis=True,
+                          local_conv=4, slot_groups=4),  # the composition:
+                          # learned write path + cheap basis
+    'slots-prev-1L': dict(attn='slots', slot_own_basis=True,
+                          slot_prev_route=True, slot_layer_set='2'),
+    'slots-prev-2L': dict(attn='slots', slot_own_basis=True,
+                          slot_prev_route=True, slot_layer_set='1,3'),
 }
 
 

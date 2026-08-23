@@ -97,6 +97,10 @@ class Config:
     slot_groups: int = 0             # g>0: block-diagonal U_slot (grouped
                                      # basis, d^2/g params — the compression
                                      # alternative to low-rank)
+    slot_layer_set: str = ''         # ''=slots in every layer; else comma
+                                     # indices (e.g. '1,3') — layer-placement
+                                     # factorial: counters everywhere,
+                                     # explicit associative memory sparse
     slot_owner_sel: bool = False     # gate 3: LEARNED owner selector —
                                      # two banded micro-attentions (last 8
                                      # tokens) pick the write ADDRESS and
@@ -361,7 +365,7 @@ class CRSA(nn.Module):
     Chunked parallel scan: exact cumsum inside 32-token chunks (bounded
     exponents, float32-safe even at m=3), recurrent carry across chunks."""
 
-    CHUNK = 32
+    CHUNK = 128
 
     def __init__(self, cfg):
         super().__init__()
@@ -645,7 +649,7 @@ class SlotCRSA(nn.Module):
 
     def _decay_scan(self, v, rho):                 # v: (B,M,T,*)
         B, M, T = v.shape[:3]
-        C, ys, carry = 32, [], torch.zeros_like(v[:, :, :1])
+        C, ys, carry = 128, [], torch.zeros_like(v[:, :, :1])
         for ci in range((T + C - 1) // C):
             vc = v[:, :, ci * C:(ci + 1) * C]
             L = vc.shape[2]
@@ -840,7 +844,15 @@ class CausalCRATEM2(nn.Module):
         blk = (BlockMLP if cfg.mlp else
                BlockODLocal if cfg.dict_local else
                BlockOD if cfg.dict_expand > 1 else BlockM2)
-        self.blocks = nn.ModuleList(blk(cfg) for _ in range(cfg.n_layer))
+        if cfg.attn == 'slots' and cfg.slot_layer_set:
+            import dataclasses
+            keep = {int(i) for i in cfg.slot_layer_set.split(',')}
+            self.blocks = nn.ModuleList(
+                blk(cfg if li in keep else
+                    dataclasses.replace(cfg, attn='crsa'))
+                for li in range(cfg.n_layer))
+        else:
+            self.blocks = nn.ModuleList(blk(cfg) for _ in range(cfg.n_layer))
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)
         self.head.weight = self.emb.weight     # head consumes codes directly
         nn.init.normal_(self.emb.weight, std=0.02)

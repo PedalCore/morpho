@@ -84,6 +84,11 @@ def main():
     ap.add_argument('--slots', action='store_true',
                     help='M4: own-basis owner-routed slot memory (attn=slots)')
     ap.add_argument('--slot-m', type=int, default=8, dest='slot_m')
+    ap.add_argument('--slot-conv', type=int, default=0, dest='slot_conv',
+                    help='k: causal depthwise conv branch (learned write path)')
+    ap.add_argument('--slot-groups', type=int, default=0, dest='slot_groups')
+    ap.add_argument('--slot-self', action='store_true', dest='slot_self',
+                    help='self-routing (disable the prev-token oracle)')
     ap.add_argument('--signed-moment', action='store_true', dest='signed_moment',
                     help='M4: signed first moment s=rho*s+h read via '
                          'dcoef*(h+beta*s), beta zero-init')
@@ -115,8 +120,10 @@ def main():
                  dict_local=args.dict_local, dict_identity=args.dict_identity,
                  mlp=args.mlp,
                  attn='slots' if args.slots else 'qkv' if args.qkv else 'tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
-                 slot_own_basis=args.slots, slot_prev_route=args.slots,
-                 slot_m=args.slot_m,
+                 slot_own_basis=args.slots,
+                 slot_prev_route=args.slots and not args.slot_self,
+                 slot_m=args.slot_m, local_conv=args.slot_conv,
+                 slot_groups=args.slot_groups,
                  signed_moment=args.signed_moment, local_window=args.local_window)
     model = (CausalCRATEM2(cfg) if args.m2 else CausalCRATE(cfg)).to(device)
     anneal = ([(int(s.split(':')[0]), int(s.split(':')[1]))
