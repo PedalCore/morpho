@@ -80,6 +80,9 @@ ARCHS = {
                        # rule in M5.md)
     'm5-longhorn': dict(attn='longhorn', mlp=True),  # diagonal approx
                        # (1 - eps k^2) — the decisive comparison's fast arm
+    'm5-eam': dict(attn='eam', mlp=True),  # energy-addressed associative
+                       # memory: contrastive retrieval, sparse static
+                       # addressing, decayed-prefix-sum writes
     # placement-separated composition: block-conv every layer, grouped
     # oracle slots in ONE layer — three validated parts, structurally apart
     'slots-prev-1L': dict(attn='slots', slot_own_basis=True,
@@ -148,6 +151,10 @@ def main():
             g['lr'] = lr_at(step)
         x, mask = next(stream)
         loss = batch_loss(model, x, mask, device)
+        aux = [b.attn.last_ret_loss for b in model.blocks
+               if getattr(b.attn, 'last_ret_loss', None) is not None]
+        if aux:
+            loss = loss + 0.1 * torch.stack(aux).mean()
         opt.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
