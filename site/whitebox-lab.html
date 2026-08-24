@@ -66,6 +66,7 @@ one honest reversal, and a measured trade-frontier where a single winner
 was hoped for.</p>
 
 <div class="links">
+  <a href="/binding.html">← who owned what: the M4 story</a>
   <a href="/crsa.html">← the counter that replaced attention</a>
   <a href="/hardware-attention.html">← why attention for silicon</a>
   <a href="/morpho-silicon.html">← to silicon</a>
@@ -86,10 +87,18 @@ was hoped for.</p>
 <tr><td>plain CRSA d=672 (13.8M)</td><td>9.72</td></tr>
 </table>
 <p class="note">A reduced-LR extension of the dictionary model reached
-<b>8.08</b> at 28.5k total steps — stopped early by decision (censored,
-still descending ~0.045/1k; schedule-limited estimate ~7.8–8.0) to
-redirect compute to the binding/retrieval experiments, where the
-measured deficit actually lives.</p>
+<b>8.08</b>; the M4 binding program then rebuilt the memory system and
+produced the campaign's final model: <b>slots-lm-v2 at 6.48</b> (17.1M
+— counters + dictionary + owner-routed slots with a learned
+convolutional write path), versus <b>6.04</b> for a true untied-QKV
+transformer at matched parameters — the constant-state cost measured
+at last against the real ceiling, ~194 KB of recurrent state versus a
+KV cache that grows forever. The twist the counterfactual suite
+caught: the best models' gains owe nothing to binding — TinyStories
+rewards fluency and position priors, never ownership. The binding
+capability exists (measured at 0.94 on preregistered probes, capacity
+proportional to slot count), sits latent, and awaits a task that pays
+for it.</p>
 
 <h2>finding one — the derivation–execution gap</h2>
 <div class="finding">

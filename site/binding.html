@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the model that couldn't remember who owned what</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><rect x=%222%22 y=%224%22 width=%2212%22 height=%228%22 rx=%221.5%22 fill=%22none%22 stroke=%22%23e2a13f%22 stroke-width=%221.6%22/><line x1=%228%22 y1=%224%22 x2=%228%22 y2=%2212%22 stroke=%22%23e2a13f%22 stroke-width=%221.6%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c; --blue: #6fa8dc;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  td, th { font-variant-numeric: tabular-nums; }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .finding { background: var(--panel); border: 1px solid var(--line);
+             border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
+  .finding .t { font-weight: 600; margin-bottom: 4px; }
+  .finding .m { color: var(--muted); font-size: 13.5px; }
+  .twist { border-left: 3px solid var(--blue); padding: 2px 0 2px 14px;
+           font-size: 14.5px; color: #c4c9d4; margin: 14px 0; }
+  .note { border-left: 3px solid var(--amber); padding: 2px 0 2px 14px;
+          color: var(--muted); font-size: 14px; margin: 14px 0; }
+  .drift { color: var(--red); }
+</style>
+</head>
+<body>
+<article>
+<h1>the model that couldn't remember <span>who owned what</span></h1>
+<p class="sub">Three days of preregistered experiments on a question
+most language-model benchmarks never ask: can a network whose memory
+never grows remember that Tom has the red ball and Tim has the blue
+one? The answer rebuilt our architecture — and then the data delivered
+a twist about why nobody had noticed the deficit.</p>
+
+<div class="links">
+  <a href="/whitebox-lab.html">← the white-box lab</a>
+  <a href="/hardware-attention.html">← attention for silicon</a>
+  <a href="/crsa.html">← the counter that replaced attention</a>
+</div>
+
+<h2>the symptom</h2>
+<p>Our best constant-state language model wrote fluent children's
+stories with one recurring flaw: characters blurred. Billy is asked a
+question; <span class="drift">Sarah</span> answers it. Tom starts a
+story; <span class="drift">Ben</span> ends it. We built an instrument
+to measure the failure precisely: pairs of prompts that are identical
+except for <i>which color belongs to which name</i> — "Tom has the red
+ball, Tim has the blue ball" versus its swap — then ask what Tom picks
+up. A model that binds tracks the swap. A model that doesn't sees two
+nearly identical token bags.</p>
+
+<h2>the deficit, measured at two scales</h2>
+<div class="finding">
+<div class="t">Every tied-projection mechanism scored at chance on
+arbitrary binding — while holding perfect scores on sequence memory.</div>
+<div class="m">Counters, uniform statistics, windowed and full
+attention with shared projections: all at stored-set chance on the
+probe grid, all at 1.00 on induction. And the trained language models
+were worse than at chance — they were <i>faking it</i>: our best model
+showed strong swap sensitivity that reversed sign with the queried
+entity's position. A "prefer the first-mentioned color" rule imitating
+binding on half the cells, caught only because the instrument
+counterbalanced query position.</div>
+</div>
+
+<h2>finding one — binding lives in the query</h2>
+<p>At equal parameter count, we split attention's shared projection one
+role at a time. Separating the <b>value</b> path: binding 0.44.
+Separating the <b>query</b> path: <b>1.00</b>. The bottleneck was never
+what to return — it's matching a <i>retrieval</i> context ("Later, Tom
+picks up his…") to a <i>storage</i> context ("Tom has the…"). One
+matrix can't speak both dialects. Better: the query correction is
+<b>low-rank</b> — a rank-16 adapter keeps 97% of binding, so the repair
+costs ~1% of the model, not a rebuild.</p>
+
+<h2>finding two — eight drawers</h2>
+<div class="finding">
+<div class="t">A constant-state memory of M content-addressable slots
+binds — once writes are routed by the <i>owner's</i> key.</div>
+<div class="m">Our first slot design filed "red" under red's own
+address, so ownership was structurally unrepresentable — it scored at
+chance with every basis we tried, and a measured gradient tug-of-war
+(cos −0.46) ruled out the easy fixes. Routing each write by the
+<i>preceding token's</i> key — so the attribute lands in the drawer its
+owner opened — took binding from chance to 0.94 in one change:
+induction 1.00, selective recall 1.00, flat across delays, robust to
+distractors. And the capacity law is legible: eight slots hold eight
+facts and cliff at sixteen; sixteen slots dissolve the cliff (0.97).
+One durable binding per drawer.</div>
+</div>
+<p>The oracle rule "owner = previous token" then fell to a learned
+replacement: a four-tap causal convolution (1,792 parameters, a shift
+register in hardware) learns to blend the owner's identity into the
+attribute's representation before the write — binding 0.74 with
+nothing hard-wired. Pair <i>formation</i> is local in language; pair
+<i>retention</i> is global. The division of labor matches the
+linguistics.</p>
+
+<h2>the language model</h2>
+<table>
+<tr><th>model (~matched params)</th><th>TinyStories ppl</th><th>inference state</th></tr>
+<tr><td>untied QKV + MLP transformer (19.4M)</td><td>6.04</td><td>KV cache, grows forever</td></tr>
+<tr><td><b>counters + dictionary + slots (17.1M)</b></td><td><b>6.48</b></td><td><b>~194 KB, constant</b></td></tr>
+<tr><td>previous best constant-state (14M)</td><td>8.08</td><td>constant</td></tr>
+</table>
+<p>The rebuilt memory system cut the family's best perplexity by 1.6
+and put a constant-state model within 0.44 of a true transformer at
+matched size — with no token-to-token attention, no growing cache, and
+every operator countable in gates. (Honest ledger: the reference ran a
+shorter schedule; a matched-schedule control would widen the gap
+somewhat, and the slot pathway currently trains 3× slower per step —
+an engineering, not architectural, deficit.)</p>
+
+<h2>the twist</h2>
+<div class="twist">Here's what the counterfactual suite said about our
+new best model: <b>its binding machinery was idle.</b> Accuracy at
+chance, the same position-heuristic signature as before — in fact the
+heuristic <i>strengthened</i> as perplexity improved. The models get
+better at TinyStories by doubling down on position priors, never by
+learning ownership. The corpus is solvable to at least 6.0 perplexity
+without ever knowing who owns what — which is precisely why this
+deficit hides under every perplexity benchmark. Fluency pays.
+Memory doesn't. The binding capability our probes prove exists sits
+latent in the network, waiting for a task that rewards it — long-form
+consistency, question answering, or music, where a voice that forgets
+which hand owns it is not a rounding error but the whole failure.</div>
+
+<h2>what carried the work</h2>
+<p>Every mechanism entered through a preregistered probe with the
+verdict rules written before the run: gates, outcome maps, controls
+that caught two masquerades (a "ceiling" that couldn't bind, a grammar
+that leaked to a shortcut). Failures were kept and diagnosed — three
+mechanisms died the same cold-start death and taught a design rule
+(circuits must be reachable from initialization by gradient); a
+composition of two individually-proven parts failed and was caught by
+a thirty-minute probe rather than a shipped model. Fifteen probe arms,
+four language models, one seed each except where replicated — and the
+strongest results (query-map localization) replicated exactly, while
+the noisiest (slot formation) is reported as a range, not a headline.</p>
+
+<p class="note">Numbers: one controlled seed unless stated (slot
+binding replicated at 0.94/0.71/0.44 across three seeds — formation is
+stochastic, the open engineering problem alongside kernel fusion and
+WTA hardening for silicon). Full preregistrations, negative results,
+and the paper draft live in the
+<a href="https://github.com/PedalCore/whitebox-lm">whitebox-lm repo</a>.</p>
+</article>
+</body>
+</html>
