@@ -68,6 +68,14 @@ ARCHS = {
     'slots-conv-g4': dict(attn='slots', slot_own_basis=True,
                           local_conv=4, slot_groups=4),  # the composition:
                           # learned write path + cheap basis
+    'slots-1L-bconv-g4': dict(attn='slots', slot_own_basis=True,
+                              slot_prev_route=True, slot_groups=4,
+                              slot_layer_set='2', block_conv=4),
+    'slots-1L-g4': dict(attn='slots', slot_own_basis=True,
+                        slot_prev_route=True, slot_groups=4,
+                        slot_layer_set='2'),  # missing control: no conv
+    # placement-separated composition: block-conv every layer, grouped
+    # oracle slots in ONE layer — three validated parts, structurally apart
     'slots-prev-1L': dict(attn='slots', slot_own_basis=True,
                           slot_prev_route=True, slot_layer_set='2'),
     'slots-prev-2L': dict(attn='slots', slot_own_basis=True,
