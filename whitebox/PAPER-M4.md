@@ -1,8 +1,13 @@
 # Owner-Routed Slot Memory: Arbitrary Key–Value Binding at Constant State
-### DRAFT v0.2 (2026-08-23) — replication: binding replicates at 0.71-0.94
-### (n=2, induction/selective 1.00 both seeds); integrated 18.9M LM sets the
-### family screen record (13.81@3k) but its counterfactual S ~ 0 — the write
-### policy is not discovered from language at 3k steps (Sec. 8 updated)
+### DRAFT v0.3 (2026-08-24) — campaign close. Final LM: 6.48 (slots-lm-v2,
+### 17.1M, constant state) vs 6.04 true-transformer reference at matched
+### params. Binding replicated 3 seeds (0.94/0.71/0.44 — formation
+### stochastic); learned conv write path passes (0.74); grouped basis best
+### (0.949) with capacity ~ slot count; composition square closed
+### (same-layer conv x grouped interferes; placement-separated conv is
+### binding-free). Language verdict: TinyStories rewards position
+### heuristics, never binding — the capability is latent, task pressure is
+### the open problem.
 
 ## Abstract
 
