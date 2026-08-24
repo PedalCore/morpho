@@ -103,6 +103,46 @@ def eval_sets(n=200, seed=7):
     return out
 
 
+def make_update(rng, facts=4, gap=8, rebinds=1):
+    """M5 stress: OVERWRITE fidelity. Store facts, then re-bind
+    `rebinds` of the keys to NEW values after a gap; query a re-bound
+    key — correct answer is the NEW value (the old one must be
+    overwritten, not superposed)."""
+    ks = rng.choice(KEYS, facts, replace=False)
+    vs1 = rng.choice(VALS, facts, replace=False)
+    body = list(np.stack([ks, vs1], 1).reshape(-1))
+    mid = list(np.full(gap, NULL))
+    ri = rng.choice(facts, rebinds, replace=False)
+    remaining = [v for v in VALS if v not in vs1]
+    vs2 = rng.choice(remaining, rebinds, replace=False)
+    body2 = list(np.stack([ks[ri], vs2], 1).reshape(-1))
+    qi = int(rng.choice(ri))
+    new_v = int(vs2[list(ri).index(qi)])
+    seq = np.concatenate([body, mid, body2, np.full(gap, NULL),
+                          [QUERY, ks[qi]], [new_v]]).astype(np.int64)
+    assert len(seq) <= CTX
+    return seq, len(seq) - 1, [new_v]
+
+
+def eval_sets_stress(n=200, seed=13):
+    """M5 capacity/fidelity stress grid (preregistered before the
+    diagonal ran on it): fact counts approaching the per-head state
+    dimension, plus overwrite cells."""
+    out = {}
+    def cells(tag, gen, **kw):
+        rng = np.random.default_rng(seed + hash(tag) % 1000)
+        out[tag] = [gen(rng, **kw) for _ in range(n)]
+    for f in (8, 12, 16):
+        cells(f'stress-facts@{f}', make_binding, facts=f, gap=8, n_fill=0)
+    for rb in (1, 2, 4):
+        cells(f'stress-update@{rb}', make_update, facts=4, gap=8, rebinds=rb)
+    cells('stress-update-far', make_update, facts=4, gap=40, rebinds=2)
+    return out
+
+
+
+
+
 def make_binding_pat(rng, facts=2, gap=16, pattern='pre', offset=2,
                      perm=None, qi=None):
     """Offset-varied binding (gate 3): the owner is NOT always the
@@ -166,7 +206,8 @@ def eval_sets_pat(n=200, seed=11):
     return out
 
 
-def train_stream(seed=TRAIN_SEED, batch=16, reachable=0, patterns=False):
+def train_stream(seed=TRAIN_SEED, batch=16, reachable=0, patterns=False,
+                 stress=False):
     """Mixed stream: the four locked M3 tasks + binding (equal weight).
     Binding params sampled across the sweep ranges so no eval cell is
     out-of-distribution. NOTE: this is a DIFFERENT training distribution
@@ -178,7 +219,11 @@ def train_stream(seed=TRAIN_SEED, batch=16, reachable=0, patterns=False):
         ex = []
         for _ in range(batch):
             t = names[int(rng.integers(len(names)))]
-            if t == 'binding' and patterns:
+            if t == 'binding' and stress and rng.random() < 0.5:
+                ex.append(make_update(rng, facts=int(rng.choice([2, 4])),
+                                      gap=int(rng.integers(4, 41)),
+                                      rebinds=int(rng.integers(1, 4))))
+            elif t == 'binding' and patterns:
                 pat = ['pre', 'post', 'far'][int(rng.integers(3))]
                 facts = int(rng.choice([2, 4]))
                 gap = int(rng.integers(4, 49))
