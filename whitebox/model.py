@@ -101,6 +101,11 @@ class Config:
                                      # indices (e.g. '1,3') — layer-placement
                                      # factorial: counters everywhere,
                                      # explicit associative memory sparse
+    block_conv: int = 0              # k>0: block-LEVEL causal depthwise conv
+                                     # (applies in every layer, incl. layers
+                                     # whose attention is plain CRSA) — the
+                                     # placement-separated composition:
+                                     # conv everywhere, slots in few layers
     slot_owner_sel: bool = False     # gate 3: LEARNED owner selector —
                                      # two banded micro-attentions (last 8
                                      # tokens) pick the write ADDRESS and
@@ -795,11 +800,21 @@ class BlockODLocal(nn.Module):
         self.lam = cfg.ista_lambda
         self.gamma = nn.Parameter(torch.tensor(0.5))   # relaxed update init
         self.identity = cfg.dict_identity
+        if cfg.block_conv:
+            k = cfg.block_conv
+            self.bconv = nn.Conv1d(d, d, k, groups=d, bias=False)
+            self.bconv_pad = k - 1
+        else:
+            self.bconv = None
         self.last_rate = None
         self.last_a = None
 
     def forward(self, z):
-        x = self.ln(z + self.attn(z))
+        a_in = z + self.attn(z)
+        if self.bconv is not None:
+            zc = F.pad(z.transpose(1, 2), (self.bconv_pad, 0))
+            a_in = a_in + self.bconv(zc).transpose(1, 2)
+        x = self.ln(a_in)
         pre = self.eta * (x @ self.D)                  # eta D^T x
         a = pre if self.identity else torch.relu(pre - self.eta * self.lam)
         self.last_rate = (a.detach() != 0).float().mean()
