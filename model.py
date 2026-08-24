@@ -590,6 +590,51 @@ class DecayedValue(nn.Module):
 
 
 
+class DeltaMem(nn.Module):
+    """M5 — implicit online-regression fast-weight memory (M5.md).
+    Per head, S_t solves the online ridge regression "key -> value":
+      S_t = g_t S_{t-1} + (b_t/(1+b_t||k||^2)) (v_t - g_t S_{t-1} k_t) k_t^T
+    read y_t = S_t q_t. Separate Q map (the M4 finding). v1 is the
+    EXACT SEQUENTIAL form — a chunkwise/WY parallel scan is the speed
+    work, gated on the step-zero benchmark (M5 gate 2)."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        d, H = cfg.n_embd, cfg.n_head
+        self.H, self.p = H, d // H
+        self.Wk = nn.Linear(d, d, bias=False)
+        self.Wv = nn.Linear(d, d, bias=False)
+        self.Wq = nn.Linear(d, d, bias=False)
+        self.Wo = nn.Linear(d, d, bias=False)
+        self.wg = nn.Linear(d, H)              # per-head decay gate
+        self.wb = nn.Linear(d, H)              # per-head write strength
+        nn.init.constant_(self.wg.bias, 3.0)   # sigmoid(3) ~ .95 retain
+        self.lnq = nn.LayerNorm(self.p)
+        self.lnk = nn.LayerNorm(self.p)
+
+    def forward(self, x):                      # (B, T, d)
+        B, T, d = x.shape
+        H, p = self.H, self.p
+        k = self.lnk(self.Wk(x).view(B, T, H, p)).permute(0, 2, 1, 3)
+        v = self.Wv(x).view(B, T, H, p).permute(0, 2, 1, 3)
+        q = self.lnq(self.Wq(x).view(B, T, H, p)).permute(0, 2, 1, 3)
+        g = torch.sigmoid(self.wg(x)).permute(0, 2, 1)        # B,H,T
+        b = F.softplus(self.wb(x)).permute(0, 2, 1)           # B,H,T
+        S = torch.zeros(B, H, p, p, device=x.device, dtype=x.dtype)
+        ys = []
+        for t in range(T):
+            kt, vt, qt = k[:, :, t], v[:, :, t], q[:, :, t]   # B,H,p
+            gt = g[:, :, t].unsqueeze(-1).unsqueeze(-1)
+            bt = b[:, :, t]
+            Sk = torch.einsum('bhij,bhj->bhi', gt * S, kt)
+            err = vt - Sk
+            coef = (bt / (1.0 + bt * (kt * kt).sum(-1))).unsqueeze(-1)
+            S = gt * S + torch.einsum('bhi,bhj->bhij', coef * err, kt)
+            ys.append(torch.einsum('bhij,bhj->bhi', S, qt))
+        y = torch.stack(ys, dim=2).permute(0, 2, 1, 3).reshape(B, T, d)
+        return self.Wo(y)
+
+
 class SlotCRSA(nn.Module):
     """M4 rung 3 — sparse representative memory with the MEASURED role
     asymmetry: k_t = v_t = U^T x_t (ONE tied memory basis, per the
@@ -714,6 +759,8 @@ class SlotCRSA(nn.Module):
 
 def _make_attn(cfg):
     """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
+    if cfg.attn == 'delta':
+        return DeltaMem(cfg)
     if cfg.attn == 'slots':
         return SlotCRSA(cfg)
     if cfg.attn in ('crsa', 'tssa') and cfg.local_window > 0:
