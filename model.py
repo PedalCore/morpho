@@ -635,6 +635,60 @@ class DeltaMem(nn.Module):
         return self.Wo(y)
 
 
+class LonghornMem(nn.Module):
+    """M5-Longhorn — the DIAGONAL approximation (Longhorn 2407.14207):
+    per element S[i,j]_t = (1 - e_t k_j^2) S[i,j]_{t-1} + e_t v_i k_j,
+    an elementwise varying-decay recurrence that admits a chunked scan
+    (unlike the exact rank-one correction). Same projections/gates as
+    DeltaMem for the matched comparison. Update magnitude clamped
+    (e k^2 <= 0.9) for scan stability; equivalence vs the sequential
+    diagonal reference is checked at build time (M5.md)."""
+
+    CHUNK = 16
+
+    def __init__(self, cfg):
+        super().__init__()
+        d, H = cfg.n_embd, cfg.n_head
+        self.H, self.p = H, d // H
+        self.Wk = nn.Linear(d, d, bias=False)
+        self.Wv = nn.Linear(d, d, bias=False)
+        self.Wq = nn.Linear(d, d, bias=False)
+        self.Wo = nn.Linear(d, d, bias=False)
+        self.we = nn.Linear(d, H)              # per-head learning rate
+        self.lnq = nn.LayerNorm(self.p)
+        self.lnk = nn.LayerNorm(self.p)
+
+    def forward(self, x):                      # (B, T, d)
+        B, T, d = x.shape
+        H, p = self.H, self.p
+        k = self.lnk(self.Wk(x).view(B, T, H, p)).permute(0, 2, 1, 3)
+        v = self.Wv(x).view(B, T, H, p).permute(0, 2, 1, 3)
+        q = self.lnq(self.Wq(x).view(B, T, H, p)).permute(0, 2, 1, 3)
+        e = torch.sigmoid(self.we(x)).permute(0, 2, 1).unsqueeze(-1)  # B,H,T,1
+        upd = (e * k * k).clamp(max=0.9)       # B,H,T,p  (per column j)
+        a = 1.0 - upd                          # decay per (t, j)
+        bsrc = torch.einsum('bhti,bhtj->bhtij', e.squeeze(-1).unsqueeze(-1) * v, k)
+        # scan over t for S[i,j]: s = a_j s + b_ij, a depends on (t,j)
+        C = self.CHUNK
+        carry = torch.zeros(B, H, p, p, device=x.device, dtype=x.dtype)
+        ys = []
+        for ci in range((T + C - 1) // C):
+            ac = a[:, :, ci*C:(ci+1)*C]                    # B,H,L,p
+            bc = bsrc[:, :, ci*C:(ci+1)*C]                 # B,H,L,p,p
+            L = ac.shape[2]
+            P = torch.cumprod(ac, dim=2)                   # B,H,L,p
+            # scan: S_t = P_t * (carry + sum_{s<=t} b_s / P_s)
+            Pj = P.unsqueeze(3)                            # B,H,L,1,p (over i)
+            inv = (1.0 / P.clamp(min=1e-20)).unsqueeze(3)  # B,H,L,1,p
+            acc = torch.cumsum(bc * inv, dim=2)
+            S_chunk = Pj * (carry.unsqueeze(2) + acc)
+            qy = torch.einsum('bhtij,bhtj->bhti', S_chunk, q[:, :, ci*C:(ci+1)*C])
+            ys.append(qy)
+            carry = S_chunk[:, :, -1]
+        y = torch.cat(ys, dim=2).permute(0, 2, 1, 3).reshape(B, T, d)
+        return self.Wo(y)
+
+
 class SlotCRSA(nn.Module):
     """M4 rung 3 — sparse representative memory with the MEASURED role
     asymmetry: k_t = v_t = U^T x_t (ONE tied memory basis, per the
@@ -759,6 +813,8 @@ class SlotCRSA(nn.Module):
 
 def _make_attn(cfg):
     """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
+    if cfg.attn == 'longhorn':
+        return LonghornMem(cfg)
     if cfg.attn == 'delta':
         return DeltaMem(cfg)
     if cfg.attn == 'slots':
