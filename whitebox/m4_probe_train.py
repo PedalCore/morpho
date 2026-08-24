@@ -74,6 +74,10 @@ ARCHS = {
     'slots-1L-g4': dict(attn='slots', slot_own_basis=True,
                         slot_prev_route=True, slot_groups=4,
                         slot_layer_set='2'),  # missing control: no conv
+    'm5-implicit': dict(attn='delta', mlp=True),  # M5 arm B: exact
+                       # proximal online-regression update (sequential
+                       # oracle implementation; NOT FLA/GDN — labeling
+                       # rule in M5.md)
     # placement-separated composition: block-conv every layer, grouped
     # oracle slots in ONE layer — three validated parts, structurally apart
     'slots-prev-1L': dict(attn='slots', slot_own_basis=True,
