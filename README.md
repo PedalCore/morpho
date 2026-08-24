@@ -20,10 +20,14 @@ a leaderboard entry.
 | plain CRSA d=672 | 13.8M | 9.72 |
 
 Neither had plateaued at schedule end. A reduced-LR extension of the
-dictionary model reached **8.08** (28.5k total steps, stopped early by
-decision — censored, still descending; schedule-limited estimate
-~7.8-8.0) before compute was redirected to the M4 binding/retrieval
-program, where the measured deficit actually lives.
+dictionary model reached 8.08 (28.5k steps, censored). The M4 program
+(binding/retrieval; see M4.md and PAPER-M4.md) then produced the
+current best: **slots-lm-v2 at 6.48** (20k from scratch, 17.1M —
+counters + overcomplete dictionary + owner-routed slots with a fully
+learned conv write path + grouped basis), 0.44 above a true untied
+QKV+MLP transformer reference at matched params (6.04 on its own 10k
+schedule; matched-schedule control owed) — with ~194 KB constant
+recurrent state versus a growing KV cache.
 
 **The operator ladder** (matched d=448 + identical 4d MLP, 3,000-step
 screens, one seed):
