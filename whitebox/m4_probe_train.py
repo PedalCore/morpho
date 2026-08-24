@@ -78,6 +78,8 @@ ARCHS = {
                        # proximal online-regression update (sequential
                        # oracle implementation; NOT FLA/GDN — labeling
                        # rule in M5.md)
+    'm5-longhorn': dict(attn='longhorn', mlp=True),  # diagonal approx
+                       # (1 - eps k^2) — the decisive comparison's fast arm
     # placement-separated composition: block-conv every layer, grouped
     # oracle slots in ONE layer — three validated parts, structurally apart
     'slots-prev-1L': dict(attn='slots', slot_own_basis=True,
