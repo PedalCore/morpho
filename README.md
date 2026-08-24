@@ -22,7 +22,7 @@ a leaderboard entry.
 Neither had plateaued at schedule end. A reduced-LR extension of the
 dictionary model reached 8.08 (28.5k steps, censored). The M4 program
 (binding/retrieval; see M4.md and PAPER-M4.md) then produced the
-current best: **slots-lm-v2 at 6.48** (20k from scratch, 17.1M —
+current best: **slots-lm-v2 at 6.48** (20k from scratch, 17.1M, campaign close —
 counters + overcomplete dictionary + owner-routed slots with a fully
 learned conv write path + grouped basis), 0.44 above a true untied
 QKV+MLP transformer reference at matched params (6.04 on its own 10k
