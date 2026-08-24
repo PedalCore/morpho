@@ -106,46 +106,78 @@ chance with every basis we tried, and a measured gradient tug-of-war
 <i>preceding token's</i> key — so the attribute lands in the drawer its
 owner opened — took binding from chance to 0.94 in one change:
 induction 1.00, selective recall 1.00, flat across delays, robust to
-distractors. And the capacity law is legible: eight slots hold eight
-facts and cliff at sixteen; sixteen slots dissolve the cliff (0.97).
-One durable binding per drawer.</div>
+distractors. And the capacity law is legible: binding capacity scales
+with slot count — eight slots are near-ceiling through eight active
+facts and degrade under sixteen; sixteen slots solve all sixteen
+(0.97). Soft slots can superpose beyond their nominal capacity (a
+grouped eight-slot variant reached 0.75 at sixteen facts), so the
+limit is gradual, not literally one fact per drawer.</div>
 </div>
 <p>The oracle rule "owner = previous token" then fell to a learned
 replacement: a four-tap causal convolution (1,792 parameters, a shift
 register in hardware) learns to blend the owner's identity into the
 attribute's representation before the write — binding 0.74 with
-nothing hard-wired. Pair <i>formation</i> is local in language; pair
-<i>retention</i> is global. The division of labor matches the
-linguistics.</p>
+nothing hard-wired. On the adjacent-owner grammar, pair
+<i>formation</i> could be learned by a local convolution while pair
+<i>retention</i> stayed global; generalization to displaced owners and
+unseen syntax remains an open gate.</p>
+
+<h2>finding three — separation mattered, connectivity didn't</h2>
+<div class="finding">
+<div class="t">Statistical and associative memory could not share a
+representation basis — but the independent basis did not need to be
+dense.</div>
+<div class="m">Matched owner-routed binding scored 0.201 with a basis
+shared with the counters versus 0.941 with an independent one, and
+both memory tasks degraded under sharing (a measured gradient
+conflict, cos −0.46 at layer 0). Yet a four-group block-diagonal basis
+reached or exceeded dense-basis binding at a quarter of its parameters
+(602k vs 2.41M at model scale). The two memories need separate spaces;
+within its own space, associative memory tolerates — even prefers —
+restricted connectivity.</div>
+</div>
 
 <h2>the language model</h2>
 <table>
-<tr><th>model (~matched params)</th><th>TinyStories ppl</th><th>inference state</th></tr>
-<tr><td>untied QKV + MLP transformer (19.4M)</td><td>6.04</td><td>KV cache, grows forever</td></tr>
-<tr><td><b>counters + dictionary + slots (17.1M)</b></td><td><b>6.48</b></td><td><b>~194 KB, constant</b></td></tr>
-<tr><td>previous best constant-state (14M)</td><td>8.08</td><td>constant</td></tr>
+<tr><th>model</th><th>params</th><th>steps</th><th>ppl</th><th>inference state</th></tr>
+<tr><td>untied QKV + MLP transformer</td><td>19.4M</td><td>10k</td><td>6.04</td><td>KV cache — grows linearly with retained context</td></tr>
+<tr><td><b>counters + dictionary + slots</b></td><td>17.1M</td><td>20k</td><td><b>6.48</b></td><td><b>~194 KB FP32, constant</b></td></tr>
+<tr><td>dictionary CRSA (previous best)</td><td>14.0M</td><td>~28.5k</td><td>8.08</td><td>constant</td></tr>
 </table>
 <p>The rebuilt memory system cut the family's best perplexity by 1.6
-and put a constant-state model within 0.44 of a true transformer at
-matched size — with no token-to-token attention, no growing cache, and
-every operator countable in gates. (Honest ledger: the reference ran a
-shorter schedule; a matched-schedule control would widen the gap
-somewhat, and the slot pathway currently trains 3× slower per step —
-an engineering, not architectural, deficit.)</p>
+(similar — not matched — parameters and schedules; a matched-schedule
+reference and a parameter-matched no-slot control are both owed, so
+the 1.6 is not yet causally attributable to slots alone). The state
+accounting is one equation: state = L·[d + M(d+1)] — at L=12, d=448,
+M=8 that is 48,480 values, ~194 KB FP32, versus a K/V cache of ~10.5
+MiB at context 256 and ~42 MiB at 1,024. Bounded recurrent state does
+not itself establish unbounded useful context: the model trained at
+finite context, and slot retention was probed through delay 96. On
+hardware: every sequence operator has a bounded realization — the
+counter datapath is synthesized (60 gates/coordinate); the fixed-size
+slot softmaxes await calibrated winner-take-all hardening and
+synthesis. The slot pathway also trains ~3× slower per step today — an
+engineering deficit (unfused scan), not an architectural one.</p>
 
 <h2>the twist</h2>
-<div class="twist">Here's what the counterfactual suite said about our
-new best model: <b>its binding machinery was idle.</b> Accuracy at
-chance, the same position-heuristic signature as before — in fact the
-heuristic <i>strengthened</i> as perplexity improved. The models get
-better at TinyStories by doubling down on position priors, never by
-learning ownership. The corpus is solvable to at least 6.0 perplexity
-without ever knowing who owns what — which is precisely why this
-deficit hides under every perplexity benchmark. Fluency pays.
-Memory doesn't. The binding capability our probes prove exists sits
-latent in the network, waiting for a task that rewards it — long-form
-consistency, question answering, or music, where a voice that forgets
-which hand owns it is not a rounding error but the whole failure.</div>
+<div class="twist">The counterfactual suite found no behavioral
+binding in the 6.48 checkpoint: candidate-restricted accuracy at
+stored-set chance, swap sensitivity reversing with mention order — the
+signature of a primacy heuristic, not ownership. This does not mean
+the slot pathway was unused (it may serve selective context or other
+functions), or that binding is latent in these particular weights; it
+means the architecture possesses binding capacity under explicit
+supervision, while TinyStories optimization did not express it. And
+the same suite run on the 6.04 transformer found the mirror image:
+accuracy at chance with the sign pattern of a <b>recency</b> heuristic
+(swap sensitivity up to ±0.6, following the latest mention). Neither
+architecture family binds on this corpus — each substitutes its own
+position prior, and aggregate perplexity improves to at least 6.04
+while counterfactually verified ownership remains absent. That is why
+this deficit hides under perplexity benchmarks, and why the next test
+belongs to a task that pays for memory — long-form consistency,
+question answering, or music, where a voice that forgets which hand
+owns it is not a rounding error but the whole failure.</div>
 
 <h2>what carried the work</h2>
 <p>Every mechanism entered through a preregistered probe with the
@@ -154,11 +186,17 @@ that caught two masquerades (a "ceiling" that couldn't bind, a grammar
 that leaked to a shortcut). Failures were kept and diagnosed — three
 mechanisms died the same cold-start death and taught a design rule
 (circuits must be reachable from initialization by gradient); a
-composition of two individually-proven parts failed and was caught by
-a thirty-minute probe rather than a shipped model. Fifteen probe arms,
-four language models, one seed each except where replicated — and the
-strongest results (query-map localization) replicated exactly, while
-the noisiest (slot formation) is reported as a range, not a headline.</p>
+composition of two individually-proven parts — the same-layer
+convolution-plus-grouped-basis stack, the very combination we had
+shipped — failed and was caught by a thirty-minute probe rather than a
+deployed model. Twenty-nine probe arms across thirty-plus runs and six
+language models, one seed each except where replicated: the strongest
+result (query-map localization) replicated exactly at 1.00, while the
+noisiest (slot-circuit formation) is reported as a range, not a
+headline. Counterfactual cells use 100 counterbalanced prompts each
+(binomial 95% CI ≈ ±0.10 at chance); "chance" is stored-set chance —
+1/N in the number of stored candidates — so every cell is judged
+against its own N.</p>
 
 <p class="note">Numbers: one controlled seed unless stated (slot
 binding replicated at 0.94/0.71/0.44 across three seeds — formation is
