@@ -590,6 +590,77 @@ class DecayedValue(nn.Module):
 
 
 
+class EAMem(nn.Module):
+    """M5-EAM — energy-addressed associative memory (M5.md; collaborator
+    spec). The parallelization law: addressing depends on the TOKEN
+    (conv-formed write key vs N static learned addresses), never on
+    memory contents -> every slot is a decayed prefix sum, exact
+    parallel training, recurrent constant-cost inference.
+      write: a_t = topk(k_t^T C);  M_j = rho_j M_j + a_tj v_t
+      read:  E_t(j) = -<Q q_t, C_j> - <R q_t, M_j>;  r_t = softmax(-E) M
+      aux:   L_ret = CE(softmax(-E(q_t)), route(k_t)) — align read
+             addressing with write addressing, per token, label-free.
+    NOT regression: retrieval trained contrastively against competing
+    addresses. v1: soft top-k (k=2 via renormalized topk), N=64,
+    dyadic decay groups."""
+
+    N, TOPK = 64, 2
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        self.d = d
+        self.conv = nn.Conv1d(d, d, 4, groups=d, bias=False)  # write former
+        self.Wk = nn.Linear(d, d, bias=False)
+        self.Wv = nn.Linear(d, d, bias=False)
+        self.Qm = nn.Linear(d, d, bias=False)   # query -> address space
+        self.Rm = nn.Linear(d, d, bias=False)   # query -> content space
+        self.C = nn.Parameter(torch.randn(self.N, d) / d ** 0.5)
+        self.out_scale = nn.Parameter(torch.tensor(0.1))
+        ms = [3 + (j % 8) for j in range(self.N)]
+        self.register_buffer('rho', torch.tensor(
+            [1.0 - 2.0 ** (-m) for m in ms]).float())
+        self.last_ret_loss = None
+
+    def _scan(self, v, rho):                   # v: (B,N,T,d) leaky cumsum
+        C = 128
+        T = v.shape[2]
+        ys, carry = [], torch.zeros_like(v[:, :, :1])
+        for ci in range((T + C - 1) // C):
+            vc = v[:, :, ci*C:(ci+1)*C]
+            L = vc.shape[2]
+            t = torch.arange(L, device=v.device, dtype=v.dtype).view(1, 1, L, 1)
+            y = (rho ** (t + 1)) * carry + \
+                (rho ** t) * torch.cumsum(vc * (rho ** (-t)), dim=2)
+            ys.append(y)
+            carry = y[:, :, -1:]
+        return torch.cat(ys, dim=2)
+
+    def forward(self, x):                      # (B, T, d)
+        B, T, d = x.shape
+        xc = F.pad(x.transpose(1, 2), (3, 0))
+        xw = self.conv(xc).transpose(1, 2) + x          # owner-aware
+        k = self.Wk(xw)
+        v = self.Wv(xw)
+        logits_w = k @ self.C.t()                       # B,T,N
+        top, idx = logits_w.topk(self.TOPK, dim=-1)
+        a = torch.zeros_like(logits_w).scatter(
+            -1, idx, torch.softmax(top, dim=-1))        # sparse weights
+        writes = a.permute(0, 2, 1).unsqueeze(-1) * v.unsqueeze(1)  # B,N,T,d
+        M = self._scan(writes, self.rho.view(1, self.N, 1, 1))      # B,N,T,d
+        q = x                                            # query from stream
+        Ea = self.Qm(q) @ self.C.t()                     # B,T,N
+        Ec = torch.einsum('btd,bntd->btn', self.Rm(q), M)
+        p = torch.softmax(Ea + Ec, dim=-1)               # read distribution
+        r = torch.einsum('btn,bntd->btd', p, M)
+        # contrastive retrieval alignment (label-free): read follows write
+        with torch.no_grad():
+            tgt = a.argmax(-1)                           # B,T
+        self.last_ret_loss = F.cross_entropy(
+            (Ea + Ec).reshape(-1, self.N), tgt.reshape(-1))
+        return self.out_scale * r
+
+
 class DeltaMem(nn.Module):
     """M5 — implicit online-regression fast-weight memory (M5.md).
     Per head, S_t solves the online ridge regression "key -> value":
@@ -813,6 +884,8 @@ class SlotCRSA(nn.Module):
 
 def _make_attn(cfg):
     """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
+    if cfg.attn == 'eam':
+        return EAMem(cfg)
     if cfg.attn == 'longhorn':
         return LonghornMem(cfg)
     if cfg.attn == 'delta':
