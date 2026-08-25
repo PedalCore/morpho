@@ -76,6 +76,9 @@ class Config:
     qkv_tie: str = ''          # minimum-untying factorial: '' (all
                                # separate) | 'qk' (Q=K, V separate) |
                                # 'kv' (K=V, Q separate)
+    lh_no_wv: bool = False     # faithful-Longhorn ablation: target is the
+                               # stream itself (v = per-head slice of x),
+                               # no learned value projection
     slot_own_basis: bool = False  # slots get their OWN k=v projection
                                   # instead of reusing CRSA's U (rules
                                   # out basis-sharing conflict)
@@ -730,6 +733,7 @@ class LonghornMem(nn.Module):
         self.we = nn.Linear(d, H)              # per-head learning rate
         self.K = H                              # instrumentation aliases
         self.U = self.Wk
+        self.no_wv = cfg.lh_no_wv
         self.lnq = nn.LayerNorm(self.p)
         self.lnk = nn.LayerNorm(self.p)
         self.lno = nn.LayerNorm(d)             # output norm: tames the
@@ -740,7 +744,8 @@ class LonghornMem(nn.Module):
         B, T, d = x.shape
         H, p = self.H, self.p
         k = self.lnk(self.Wk(x).view(B, T, H, p)).permute(0, 2, 1, 3)
-        v = self.Wv(x).view(B, T, H, p).permute(0, 2, 1, 3)
+        v = (x.view(B, T, H, p) if self.no_wv
+             else self.Wv(x).view(B, T, H, p)).permute(0, 2, 1, 3)
         q = self.lnq(self.Wq(x).view(B, T, H, p)).permute(0, 2, 1, 3)
         e = torch.sigmoid(self.we(x)).permute(0, 2, 1).unsqueeze(-1)  # B,H,T,1
         upd = (e * k * k).clamp(max=0.9)       # B,H,T,p  (per column j)

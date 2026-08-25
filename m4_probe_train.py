@@ -80,6 +80,8 @@ ARCHS = {
                        # rule in M5.md)
     'm5-longhorn': dict(attn='longhorn', mlp=True),  # diagonal approx
                        # (1 - eps k^2) — the decisive comparison's fast arm
+    'm5-lh-nowv': dict(attn='longhorn', mlp=True, lh_no_wv=True),
+                       # M6 item 1: faithful-Longhorn (stream as target)
     'm5-eam': dict(attn='eam', mlp=True),  # energy-addressed associative
                        # memory: contrastive retrieval, sparse static
                        # addressing, decayed-prefix-sum writes
