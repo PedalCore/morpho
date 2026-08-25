@@ -678,6 +678,8 @@ class DeltaMem(nn.Module):
         self.Wq = nn.Linear(d, d, bias=False)
         self.Wo = nn.Linear(d, d, bias=False)
         self.wg = nn.Linear(d, H)              # per-head decay gate
+        self.K = H                              # instrumentation aliases
+        self.U = self.Wk
         self.wb = nn.Linear(d, H)              # per-head write strength
         nn.init.constant_(self.wg.bias, 3.0)   # sigmoid(3) ~ .95 retain
         self.lnq = nn.LayerNorm(self.p)
@@ -715,7 +717,7 @@ class LonghornMem(nn.Module):
     (e k^2 <= 0.9) for scan stability; equivalence vs the sequential
     diagonal reference is checked at build time (M5.md)."""
 
-    CHUNK = 16
+    CHUNK = 16   # 0.1^16 = 1e-16 stays above the 1e-20 clamp; C=32 corrupts
 
     def __init__(self, cfg):
         super().__init__()
@@ -726,8 +728,13 @@ class LonghornMem(nn.Module):
         self.Wq = nn.Linear(d, d, bias=False)
         self.Wo = nn.Linear(d, d, bias=False)
         self.we = nn.Linear(d, H)              # per-head learning rate
+        self.K = H                              # instrumentation aliases
+        self.U = self.Wk
         self.lnq = nn.LayerNorm(self.p)
         self.lnk = nn.LayerNorm(self.p)
+        self.lno = nn.LayerNorm(d)             # output norm: tames the
+                                               # init-lottery scan explosion
+                                               # (GDN-standard; LM-scale fix)
 
     def forward(self, x):                      # (B, T, d)
         B, T, d = x.shape
@@ -738,26 +745,35 @@ class LonghornMem(nn.Module):
         e = torch.sigmoid(self.we(x)).permute(0, 2, 1).unsqueeze(-1)  # B,H,T,1
         upd = (e * k * k).clamp(max=0.9)       # B,H,T,p  (per column j)
         a = 1.0 - upd                          # decay per (t, j)
-        bsrc = torch.einsum('bhti,bhtj->bhtij', e.squeeze(-1).unsqueeze(-1) * v, k)
-        # scan over t for S[i,j]: s = a_j s + b_ij, a depends on (t,j)
+        ev = e.squeeze(-1).unsqueeze(-1) * v   # B,H,T,p (write values)
         C = self.CHUNK
-        carry = torch.zeros(B, H, p, p, device=x.device, dtype=x.dtype)
-        ys = []
-        for ci in range((T + C - 1) // C):
-            ac = a[:, :, ci*C:(ci+1)*C]                    # B,H,L,p
-            bc = bsrc[:, :, ci*C:(ci+1)*C]                 # B,H,L,p,p
-            L = ac.shape[2]
-            P = torch.cumprod(ac, dim=2)                   # B,H,L,p
-            # scan: S_t = P_t * (carry + sum_{s<=t} b_s / P_s)
-            Pj = P.unsqueeze(3)                            # B,H,L,1,p (over i)
-            inv = (1.0 / P.clamp(min=1e-20)).unsqueeze(3)  # B,H,L,1,p
+
+        def _chunk(carry, ac, evc, kc, qc):
+            # outer products computed HERE (per chunk) — never for full T
+            bc = torch.einsum('bhti,bhtj->bhtij', evc, kc)
+            P = torch.cumprod(ac, dim=2)
+            Pj = P.unsqueeze(3)
+            inv = (1.0 / P.clamp(min=1e-20)).unsqueeze(3)
             acc = torch.cumsum(bc * inv, dim=2)
             S_chunk = Pj * (carry.unsqueeze(2) + acc)
-            qy = torch.einsum('bhtij,bhtj->bhti', S_chunk, q[:, :, ci*C:(ci+1)*C])
+            qy = torch.einsum('bhtij,bhtj->bhti', S_chunk, qc)
+            return qy, S_chunk[:, :, -1]
+
+        carry = torch.zeros(B, H, p, p, device=x.device, dtype=x.dtype)
+        ys = []
+        use_ckpt = self.training and torch.is_grad_enabled()
+        for ci in range((T + C - 1) // C):
+            sl = slice(ci * C, (ci + 1) * C)
+            if use_ckpt:                       # recompute in backward:
+                qy, carry = torch.utils.checkpoint.checkpoint(
+                    _chunk, carry, a[:, :, sl], ev[:, :, sl],
+                    k[:, :, sl], q[:, :, sl], use_reentrant=False)
+            else:
+                qy, carry = _chunk(carry, a[:, :, sl], ev[:, :, sl],
+                                   k[:, :, sl], q[:, :, sl])
             ys.append(qy)
-            carry = S_chunk[:, :, -1]
         y = torch.cat(ys, dim=2).permute(0, 2, 1, 3).reshape(B, T, d)
-        return self.Wo(y)
+        return self.Wo(self.lno(y))
 
 
 class SlotCRSA(nn.Module):
