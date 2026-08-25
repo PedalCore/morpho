@@ -127,8 +127,10 @@ def main():
     device = ('cpu' if args.cpu else
               'mps' if torch.backends.mps.is_available() else 'cpu')
     torch.manual_seed(args.seed)
-    cfg = Config(vocab_size=probes.VOCAB, n_layer=4, n_embd=128, n_head=4,
-                 ctx=128, m2='b', m2_identity=True, **ARCHS[args.arch])
+    kw = dict(vocab_size=probes.VOCAB, n_layer=4, n_embd=128, n_head=4,
+              ctx=128, m2='b', m2_identity=True)
+    kw.update(ARCHS[args.arch])
+    cfg = Config(**kw)
     model = CausalCRATEM2(cfg).to(device)
     print(f'm4probe {args.arch} s{args.seed}: '
           f'{model.num_params()/1e3:.0f}k params on {device}', flush=True)

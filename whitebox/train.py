@@ -78,6 +78,8 @@ def main():
                     help='CRSA statistics attention instead of MSSA')
     ap.add_argument('--tssa-lit', action='store_true', dest='tssalit',
                     help='LITERAL published causal TSSA (ToST eq.28/31)')
+    ap.add_argument('--longhorn', action='store_true',
+                    help='M5 diagonal delta memory (Longhorn-form)')
     ap.add_argument('--qkv', action='store_true',
                     help='untied standard attention (separate Q/K/V/O) — '
                          'the true pairwise-attention reference')
@@ -119,7 +121,7 @@ def main():
                  dict_expand=args.dict_expand,
                  dict_local=args.dict_local, dict_identity=args.dict_identity,
                  mlp=args.mlp,
-                 attn='slots' if args.slots else 'qkv' if args.qkv else 'tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
+                 attn='slots' if args.slots else 'longhorn' if args.longhorn else 'qkv' if args.qkv else 'tssalit' if args.tssalit else 'tost' if args.tost else 'crsa' if args.crsa else 'mssa',
                  slot_own_basis=args.slots,
                  slot_prev_route=args.slots and not args.slot_self,
                  slot_m=args.slot_m, local_conv=args.slot_conv,

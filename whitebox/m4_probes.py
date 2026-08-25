@@ -112,6 +112,7 @@ def make_update(rng, facts=4, gap=8, rebinds=1):
     vs1 = rng.choice(VALS, facts, replace=False)
     body = list(np.stack([ks, vs1], 1).reshape(-1))
     mid = list(np.full(gap, NULL))
+    rebinds = min(rebinds, facts)
     ri = rng.choice(facts, rebinds, replace=False)
     remaining = [v for v in VALS if v not in vs1]
     vs2 = rng.choice(remaining, rebinds, replace=False)
