@@ -903,10 +903,67 @@ class SlotCRSA(nn.Module):
         return out
 
 
+class PairedProx(nn.Module):
+    """M6 bridge primitive — function-preserving sparse coder:
+    phi_tau(u) = [ReLU(u - tau); ReLU(-u - tau)], decode D init [I; -I]
+    => at tau = 0 the block is EXACTLY the identity (machine
+    precision), an active ReLU included. tau ramps in later, gated on
+    per-layer error tolerance (M6.md bridge protocol)."""
+
+    def __init__(self, d):
+        super().__init__()
+        self.D = nn.Parameter(torch.cat([torch.eye(d), -torch.eye(d)], 0))
+        self.log_tau = nn.Parameter(torch.full((2 * d,), -20.0))  # tau ~ 0
+        self.last_rate = None
+
+    def forward(self, u):
+        tau = self.log_tau.exp()
+        a = torch.relu(torch.cat([u, -u], dim=-1) - tau)
+        self.last_rate = (a.detach() != 0).float().mean()
+        return a @ self.D
+
+
+class MixedMem(nn.Module):
+    """M6 allocation hybrid: half the channels/heads run CRSA counters
+    (marginal statistics — cheap), half run the diagonal delta memory
+    (associative retrieval — expensive). The LM-scale form of the
+    head-allocation question: how much associative state does language
+    actually need?"""
+
+    def __init__(self, cfg):
+        super().__init__()
+        import dataclasses
+        d, H = cfg.n_embd, cfg.n_head
+        assert d % 2 == 0 and H % 2 == 0
+        half = dataclasses.replace(cfg, n_embd=d // 2, n_head=H // 2)
+        self.counter = CRSA(half)
+        self.delta = LonghornMem(half)
+        self.d2 = d // 2
+        # instrumentation aliases: block-diagonal projection over halves
+        self.K, self.p = H, d // H
+
+        class _BlockU(nn.Module):
+            def __init__(self, d2, ua, ub):
+                super().__init__()
+                self.d2, self.ua, self.ub = d2, ua, ub
+
+            def forward(self, z):
+                return torch.cat([self.ua(z[..., :self.d2]),
+                                  self.ub(z[..., self.d2:])], dim=-1)
+        self.U = _BlockU(self.d2, self.counter.U, self.delta.Wk)
+
+    def forward(self, x):
+        a = self.counter(x[..., :self.d2])
+        b = self.delta(x[..., self.d2:])
+        return torch.cat([a, b], dim=-1)
+
+
 def _make_attn(cfg):
     """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
     if cfg.attn == 'eam':
         return EAMem(cfg)
+    if cfg.attn == 'mixed':
+        return MixedMem(cfg)
     if cfg.attn == 'longhorn':
         return LonghornMem(cfg)
     if cfg.attn == 'delta':
