@@ -77,3 +77,15 @@ as efficient sufficient statistics, not failed attention.
 
 Substantive phase later: shared hg38 masked pretraining (Caduceus
 pipeline), repeated seeds (small sets are noisy).
+
+
+## First result — human_enhancers_cohn, counter arm (one seed)
+
+**RC-BiCRSA counters: 74.05% test accuracy** (8 epochs, from scratch,
+776k params, exact RC-invariance). Context: GenomicBenchmarks CNN/LSTM
+baselines ~68-70%; genome-pretrained foundation models (HyenaDNA, NT,
+Caduceus-class, 7-500M params) report ~73-75%. The counters reached
+the top of that band with no pretraining at ~1/100th size.
+Trajectory: 70.4 / 71.8 / 71.7 / 73.1 / 73.7 / 72.9 / 73.7 / 74.05.
+Longhorn arm running; CNN control last; splice-site negative control
+and repeat seeds queued as the follow-ons that make the claim airtight.
