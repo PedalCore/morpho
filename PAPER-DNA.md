@@ -147,6 +147,29 @@ separate.
   mechanistic result.
 - complementary wins ⇒ a 50/50 hybrid earns its run.
 
+## 3b. NT-suite results (LIVE; from-scratch, chromosome-held-out)
+
+| task | cnn | counter | longhorn |
+|---|---|---|---|
+| splice_sites_donors (600bp) | 76.37 | **76.80** | running |
+| H3K4me3 (1000bp) | 79.12 | running | queued |
+| enhancers (400bp) | 74.87 | queued | queued |
+
+**The negative control did not go negative — and the autopsy matters.**
+Counters were preregistered to LOSE splice donors (position-critical).
+They tied/edged the CNN instead. Diagnosis: in the NT splice tasks
+the candidate site is at a FIXED CENTERED position in every window,
+so "is the donor consensus present?" is a counting question — the
+task tests local pattern detection, not positional binding. Our
+control was mis-chosen, not the story disproven; but per the
+preregistration this must be treated as a strike against the
+sufficient-statistic interpretation until a TRUE positional test
+exists. That test is synthetic-ladder rungs 4-6 (fixed spacing /
+ordered pairs / distant association), now promoted from optional to
+REQUIRED for the M7 verdict. Lesson recorded: benchmark task names
+are not mechanistic task types; window construction decides what a
+task measures.
+
 ## 4. Engineering appendix (affects how speed claims may be made)
 
 The first Longhorn attempt ran >2h without completing epoch 1 and was
