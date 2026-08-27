@@ -47,7 +47,7 @@ def to_tensor(seqs, maxlen):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--arm', required=True,
-                    choices=['cnn', 'counter', 'longhorn'])
+                    choices=['cnn', 'counter', 'longhorn', 'mixed'])
     ap.add_argument('--task', default='human_enhancers_cohn')
     ap.add_argument('--epochs', type=int, default=8)
     ap.add_argument('--batch', type=int, default=64)
