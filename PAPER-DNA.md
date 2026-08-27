@@ -335,6 +335,31 @@ the whitebox construction permits much stronger tests:
   gate count under the "1/100th the size" claim and connect M7 back
   to the program's hardware thesis.
 
+## 6b. Reading-derived experiments (HPB-DNA ICLR'26 sub; TrinityDNA
+## 2507.19229) — added 2026-08-28
+
+1. **Complex (oscillatory) counters** — decaying sums with phase,
+   s <- lambda e^{j omega} s + x: the pitch tracker's C-statistic as
+   a sequence-model channel. Serves DNA periodicity (codon period 3,
+   nucleosome ~10.5 b — HPB's wavelet-path motivation, done
+   forward-only at constant state), and LANGUAGE position
+   sensitivity (the measured weak spot of counters AND delta
+   models). Dyadic omega keeps the shift-ladder hardware class.
+   The single highest-leverage new arm; test on synthetic
+   periodicity first, then LM position probes.
+2. **Stem upgrade (LPL-lite)**: multi-width kernel bases {3,5,7,11}
+   with token-conditioned mixture weights, replacing the single
+   static width-11 conv. M7 showed the trunk carries the results —
+   stem improvements now outrank mixer improvements.
+3. **Strand-identity test (running)**: exact RC-invariance averages
+   away strand — wrong prior for directional tasks (TrinityDNA uses
+   a learned RC gate instead). --no-rc arms on splice donors test
+   whether part of the 20-point pretrained gap is self-inflicted.
+4. Protocol note: HPB's matched reruns place HyenaDNA at 72.46 /
+   Caduceus-Ph 73.62 / ConvNova 73.82 on cohn (vs their own
+   pretrained 74.96) — our from-scratch 74.05/74.63 exceeds all
+   their baseline reruns.
+
 ## 7. Reproduction
 
 ```
