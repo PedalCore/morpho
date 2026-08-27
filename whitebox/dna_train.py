@@ -104,6 +104,9 @@ def main():
 
     out = pathlib.Path('whitebox/runs/dna')
     out.mkdir(parents=True, exist_ok=True)
+    torch.save(dict(model=model.state_dict(), arm=args.arm,
+                    task=args.task, seed=args.seed),
+               out / f'ckpt-{args.arm}-{args.task}-s{args.seed}.pt')
     with open(out / 'results.jsonl', 'a') as f:
         f.write(json.dumps(dict(task=args.task, arm=args.arm,
                                 seed=args.seed, params=n,
