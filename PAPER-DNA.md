@@ -151,9 +151,23 @@ separate.
 
 | task | cnn | counter | longhorn |
 |---|---|---|---|
-| splice_sites_donors (600bp) | 76.37 | **76.80** | running |
-| H3K4me3 (1000bp) | 79.12 | running | queued |
-| enhancers (400bp) | 74.87 | queued | queued |
+| splice_sites_donors (600bp) | 76.37 | 76.80 | **80.37** |
+| H3K4me3 (1000bp) | 79.12 | 79.51 | running |
+| enhancers (400bp) | 74.87 | 75.00 | queued |
+
+**THE SPLICE SEPARATION (the within-design headline).** Longhorn
++3.6 over counters, +4.0 over the CNN floor (~5 sigma at n=3000,
+single seed): the first real memory separation in M7, on exactly the
+task preregistered as retrieval-shaped. Adding counting to the trunk
+moves splice ~0.4 (noise); adding ASSOCIATIVE BINDING moves it +4.
+The task discriminates memory types; composition tasks don't.
+Remaining gap to pretrained (95-98.5 F1) = what genome-scale
+pretraining buys on top.
+
+**Strand test (no-RC): NEGATIVE, both arms.** cnn-norc 74.83
+(-1.5), counter-norc 74.93 (-1.9): exact RC averaging HELPS splice
+(two-strand ensembling) — the strand-identity concern measured
+false. TrinityDNA's learned-gate alternative is not supported here.
 
 **Metric correction — MCC/F1 (the literature's metrics), post-hoc
 from saved final-epoch checkpoints, vs published pretrained+finetuned
