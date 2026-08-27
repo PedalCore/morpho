@@ -257,7 +257,8 @@ The 2x3 interaction isolates the effect to BINDING: multi-scale
 token-conditioned features are inert under pooling and counting,
 +6 to +9 only under associative memory. And it is task-selective:
 longhorn-mstem H3K4me3 = 79.64 (vs 79.25 plain — nothing). The
-boost exists only where relations matter. From-scratch splice
+boost exists only where relations matter (enhancers check: 75.40
+vs 75.17 plain — null, completing the selectivity). From-scratch splice
 76 -> ~88 (two-seed mean) vs pretrained 94.7-98.5 F1-class.
 [Correction: an earlier commit claimed this paragraph was recorded
 when a script bug had dropped it; caught by assert, rewritten.]
