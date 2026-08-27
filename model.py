@@ -754,15 +754,21 @@ class LonghornMem(nn.Module):
         C = self.CHUNK
 
         def _chunk(carry, ac, evc, kc, qc):
-            # outer products computed HERE (per chunk) — never for full T
-            bc = torch.einsum('bhti,bhtj->bhtij', evc, kc)
-            P = torch.cumprod(ac, dim=2)
-            Pj = P.unsqueeze(3)
-            inv = (1.0 / P.clamp(min=1e-20)).unsqueeze(3)
-            acc = torch.cumsum(bc * inv, dim=2)
-            S_chunk = Pj * (carry.unsqueeze(2) + acc)
-            qy = torch.einsum('bhtij,bhtj->bhti', S_chunk, qc)
-            return qy, S_chunk[:, :, -1]
+            # chunked linear-attention form: the per-position (p x p)
+            # state is never materialized — reads factor through a
+            # (C x C) causal matrix, the carry updates once per chunk.
+            # Same math as the outer-product form (y_t[i] =
+            # sum_j P_t[j] (carry[i,j] + sum_{s<=t} ev_s[i] k_s[j]/P_s[j])
+            # q_t[j]), reassociated; ~9x less memory traffic.
+            P = torch.cumprod(ac, dim=2)                 # B,H,C,p
+            kt = kc / P.clamp(min=1e-20)
+            qt = qc * P
+            y = torch.einsum('bhtj,bhij->bhti', qt, carry)
+            A = torch.einsum('bhtj,bhsj->bhts', qt, kt).tril()
+            y = y + torch.einsum('bhts,bhsi->bhti', A, evc)
+            outer = torch.einsum('bhsi,bhsj->bhij', evc, kt)
+            S_end = P[:, :, -1].unsqueeze(-2) * (carry + outer)
+            return y, S_end
 
         carry = torch.zeros(B, H, p, p, device=x.device, dtype=x.dtype)
         ys = []
