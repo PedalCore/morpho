@@ -155,6 +155,11 @@ separate.
 | H3K4me3 (1000bp) | 79.12 | 79.51 | 79.25 |
 | enhancers (400bp) | 74.87 | 75.00 | 75.17 |
 
+COHN 3-SEED REPLICATION (final): cnn 73.70+/-0.24, counter
+73.77+/-0.33, longhorn 74.28+/-0.58. Counters: definitive null.
+Longhorn: small consistent edge — the same arm that separates on
+splice is the only one holding any cohn daylight.
+
 MATRIX COMPLETE (one seed): 8/9 cells are floor-ties; the single
 separation is association x the relational task (+4.0, ~5 sigma).
 Composition tasks do not discriminate memory designs; splice does,
