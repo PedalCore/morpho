@@ -179,6 +179,31 @@ family. In order of how much each closes:
    TRANSITION POINT along this ladder is the cleanest mechanistic
    finding available; nothing on real data substitutes for it.
 
+## 5b. Beyond accuracy: is what it learned USEFUL? (validation
+## program — none of these need pretraining or new data)
+
+Accuracy on a held-out split is the weakest evidence of learning;
+the whitebox construction permits much stronger tests:
+
+1. **Motif recovery**: align the stem's 128 width-11 filters against
+   JASPAR TF motifs. Rediscovering known enhancer-associated motifs
+   (AP-1/GATA/ETS-class) is external validation independent of any
+   test split. One matmul + a PWM scan.
+2. **In-silico saturation mutagenesis**: per-position prediction
+   deltas over test sequences; real enhancer models concentrate
+   importance on motif instances (comparable to published maps),
+   noise-fitters don't.
+3. **Motif-injection dose–response**: plant k motif copies in random
+   background; score must rise monotonically with k at the right
+   horizon scale. Turns "the counters count motifs" from
+   interpretation into measurement. (Synthetic ladder rungs 2–3,
+   run post-hoc on the trained model.)
+4. **Frozen-trunk transfer**: cohn-trained trunk + linear head on
+   ensembl enhancers / OCR vs from-scratch linear baseline —
+   reusable features vs dataset quirks.
+5. **Horizon attribution**: ablate each m at eval; which timescales
+   carry the decision (the whitebox answer to "what did it learn").
+
 ## 6. Future directions beyond the current task
 
 - **Species classification, length sweep** (HyenaDNA task): accuracy
