@@ -113,6 +113,21 @@ class MultiStem(nn.Module):
         return self.point((w.unsqueeze(2) * f).sum(1))
 
 
+class BiMixed(nn.Module):
+    """DNA hybrid (decision rule 4, triggered by the splice
+    separation): half channels BiCounter, half BiDelta."""
+
+    def __init__(self, d):
+        super().__init__()
+        self.counter = BiCounter(d // 2)
+        self.delta = BiDelta(d // 2)
+
+    def forward(self, x):
+        h = x.shape[-1] // 2
+        return torch.cat([self.counter(x[..., :h]),
+                          self.delta(x[..., h:])], dim=-1)
+
+
 class DNAClassifier(nn.Module):
     def __init__(self, arm='counter', d=128, n_layer=4, n_classes=2,
                  rc=True, stem='conv11'):
@@ -124,7 +139,8 @@ class DNAClassifier(nn.Module):
         self.blocks = nn.ModuleList()
         for _ in range(n_layer):
             mixer = (nn.Identity() if arm == 'cnn' else
-                     BiCounter(d) if arm == 'counter' else BiDelta(d))
+                     BiCounter(d) if arm == 'counter' else
+                     BiMixed(d) if arm == 'mixed' else BiDelta(d))
             self.blocks.append(nn.ModuleDict(dict(
                 ln1=nn.LayerNorm(d), mixer=mixer,
                 ln2=nn.LayerNorm(d),
