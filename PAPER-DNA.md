@@ -204,6 +204,27 @@ the whitebox construction permits much stronger tests:
 5. **Horizon attribution**: ablate each m at eval; which timescales
    carry the decision (the whitebox answer to "what did it learn").
 
+## 5c. PREREGISTERED predictions for the NT-suite runs (written
+## 2026-08-27, before any NT training)
+
+1. nt_enhancers (400bp, real negatives): counters ~ Longhorn, both
+   within ~1-2 pts of pretrained small models; absolute numbers drop
+   vs cohn for everyone.
+2. nt_H3K4me3 (1000bp): counters >= Longhorn (histone marks are
+   broad density signals — the counter-friendly extreme). Registered
+   caveat: slowest horizon half-life ~710b vs 1000b window; if
+   counters underperform, suspect ladder coverage first (m=12
+   diagnostic) before mechanism.
+3. nt_splice_sites_donors (600bp, NEGATIVE CONTROL): counters LOSE
+   clearly (positional geometry is unrepresentable in decaying
+   sums); Longhorn > counters; both likely trail pretrained models
+   more than on composition tasks. If counters do NOT lose here, the
+   sufficient-statistic interpretation of M7 is wrong somewhere.
+4. Hybrid trigger (decision rule 4): if 1-3 land as predicted
+   (complementary wins), the 50/50 MixedMem arm runs on
+   splice_sites_all / enhancers_types with the prediction that it
+   matches the better specialist on each.
+
 ## 6. Future directions beyond the current task
 
 - **Species classification, length sweep** (HyenaDNA task): accuracy
