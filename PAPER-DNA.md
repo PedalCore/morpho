@@ -96,10 +96,16 @@ labeled examples what the pretrained models bring from a genome.
 (An earlier draft said "1/100th the size" of the band generally —
 wrong for the SSM baselines; corrected, not patched silently.)
 
-**Longhorn arm — running.** Epoch 1: 64.0% (vs the counters' 70.4%
-opening). The counters gained 3.7 points over their remaining
-schedule; Longhorn needs a qualitatively steeper curve to reach
-74. Updates land here as epochs print.
+**Longhorn arm — FINAL: 74.63%** (best epoch = epoch 8). Trajectory:
+64.0, 72.9, 66.4, 73.0, 73.8, 73.3, 74.1, 74.63 — far more volatile
+than the counters' staircase, same destination class. At n=6,948 the
+0.58-point margin over the counters is ~1 sigma of test noise: the
+honest verdict is a STATISTICAL TIE leaning Longhorn (single seed;
+replication owed). Both from-scratch arms therefore sit at the top
+of the published pretrained cluster (74.0-74.7). Decision-rule
+branch: counters ~ Longhorn — the cost axis (32x less state, 78- vs
+522-gate cells, ~2x throughput) becomes the differentiator, pending
+the CNN floor.
 
 **CNN control — queued** (runs immediately after Longhorn). This arm
 prices the stem+MLP floor: how much of 74% is motif detection alone,
