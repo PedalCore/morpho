@@ -75,6 +75,15 @@ def main():
     model = DNAClassifier(arm=args.arm, n_classes=len(classes)).to(device)
     n = sum(p.numel() for p in model.parameters())
     print(f'arm {args.arm}: {n/1e3:.0f}k params on {device}', flush=True)
+    try:
+        import wandb
+        wb = wandb.init(project='morpho-whitebox-dna',
+                        name=f'{args.arm}-{args.task}-s{args.seed}',
+                        config=dict(arm=args.arm, task=args.task,
+                                    seed=args.seed, params=n,
+                                    epochs=args.epochs))
+    except Exception:
+        wb = None
     opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
     steps_per_epoch = (len(tr_s) + args.batch - 1) // args.batch
     total = steps_per_epoch * args.epochs
@@ -109,6 +118,8 @@ def main():
         if tb is not None:
             tb.add_scalar('test_acc', acc, ep + 1)
             tb.add_scalar('train_loss', float(loss), ep + 1)
+        if wb is not None:
+            wb.log(dict(test_acc=acc, train_loss=float(loss)), step=ep + 1)
         print(f'epoch {ep+1}/{args.epochs} test acc {acc:.4f} '
               f'({time.time()-t0:.0f}s)', flush=True)
 
@@ -121,6 +132,9 @@ def main():
         f.write(json.dumps(dict(task=args.task, arm=args.arm,
                                 seed=args.seed, params=n,
                                 best_acc=round(best, 4))) + '\n')
+    if wb is not None:
+        wb.summary['best_acc'] = best
+        wb.finish()
     print(f'FINAL {args.arm} {args.task} best_acc {best:.4f}', flush=True)
 
 
