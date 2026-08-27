@@ -87,8 +87,9 @@ vs shift-ladder counter cells at 78).
 **Counter arm — FINAL: 74.05%** (best epoch; 8 epochs, from scratch,
 776k params). Trajectory: 70.4, 71.8, 71.7, 73.1, 73.7, 72.9, 73.7,
 74.05. Read against the context numbers: inside the pretrained
-leaderboard cluster (74.0–74.7) with NO pretraining — same size
-class as HyenaDNA-tiny/Caduceus, ~1/150th of DNABERT — under exact
+leaderboard cluster (74.0–74.7) with NO pretraining — at 776k we are
+in fact ~1.7x LARGER than the strongest small baselines (HyenaDNA
+436k, Caduceus 470k; ~1/140th of DNABERT) — under exact
 RC-invariance, with a mixer that is entirely decaying sums. The
 claim this supports: decaying multiscale statistics extract from 21k
 labeled examples what the pretrained models bring from a genome.
