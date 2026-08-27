@@ -38,11 +38,16 @@ first *hard* task — motif-density shaped, not trivially
 compositional. (coding_vs_intergenomic was run as smoke only;
 success there is not a result.)
 
-Published context for calibration:
-- GenomicBenchmarks paper baselines (CNN/LSTM): ~68–70%.
-- Genome-pretrained foundation models (HyenaDNA, Nucleotide
-  Transformer, Caduceus-class; 7–500M params, genome-scale
-  pretraining): ~73–75%.
+Published context for calibration (checked 2026-08-27 against the
+HyenaDNA and Caduceus reporting): CNN baseline 69.5; GPT 70.5;
+DNABERT (110M, pretrained) 74.0; HyenaDNA (tiny-1k-d256, <2M,
+hg38-pretrained) 74.2; ConvNova 74.3; Caduceus-Ph (small,
+hg38-pretrained) 74.7. NOTE the size structure: the strong modern
+baselines are SMALL pretrained models — the parameter gap is only
+dramatic vs the transformers (DNABERT/NT class). The honest axis of
+comparison for us is PRETRAINING: every model above 71 in that list
+saw the whole human genome first; our arms see only the 21k task
+examples.
 
 **Matched design.** Three arms share EVERYTHING except the mixer:
 single-base tokens (A/C/G/T/N), motif conv stem (width 11, GELU,
@@ -81,10 +86,14 @@ vs shift-ladder counter cells at 78).
 
 **Counter arm — FINAL: 74.05%** (best epoch; 8 epochs, from scratch,
 776k params). Trajectory: 70.4, 71.8, 71.7, 73.1, 73.7, 72.9, 73.7,
-74.05. Read against the context numbers: at the top of the published
-foundation-model band, with no pretraining, at ~1/100th their size,
-under exact RC-invariance, with a mixer that is entirely decaying
-sums.
+74.05. Read against the context numbers: inside the pretrained
+leaderboard cluster (74.0–74.7) with NO pretraining — same size
+class as HyenaDNA-tiny/Caduceus, ~1/150th of DNABERT — under exact
+RC-invariance, with a mixer that is entirely decaying sums. The
+claim this supports: decaying multiscale statistics extract from 21k
+labeled examples what the pretrained models bring from a genome.
+(An earlier draft said "1/100th the size" of the band generally —
+wrong for the SSM baselines; corrected, not patched silently.)
 
 **Longhorn arm — running.** Epoch 1: 64.0% (vs the counters' 70.4%
 opening). The counters gained 3.7 points over their remaining

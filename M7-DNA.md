@@ -82,10 +82,14 @@ pipeline), repeated seeds (small sets are noisy).
 ## First result — human_enhancers_cohn, counter arm (one seed)
 
 **RC-BiCRSA counters: 74.05% test accuracy** (8 epochs, from scratch,
-776k params, exact RC-invariance). Context: GenomicBenchmarks CNN/LSTM
-baselines ~68-70%; genome-pretrained foundation models (HyenaDNA, NT,
-Caduceus-class, 7-500M params) report ~73-75%. The counters reached
-the top of that band with no pretraining at ~1/100th size.
+776k params, exact RC-invariance). Context (verified 2026-08-27):
+CNN 69.5, GPT 70.5, DNABERT(110M) 74.0, HyenaDNA-tiny(<2M) 74.2,
+ConvNova 74.3, Caduceus-Ph 74.7 — all models above 71 are
+hg38-PRETRAINED; the strong modern ones are small. Honest claim:
+counters match the pretrained cluster from scratch at comparable
+size (1/150th of DNABERT only). [Correction: an earlier version of
+this entry said "~1/100th size" of the band generally — wrong for
+HyenaDNA/Caduceus, which are tiny.]
 Trajectory: 70.4 / 71.8 / 71.7 / 73.1 / 73.7 / 72.9 / 73.7 / 74.05.
 Longhorn arm running; CNN control last; splice-site negative control
 and repeat seeds queued as the follow-ons that make the claim airtight.
