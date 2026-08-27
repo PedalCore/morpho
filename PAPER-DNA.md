@@ -213,6 +213,36 @@ REQUIRED for the M7 verdict. Lesson recorded: benchmark task names
 are not mechanistic task types; window construction decides what a
 task measures.
 
+## 3c. Synthetic positional ladder v1 — verdict (2026-08-28)
+
+| rung | cnn | counter | longhorn |
+|---|---|---|---|
+| count (>=6 vs <=3) | 99.9 | 99.9 | 100.0 |
+| spacing (gap 20+/-2) | 50.2 | 50.7 | 50.7 |
+| order (A<B vs B<A) | 50.3 | 52.1 | 51.1 |
+| assoc (XOR var/presence) | 99.0 | VOID | VOID |
+
+Three preregistration failures, all informative:
+1. count does not separate cnn from counters — mean-pooling IS a
+   global counter (should have been foreseen).
+2. NOBODY solves spacing or order — including Longhorn. The
+   prediction "binding solves position" is falsified at these
+   scales/schedules. Chance-flat curves suggest no gradient signal,
+   so can't-represent vs can't-learn is unresolved.
+3. assoc LEAKED: mean-pool gives the activation SUM, max-pool the
+   OR, and {sum, OR} linearly separate the XOR configurations. A
+   nonlinear global pooling statistic voids marginal-uninformative
+   reasoning. Any arm passes; the rung tests nothing about binding.
+
+Consequences: the splice separation (3b) currently has NO
+demonstrated mechanism — surviving candidates are short-range
+conjunctions (splice relations live in ~10-30 bp; the ladder tested
+20-200) and optimization horizon. LADDER v2 REQUIRED: leak-proof
+assoc (multi-instance with distractors so pooled sums/ORs are
+ambiguous), short-range rung variants, and a long-training spacing
+arm. Until v2, "association wins splice" is a measured RESULT with
+an unproven mechanism, and must be quoted as such.
+
 ## 4. Engineering appendix (affects how speed claims may be made)
 
 The first Longhorn attempt ran >2h without completing epoch 1 and was
