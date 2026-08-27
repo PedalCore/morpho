@@ -229,10 +229,23 @@ Three preregistration failures, all informative:
    prediction "binding solves position" is falsified at these
    scales/schedules. Chance-flat curves suggest no gradient signal,
    so can't-represent vs can't-learn is unresolved.
-3. assoc LEAKED: mean-pool gives the activation SUM, max-pool the
-   OR, and {sum, OR} linearly separate the XOR configurations. A
-   nonlinear global pooling statistic voids marginal-uninformative
-   reasoning. Any arm passes; the rung tests nothing about binding.
+3. assoc LEAKED — but with an inversion: cnn 99.0, counter 54.6,
+   longhorn 69.9. Mean-pool gives the activation SUM, max-pool the
+   OR, and {sum, OR} linearly separate the XOR configurations — the
+   cnn's clean detector features find that trick; the rung is void
+   as a binding test regardless. NEW OBSERVATION from the inversion:
+   the memory mixers SMEAR the pooled detector statistics and score
+   far worse on the same leak — memory layers can actively interfere
+   with pooled-statistic solutions the bare trunk finds trivially.
+   Candidate explanation for why memory arms never beat the floor on
+   composition tasks.
+
+MULTI-STEM (LPL-lite) VERDICT — negative: cnn-mstem scored 72.96
+cohn / 78.61 H3K4me3 / 75.17 splice, all below the static-stem
+floor (73.45+/79.12/76.37), at 160k fewer params (551k vs 711k).
+No free lunch from token-conditioned multi-width bases at reduced
+capacity; a param-matched rematch is the only fair follow-up, and
+is NOT queued (low priority against ladder v2).
 
 Consequences: the splice separation (3b) currently has NO
 demonstrated mechanism — surviving candidates are short-range
