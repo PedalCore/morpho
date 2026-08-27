@@ -152,8 +152,14 @@ separate.
 | task | cnn | counter | longhorn |
 |---|---|---|---|
 | splice_sites_donors (600bp) | 76.37 | 76.80 | **80.37** |
-| H3K4me3 (1000bp) | 79.12 | 79.51 | running |
-| enhancers (400bp) | 74.87 | 75.00 | queued |
+| H3K4me3 (1000bp) | 79.12 | 79.51 | 79.25 |
+| enhancers (400bp) | 74.87 | 75.00 | 75.17 |
+
+MATRIX COMPLETE (one seed): 8/9 cells are floor-ties; the single
+separation is association x the relational task (+4.0, ~5 sigma).
+Composition tasks do not discriminate memory designs; splice does,
+and only binding wins it. (Longhorn H3K4me3/enhancers ran on the
+verified FLA path; splice on the exact scan.)
 
 **THE SPLICE SEPARATION (the within-design headline).** Longhorn
 +3.6 over counters, +4.0 over the CNN floor (~5 sigma at n=3000,
