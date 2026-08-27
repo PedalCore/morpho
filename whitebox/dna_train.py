@@ -53,7 +53,14 @@ def main():
     ap.add_argument('--batch', type=int, default=64)
     ap.add_argument('--seed', type=int, default=0)
     args = ap.parse_args()
-    device = 'mps' if torch.backends.mps.is_available() else 'cpu'
+    device = ('cuda' if torch.cuda.is_available() else
+              'mps' if torch.backends.mps.is_available() else 'cpu')
+    try:
+        from torch.utils.tensorboard import SummaryWriter
+        tb = SummaryWriter(
+            f'whitebox/runs/tb/{args.arm}-{args.task}-s{args.seed}')
+    except ImportError:
+        tb = None
     torch.manual_seed(args.seed)
 
     tr_s, tr_y, classes = load_split(args.task, 'train')
@@ -99,6 +106,9 @@ def main():
                 correct += int((pred == Yte[bi:bi+256]).sum())
         acc = correct / len(te_s)
         best = max(best, acc)
+        if tb is not None:
+            tb.add_scalar('test_acc', acc, ep + 1)
+            tb.add_scalar('train_loss', float(loss), ep + 1)
         print(f'epoch {ep+1}/{args.epochs} test acc {acc:.4f} '
               f'({time.time()-t0:.0f}s)', flush=True)
 
