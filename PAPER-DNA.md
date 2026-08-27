@@ -245,12 +245,22 @@ Three preregistration failures, all informative:
    Candidate explanation for why memory arms never beat the floor on
    composition tasks.
 
-MULTI-STEM (LPL-lite) VERDICT — negative: cnn-mstem scored 72.96
-cohn / 78.61 H3K4me3 / 75.17 splice, all below the static-stem
-floor (73.45+/79.12/76.37), at 160k fewer params (551k vs 711k).
-No free lunch from token-conditioned multi-width bases at reduced
-capacity; a param-matched rematch is the only fair follow-up, and
-is NOT queued (low priority against ladder v2).
+MULTI-STEM (LPL-lite): negative ALONE, transformative COMPOSED —
+and the composition is CONTROLLED and RELATIONAL-SPECIFIC.
+Alone: cnn-mstem lost everywhere (72.96 cohn / 78.61 H3K4me3 /
+75.17 splice vs floors 73.45+/79.12/76.37, at -160k params).
+Composed, splice column (acc):
+  cnn 76.4 / cnn-mstem 75.2
+  counter 76.8 / counter-mstem 75.5
+  longhorn 80.4 / longhorn-mstem 86.4 (s0), 89.6 (s1)
+The 2x3 interaction isolates the effect to BINDING: multi-scale
+token-conditioned features are inert under pooling and counting,
++6 to +9 only under associative memory. And it is task-selective:
+longhorn-mstem H3K4me3 = 79.64 (vs 79.25 plain — nothing). The
+boost exists only where relations matter. From-scratch splice
+76 -> ~88 (two-seed mean) vs pretrained 94.7-98.5 F1-class.
+[Correction: an earlier commit claimed this paragraph was recorded
+when a script bug had dropped it; caught by assert, rewritten.]
 
 Consequences: the splice separation (3b) currently has NO
 demonstrated mechanism — surviving candidates are short-range
