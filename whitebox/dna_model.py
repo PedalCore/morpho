@@ -88,7 +88,11 @@ class BiDelta(nn.Module):
         self.mem = LonghornMem(cfg)
 
     def forward(self, x):
-        return 0.5 * (self.mem(x) + self.mem(x.flip(1)).flip(1))
+        # Both directions stacked into the batch: one scan call instead of
+        # two (MPS dispatch overhead dominates at this width).
+        B = x.shape[0]
+        y = self.mem(torch.cat([x, x.flip(1)], 0))
+        return 0.5 * (y[:B] + y[B:].flip(1))
 
 
 class DNAClassifier(nn.Module):
@@ -121,5 +125,8 @@ class DNAClassifier(nn.Module):
         return self.head(pooled)
 
     def forward(self, tokens):
-        """RC-equivariant: average logits over strand and its RC."""
-        return 0.5 * (self._trunk(tokens) + self._trunk(rc(tokens)))
+        """RC-equivariant: average logits over strand and its RC.
+        Both strands run as one batched trunk call."""
+        B = tokens.shape[0]
+        logits = self._trunk(torch.cat([tokens, rc(tokens)], 0))
+        return 0.5 * (logits[:B] + logits[B:])
