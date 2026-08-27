@@ -740,6 +740,15 @@ class LonghornMem(nn.Module):
                                                # init-lottery scan explosion
                                                # (GDN-standard; LM-scale fix)
 
+    @staticmethod
+    def _fla_ok():
+        import importlib.util
+        import os
+        if os.environ.get('MORPHO_NO_FLA'):
+            return False
+        return (torch.cuda.is_available()
+                and importlib.util.find_spec('fla') is not None)
+
     def forward(self, x):                      # (B, T, d)
         B, T, d = x.shape
         H, p = self.H, self.p
@@ -769,6 +778,19 @@ class LonghornMem(nn.Module):
             outer = torch.einsum('bhsi,bhsj->bhij', evc, kt)
             S_end = P[:, :, -1].unsqueeze(-2) * (carry + outer)
             return y, S_end
+
+        if self._fla_ok() and x.is_cuda:
+            # fused GLA kernel — verified vs the sequential reference at
+            # rel 6.6e-4 (fp32), 7.6x faster at DNA shapes (task #54).
+            # Our S[i,j] <- a_j S + ev_i k_j is GLA transposed:
+            # (q,k,v,alpha) -> (q, k, ev, a), layout (B,T,H,p).
+            from fla.ops.gla import chunk_gla
+            g = a.clamp(min=1e-20).log()
+            o = chunk_gla(*(t.transpose(1, 2).contiguous()
+                            for t in (q, k, ev, g)), scale=1.0)
+            o = o[0] if isinstance(o, tuple) else o
+            y = o.transpose(1, 2).permute(0, 2, 1, 3).reshape(B, T, d)
+            return self.Wo(self.lno(y))
 
         carry = torch.zeros(B, H, p, p, device=x.device, dtype=x.dtype)
         ys = []
