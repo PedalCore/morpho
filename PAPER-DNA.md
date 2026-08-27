@@ -155,6 +155,29 @@ separate.
 | H3K4me3 (1000bp) | 79.12 | running | queued |
 | enhancers (400bp) | 74.87 | queued | queued |
 
+**Metric correction — MCC/F1 (the literature's metrics), post-hoc
+from saved final-epoch checkpoints, vs published pretrained+finetuned
+baselines (ConvNova paper, 5 seeds):**
+
+| task | metric | NTv2 | HyenaDNA | Caduceus-Ph | ConvNova | our cnn | our counter |
+|---|---|---|---|---|---|---|---|
+| H3K4me3 | MCC | 50.3 | 50.4 | 56.7 | 67.2 | 58.3 | 57.5 |
+| enhancers | MCC | 54.5 | 53.1 | 55.2 | 57.6 | 50.5 | 50.4 |
+| splice donors | F1 | 98.5 | 95.3 | 94.7 | 96.6 | 76.8 | 76.7 |
+
+Three separated regimes invisible in accuracy: (1) H3K4me3 — our
+FROM-SCRATCH trunk beats 4/5 pretrained baselines (only ConvNova
+ahead); histone marks need no pretraining, and the win belongs to
+the shared trunk, not the memory. (2) enhancers — pretraining is
+worth a real 3-7 MCC. (3) splice donors — we are crushed (77 vs
+95-98.5): BOTH our arms fail equally at the task pretrained models
+nearly solve. The counter~CNN accuracy tie had concealed a 20-point
+cross-model gap; the position hypothesis returns at the pretraining
+level. Longhorn's pending splice run is now the live question: does
+associative state close any of it? Trainer logs MCC natively from
+here on. Protocol caveats: their numbers are 10-fold/5-seed
+fine-tuning; ours single-seed final-epoch.
+
 **The negative control did not go negative — and the autopsy matters.**
 Counters were preregistered to LOSE splice donors (position-critical).
 They tied/edged the CNN instead. Diagnosis: in the NT splice tasks

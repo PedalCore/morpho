@@ -107,21 +107,29 @@ def main():
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             opt.step(); sched.step()
         model.eval()
-        correct = 0
+        preds = []
         with torch.no_grad():
             for bi in range(0, len(te_s), 256):
                 xb = Xte[bi:bi+256].to(device)
-                pred = model(xb).argmax(-1).cpu()
-                correct += int((pred == Yte[bi:bi+256]).sum())
-        acc = correct / len(te_s)
+                preds.append(model(xb).argmax(-1).cpu())
+        p = torch.cat(preds)
+        acc = float((p == Yte).float().mean())
+        tp = int(((p == 1) & (Yte == 1)).sum())
+        tn = int(((p == 0) & (Yte == 0)).sum())
+        fp = int(((p == 1) & (Yte == 0)).sum())
+        fn = int(((p == 0) & (Yte == 1)).sum())
+        import math as _m
+        mcc = (tp*tn - fp*fn) / _m.sqrt(
+            max((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn), 1))
         best = max(best, acc)
         if tb is not None:
             tb.add_scalar('test_acc', acc, ep + 1)
             tb.add_scalar('train_loss', float(loss), ep + 1)
         if wb is not None:
-            wb.log(dict(test_acc=acc, train_loss=float(loss)), step=ep + 1)
+            wb.log(dict(test_acc=acc, test_mcc=mcc,
+                        train_loss=float(loss)), step=ep + 1)
         print(f'epoch {ep+1}/{args.epochs} test acc {acc:.4f} '
-              f'({time.time()-t0:.0f}s)', flush=True)
+              f'mcc {mcc:.4f} ({time.time()-t0:.0f}s)', flush=True)
 
     out = pathlib.Path('whitebox/runs/dna')
     out.mkdir(parents=True, exist_ok=True)
