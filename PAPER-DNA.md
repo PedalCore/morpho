@@ -107,9 +107,37 @@ branch: counters ~ Longhorn — the cost axis (32x less state, 78- vs
 522-gate cells, ~2x throughput) becomes the differentiator, pending
 the CNN floor.
 
-**CNN control — queued** (runs immediately after Longhorn). This arm
-prices the stem+MLP floor: how much of 74% is motif detection alone,
-no recurrence at all?
+**CNN control — FINAL: 73.45%** (best epoch 4; trajectory 64.9,
+72.2, 72.3, 73.45, 73.3, 72.2, 73.1, 73.4). The floor is HIGH.
+
+**The completed cohn triple** (one seed, test n=6,948, sigma per
+number ~0.5):
+
+| arm | best acc | vs floor |
+|---|---|---|
+| cnn (stem+MLP, no memory) | 73.45 | — |
+| counter | 74.05 | +0.60 (~0.8 sigma) |
+| longhorn | 74.63 | +1.18 (~1.6 sigma) |
+
+HONEST VERDICT ON COHN: all three arms land in a 1.2-point band that
+overlaps the pretrained leaderboard cluster. The memory arms' edge
+over the memory-free floor is within (counter) or barely beyond
+(Longhorn) single-seed noise. Two reframings follow:
+
+1. The headline moves to the STEM: a 711k RC-invariant stem+MLP
+   from scratch scores 73.45 where the published CNN baseline is
+   69.5 — our +4 points come from RC-invariance + mean/max pooling +
+   recipe, NOT from memory. Cohn barely discriminates memory designs
+   at all.
+2. The memory-value question transfers to the seed replication
+   (does +0.6/+1.2 survive?) and to the NT tasks, where floors and
+   arms can separate. Cohn's role in the story shrinks to: "all
+   three arms match genome-pretrained models from scratch."
+
+Decision-rule reading: closest to counters ~ CNN ~ Longhorn — cohn
+is (mostly) solvable without recurrence, which rule 2 did not
+anticipate as a three-way tie; the rules bind on tasks that
+separate.
 
 **Preregistered decision rules** (M7-DNA.md, verbatim):
 - counters ≈ Longhorn > CNN ⇒ counters are the right sufficient
