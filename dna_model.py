@@ -95,13 +95,32 @@ class BiDelta(nn.Module):
         return 0.5 * (y[:B] + y[B:].flip(1))
 
 
+class MultiStem(nn.Module):
+    """LPL-lite (HPB, ICLR'26 sub): depthwise kernel bases of widths
+    {3,5,7,11} combined by TOKEN-CONDITIONED mixture weights, then a
+    pointwise mix. ~4k params over the static stem."""
+
+    def __init__(self, d, ks=(3, 5, 7, 11)):
+        super().__init__()
+        self.bases = nn.ModuleList(
+            nn.Conv1d(d, d, k, padding=k // 2, groups=d) for k in ks)
+        self.wsel = nn.Conv1d(d, len(ks), 1)
+        self.point = nn.Conv1d(d, d, 1)
+
+    def forward(self, xc):                       # (B, d, T)
+        w = torch.softmax(self.wsel(xc), 1)      # (B, K, T)
+        f = torch.stack([b(xc) for b in self.bases], 1)   # (B, K, d, T)
+        return self.point((w.unsqueeze(2) * f).sum(1))
+
+
 class DNAClassifier(nn.Module):
     def __init__(self, arm='counter', d=128, n_layer=4, n_classes=2,
-                 rc=True):
+                 rc=True, stem='conv11'):
         super().__init__()
         self.rc = rc
         self.emb = nn.Embedding(5, d)
-        self.stem = nn.Conv1d(d, d, 11, padding=5)   # motif detector
+        self.stem = (MultiStem(d) if stem == 'multi'
+                     else nn.Conv1d(d, d, 11, padding=5))
         self.blocks = nn.ModuleList()
         for _ in range(n_layer):
             mixer = (nn.Identity() if arm == 'cnn' else
