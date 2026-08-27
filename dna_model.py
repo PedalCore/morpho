@@ -96,8 +96,10 @@ class BiDelta(nn.Module):
 
 
 class DNAClassifier(nn.Module):
-    def __init__(self, arm='counter', d=128, n_layer=4, n_classes=2):
+    def __init__(self, arm='counter', d=128, n_layer=4, n_classes=2,
+                 rc=True):
         super().__init__()
+        self.rc = rc
         self.emb = nn.Embedding(5, d)
         self.stem = nn.Conv1d(d, d, 11, padding=5)   # motif detector
         self.blocks = nn.ModuleList()
@@ -125,8 +127,11 @@ class DNAClassifier(nn.Module):
         return self.head(pooled)
 
     def forward(self, tokens):
-        """RC-equivariant: average logits over strand and its RC.
-        Both strands run as one batched trunk call."""
+        """RC-equivariant: average logits over strand and its RC
+        (batched as one trunk call). rc=False: single strand —
+        strand identity PRESERVED (directional tasks, e.g. splice)."""
+        if not self.rc:
+            return self._trunk(tokens)
         B = tokens.shape[0]
         logits = self._trunk(torch.cat([tokens, rc(tokens)], 0))
         return 0.5 * (logits[:B] + logits[B:])

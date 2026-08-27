@@ -52,6 +52,7 @@ def main():
     ap.add_argument('--epochs', type=int, default=8)
     ap.add_argument('--batch', type=int, default=64)
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--no-rc', action='store_true')
     args = ap.parse_args()
     device = ('cuda' if torch.cuda.is_available() else
               'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -72,7 +73,10 @@ def main():
     print(f'{args.task}: {len(tr_s)} train / {len(te_s)} test, '
           f'len {maxlen}, classes {classes}', flush=True)
 
-    model = DNAClassifier(arm=args.arm, n_classes=len(classes)).to(device)
+    model = DNAClassifier(arm=args.arm, n_classes=len(classes),
+                          rc=not args.no_rc).to(device)
+    if args.no_rc:
+        args.arm = args.arm + '-norc'
     n = sum(p.numel() for p in model.parameters())
     print(f'arm {args.arm}: {n/1e3:.0f}k params on {device}', flush=True)
     try:
