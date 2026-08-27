@@ -22,7 +22,11 @@ def evaluate(path, device):
     te_s, te_y, classes = load_split(ck['task'], 'test')
     maxlen = max(len(s) for s in te_s)
     X = to_tensor(te_s, maxlen)
-    model = DNAClassifier(arm=ck['arm'], n_classes=len(classes))
+    arm = ck['arm'].replace('-mstem', '').replace('-norc', '')
+    stem = 'multi' if any(k.startswith('stem.bases')
+                          for k in ck['model']) else 'conv11'
+    model = DNAClassifier(arm=arm, n_classes=len(classes), stem=stem,
+                          rc='-norc' not in ck['arm'])
     model.load_state_dict(ck['model'])
     model.to(device).eval()
     preds = []
