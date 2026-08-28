@@ -55,6 +55,7 @@ def main():
     ap.add_argument('--no-rc', action='store_true')
     ap.add_argument('--stem', default='conv11',
                     choices=['conv11', 'multi'])
+    ap.add_argument('--d', type=int, default=128)
     args = ap.parse_args()
     device = ('cuda' if torch.cuda.is_available() else
               'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -76,7 +77,10 @@ def main():
           f'len {maxlen}, classes {classes}', flush=True)
 
     model = DNAClassifier(arm=args.arm, n_classes=len(classes),
-                          rc=not args.no_rc, stem=args.stem).to(device)
+                          rc=not args.no_rc, stem=args.stem,
+                          d=args.d).to(device)
+    if args.d != 128:
+        args.arm = args.arm + f'-d{args.d}'
     if args.no_rc:
         args.arm = args.arm + '-norc'
     if args.stem != 'conv11':
