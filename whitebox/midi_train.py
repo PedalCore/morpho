@@ -62,7 +62,7 @@ def main():
 
     cfg = Config(n_embd=args.n_embd, n_head=16, n_layer=args.n_layer,
                  ctx=args.ctx, vocab_size=VOCAB, attn=ARMS[args.arm],
-                 mlp=True, tied=True)
+                 mlp=True, tied=True, m2='b', m2_identity=True)
     model = CausalCRATEM2(cfg).to(device)
     n = model.num_params()
     print(f'arm {args.arm}: {n/1e6:.1f}M params on {device}', flush=True)
