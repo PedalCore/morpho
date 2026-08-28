@@ -23,7 +23,7 @@ from whitebox.model import Config, CausalCRATEM2          # noqa: E402
 from whitebox.midi_data import VOCAB, decode_tokens        # noqa: E402
 
 ARMS = {'counter': 'crsa', 'longhorn': 'longhorn',
-        'mixed': 'mixed', 'qkv': 'qkv'}
+        'mixed': 'mixed', 'qkv': 'qkv', 'wkv': 'wkv'}
 
 
 def load_tokens(d):
