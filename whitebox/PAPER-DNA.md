@@ -272,6 +272,40 @@ ambiguous), short-range rung variants, and a long-training spacing
 arm. Until v2, "association wins splice" is a measured RESULT with
 an unproven mechanism, and must be quoted as such.
 
+## 3d. Cross-architecture from-scratch table (task #56 COMPLETE;
+## acc, mean over seeds where >1; identical regime for every cell)
+
+| model (params) | cohn | splice | H3K4me3 | enhancers |
+|---|---|---|---|---|
+| cnn 711k | 73.70+/-.24 | 76.37 | 79.12 | 74.87 |
+| counter 776k | 73.77+/-.33 | 76.80 | 79.51 | 75.00 |
+| longhorn 976k | 74.28+/-.58 | 80.37 | 79.25 | 75.17 |
+| longhorn-mstem 816k | — | 88.0+/-2.3 | 79.64 | 75.40 |
+| longhorn-mstem d96 460k | — | 85.4+/-3.6 | — | — |
+| MIXED hybrid 794k | 74.40 | 86.70 | — | — |
+| mixed-mstem 634k | — | 85.70 | — | — |
+| hyenadna-scratch 436k | 71.03+/-.12 | 90.54+/-2.4 | 80.03 | 74.14 |
+| convnova-like 778k | 71.82+/-.23 | 79.32+/-.7 | 80.07 | 73.57 |
+
+CONCLUSIONS (equal data, equal recipe):
+1. No architecture dominates. Our trunk family leads cohn (+2.5
+   over both baselines) and enhancers (+1); HyenaDNA's implicit
+   global conv leads splice (90.5, and wins param-matched: 85.4 at
+   our 460k); histones are architecture-indifferent (79-80 for all
+   nine models).
+2. The HYBRID REDUNDANCY result: mixed (counters+delta, plain stem)
+   hits 86.7 on splice — counter channels ARE multi-scale features,
+   internally recreating the stem x binding composition; adding
+   multi-stem on top is redundant (85.7). Binding + any ONE
+   multi-scale source = the effect.
+3. mixed is the stack's best all-rounder (74.4 cohn / 86.7 splice).
+4. Borrowing queued: hyena-style global-conv stem feeding our
+   binding memory (their detection + our association).
+5. Baseline caveats: hyenadna = official architecture (-hf), random
+   init, no RC averaging; convnova-like = OUR reimplementation of
+   the paper's stated elements, not official code. Single seeds
+   where unmarked.
+
 ## 4. Engineering appendix (affects how speed claims may be made)
 
 The first Longhorn attempt ran >2h without completing epoch 1 and was
