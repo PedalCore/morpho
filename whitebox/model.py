@@ -986,8 +986,68 @@ class MixedMem(nn.Module):
         return torch.cat([a, b], dim=-1)
 
 
+class WKVMem(nn.Module):
+    """RWKV4-style WKV mixer (M9): y_t = r_t * (num_t / den_t) where
+    num/den are exp-key-weighted decaying sums — literally two
+    per-channel decaying counters plus normalization, with a bonus u
+    for the current token. Static per-channel decay -> exact chunked
+    closed form (no sequential loop)."""
+
+    CHUNK = 32
+
+    def __init__(self, cfg):
+        super().__init__()
+        d = cfg.n_embd
+        self.Wk = nn.Linear(d, d, bias=False)
+        self.Wv = nn.Linear(d, d, bias=False)
+        self.Wr = nn.Linear(d, d, bias=False)
+        self.Wo = nn.Linear(d, d, bias=False)
+        self.log_w = nn.Parameter(torch.linspace(-0.5, 2.5, d))
+        self.u = nn.Parameter(torch.zeros(d))
+        self.lno = nn.LayerNorm(d)
+        self.K = 1
+        self.U = self.Wk
+
+    def _scan(self, v, rho):                   # (B,T,d), rho (d,)
+        B, T, d = v.shape
+        ys, carry = [], torch.zeros(B, 1, d, device=v.device,
+                                    dtype=v.dtype)
+        C = self.CHUNK
+        for ci in range((T + C - 1) // C):
+            vc = v[:, ci*C:(ci+1)*C]
+            L = vc.shape[1]
+            t = torch.arange(L, device=v.device,
+                             dtype=v.dtype).view(1, L, 1)
+            p = rho.view(1, 1, d) ** t
+            pin = (1.0 / p.clamp(min=1e-12))
+            y = (rho.view(1, 1, d) ** (t + 1)) * carry + \
+                p * torch.cumsum(vc * pin, dim=1)
+            ys.append(y)
+            carry = y[:, -1:]
+        return torch.cat(ys, 1)
+
+    def forward(self, x):
+        k = self.Wk(x).clamp(max=8.0)
+        v = self.Wv(x)
+        r = torch.sigmoid(self.Wr(x))
+        rho = torch.exp(-F.softplus(self.log_w)).clamp(0.5, 0.9995)
+        ek = torch.exp(k)
+        num = self._scan(ek * v, rho)
+        den = self._scan(ek, rho)
+        # exclude current token from the sums; add it with bonus u
+        num_p = torch.cat([torch.zeros_like(num[:, :1]),
+                           num[:, :-1]], 1)
+        den_p = torch.cat([torch.zeros_like(den[:, :1]),
+                           den[:, :-1]], 1)
+        cur = torch.exp(self.u.view(1, 1, -1) + k)
+        y = r * (num_p + cur * v) / (den_p + cur + 1e-8)
+        return self.Wo(self.lno(y))
+
+
 def _make_attn(cfg):
     """Attention factory. local_window wraps CRSA with the M4 cache oracle."""
+    if cfg.attn == 'wkv':
+        return WKVMem(cfg)
     if cfg.attn == 'eam':
         return EAMem(cfg)
     if cfg.attn == 'mixed':
