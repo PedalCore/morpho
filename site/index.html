@@ -40,6 +40,10 @@
   a.card b { color: #e2a13f; font-weight: 600; }
   a.card small { color: #6a7280; display: block; margin-top: 3px; font-size: 12.5px;
                  line-height: 1.45; }
+  .notice { border: 1px solid #2c2a1c; background: #14130d; border-radius: 9px;
+            padding: 13px 18px; margin: 22px auto 0; max-width: 52em;
+            color: #9aa1ad; font-size: 13.5px; line-height: 1.55; }
+  .notice b { color: #e2a13f; font-weight: 600; }
   footer { color: #4e5560; font-size: 13px; text-align: center; margin-top: 48px;
            border-top: 1px solid #1c212b; padding-top: 18px; }
   footer a { color: #6a7280; text-decoration: none; }
@@ -54,6 +58,14 @@
        style="color:#9aa1ad">MorphoHDL</a> that wandered: developmental spiking
        networks you can listen to, language models small enough to read, and
        circuits small enough to build. Findings are written up with their nulls.</p>
+    <p class="notice"><b>This is automated AI research.</b> The experiments, the code
+      and these write-ups were produced by AI agents — Claude and Codex — working
+      semi-autonomously on a codebase, with a human directing at a high level and
+      choosing what to pursue. It is <b>not peer reviewed</b> and is <b>not affiliated
+      with any academic institution</b>. Measurements are reported as taken, including
+      the nulls, the caveats and the places we corrected ourselves — but nothing here
+      has had external review, and it should be read as a public lab notebook rather
+      than as literature.</p>
   </header>
 
   <h2>Instruments <em>— listen to a network develop</em></h2>
@@ -117,6 +129,10 @@
     <a class="card" href="whitebox-lab.html">
       <b>the white-box lab</b> — models derived from objectives
       <small>preregistered probes · two findings and one honest reversal</small>
+    </a>
+    <a class="card" href="binding.html">
+      <b>the model that couldn't remember who owned what</b> — binding, diagnosed
+      <small>constant-state models scored at chance · the fix is a rank-16 adapter</small>
     </a>
     <a class="card" href="crsa.html">
       <b>the counter that replaced attention</b> — no softmax, no cache
