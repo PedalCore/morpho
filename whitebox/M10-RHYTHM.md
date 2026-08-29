@@ -222,3 +222,23 @@ v5a — switching spike-GLM (preregistered):
 Program tie-in: mode = M4 slot (which regime is active), traces =
 fast dynamics within it. Later: learned transitions (tiny Markov),
 continuous style axes (v5b).
+
+
+## v5a results (2026-08-29)
+
+- 12 modes over 17,898 training bars; modes = 9x16 pattern
+  centroids (inspectable). PREDICTION FAILURE recorded: no
+  majority-fill cluster (fills are 2% of bars; k-means organizes by
+  density/style). Mode 0 (sparse) is 4.5x fill-enriched (0.09) and
+  serves as the break mode; a TRUE fill vocabulary needs the labels.
+- Mode conditioning: +1.317 -> +1.398 b/ev (+0.08, 108 params).
+  Value is CONTROL, not prediction.
+- OPTIMIZATION FINDING: global row shuffle + feature
+  standardization lifts the same 1071-param clock+traces model from
+  +0.792 (rhythm3_exact per-file fitting) to +1.317 b/ev — rung
+  comparisons must be re-run under the stronger optimizer before
+  quoting.
+- NAVIGATION DEMO: navigate.wav — funk seed, mode path
+  7 groove / 1 sparse / 7 groove / 1 sparse, hand-steered.
+NEXT: labeled fill submodes; learned bar-boundary transitions;
+velocity in navigated renders; continuous style axes (v5b).
