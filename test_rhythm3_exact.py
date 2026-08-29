@@ -9,7 +9,7 @@ from rhythm3_exact import (
     _js,
     clock_features,
     dynamic_state_scalars,
-    traceable_scalars if False else trainable_scalars,
+    trainable_scalars,
     traces9,
 )
 
