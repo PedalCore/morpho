@@ -152,7 +152,7 @@ def trivial_scores(feats, tr, test):
     }
 
 
-def one_run(feats, feats_raw, y, seed, a, dev, verbose=False):
+def one_run(raw, y, seed, a, dev, verbose=False):
     """One seed: split, train on normal only, score float and ternary.
 
     The seed moves both the held-out split and the initialisation, so the
@@ -164,6 +164,11 @@ def one_run(feats, feats_raw, y, seed, a, dev, verbose=False):
     tr, ho = idx[:cut], idx[cut:]
     test = np.concatenate([ho, np.flatnonzero(y == 1)])
     test_y = np.concatenate([np.zeros(len(ho), int), np.ones(int(y.sum()), int)])
+
+    # normalisation from TRAINING normals only — held-out clips must not touch
+    # the statistics, even though it is only two scalars
+    feats_raw = (raw - raw[tr].mean()) / raw[tr].std()
+    feats = feats_raw - feats_raw.mean(1, keepdim=True) if a.cmvn else feats_raw
 
     out = {"seed": seed}
     for name, s in trivial_scores(feats_raw, tr, test).items():
@@ -225,17 +230,12 @@ def main():
     print(f"{len(X)} clips @ {sr} Hz, {int(y.sum())} abnormal — features…")
 
     feats = torch.stack([log_mel(x, sr) for x in X])
-    mu, sd = feats[y == 0].mean(), feats[y == 0].std()
-    feats = (feats - mu) / sd
-    feats_raw = feats                       # baselines always see these
-    if a.cmvn:
-        feats = feats - feats.mean(1, keepdim=True)
     print(f"  {tuple(feats.shape)}  (clips, frames, mels)  on {dev}"
           f"{'  [cmvn: per-clip mean spectrum removed]' if a.cmvn else ''}")
 
     runs = []
     for s in range(a.seeds):
-        runs.append(one_run(feats, feats_raw, y, s, a, dev, verbose=(s == 0)))
+        runs.append(one_run(feats, y, s, a, dev, verbose=(s == 0)))
         r = runs[-1]
         print(f"  seed {s}: tmpl {r['auc_template']:.3f}  delta {r['auc_delta']:.3f}"
               f"  init {r['auc_init']:.3f}  float {r['auc_float']:.3f}"

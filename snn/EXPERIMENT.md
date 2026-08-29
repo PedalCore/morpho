@@ -992,7 +992,7 @@ Two controls dismantled it:
   no model: loudness            0.682 ±0.001
   untrained control             0.923 ±0.047      <- random weights
   float32 (trained)             0.796 ±0.007
-  ternary keep=0.5              0.966 ±0.011
+  ternary keep=0.5              0.964 ±0.011
 ```
 
 1. **An untrained random recurrence (0.923) beats the trained one (0.796).**
@@ -1005,7 +1005,7 @@ Two controls dismantled it:
 
 **Removing the shortcut.** Subtracting each clip's own mean spectrum (CMVN)
 leaves only temporal structure. Everything collapses: float 0.483 ±0.016
-(chance), best ternary 0.569, untrained 0.645 — all far below the trivial
+(chance), best ternary 0.568, untrained 0.645 — all far below the trivial
 frame-delta statistic (0.810). This recurrence extracts no usable temporal
 information here.
 
@@ -1023,8 +1023,8 @@ spectrum. So quantize *that* (5 seeds, template from training normals only):
   template     float32      int8   ternary    binary   gates/MAC   stored
   float32        0.983     0.983     0.989     0.939        305     2048b
   int8           0.983     0.983     0.989     0.939        305      512b
-  ternary        0.977     0.977     0.987     0.959         74      101b
-  binary         0.960     0.960     0.964     0.945        9.5       64b
+  ternary        0.978     0.978     0.987     0.958         74      101b
+  binary         0.960     0.960     0.964     0.944        9.5       64b
 ```
 
 Ternary on both sides: **0.987 (+0.004 vs float)**, 4.1× fewer gates, whole
@@ -1036,7 +1036,7 @@ published autoencoder baseline (~0.85) and our trained recurrence (0.796).
 1. Claim *not* supported: "ternary survives on our trained sequence model."
    The model never worked; the comparison was vacuous.
 2. Claim supported: on this task, ternary weights cost nothing (+0.004) at
-   4.1× fewer gates, and binary costs 0.038 AUC at 32× fewer gates —
+   4.1× fewer gates, and binary costs 0.039 AUC at 32× fewer gates —
    measured on the detector that actually wins.
 3. Every future run reports no-model baselines in the same table. A trained
    model that cannot beat 64 stored numbers must not be written up as one

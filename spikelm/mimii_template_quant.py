@@ -61,11 +61,9 @@ def main():
     X, y, sr = z["X"], z["y"], int(z["sr"])
     if X.dtype == np.int16:
         X = X.astype(np.float32) / 32768.0
-    F = torch.stack([log_mel(x, sr) for x in X])
-    F = ((F - F[y == 0].mean()) / F[y == 0].std()).numpy()
-    xbar = F.mean(1)                             # (clips, mels) — what streams in
+    F = torch.stack([log_mel(x, sr) for x in X]).numpy()
     print(f"{len(X)} clips, {int(y.sum())} abnormal · template is "
-          f"{xbar.shape[1]} numbers")
+          f"{F.shape[-1]} numbers")
 
     modes = ["float32", "int8", "ternary", "binary"]
     res = {m: {w: [] for w in modes} for m in modes}
@@ -76,6 +74,12 @@ def main():
         tr, ho = idx[:int(len(idx) * 0.67)], idx[int(len(idx) * 0.67):]
         test = np.concatenate([ho, np.flatnonzero(y == 1)])
         ty = np.concatenate([np.zeros(len(ho), int), np.ones(int(y.sum()), int)])
+
+        # Normalisation statistics come from the TRAINING normals only. A global
+        # shift is not harmless here: quantisation scales are data-derived, so a
+        # scale cancels but an offset changes the sign pattern binary depends on.
+        m, s = F[tr].mean(), F[tr].std()
+        xbar = ((F - m) / s).mean(1)             # (clips, mels) — what streams in
         mu = xbar[tr].mean(0)                    # template from TRAIN normals only
 
         for wq in modes:

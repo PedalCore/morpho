@@ -72,8 +72,9 @@
 
   <p>Scores are <b>AUC</b>: the chance that a randomly chosen faulty clip is rated more
   anomalous than a randomly chosen healthy one. 0.5 is a coin flip. 1.0 is perfect. The
-  paper that published the dataset reports about <b>0.85</b> for this pump using a neural
-  autoencoder, so that is the number to beat.</p>
+  paper that published the dataset reports around <b>0.85</b> for this pump using a neural
+  autoencoder, which is the rough order to have in mind — though not a like-for-like
+  target, since we use one machine unit and our own split rather than their protocol.</p>
 
   <h2>The result that looked good</h2>
   <p>Our model is the same recurrence the rest of this site keeps coming back to —
@@ -113,7 +114,7 @@
     <tr><td>untrained recurrence</td><td class="n">0.923 ±0.047</td><td>random weights</td></tr>
     <tr><td>trained recurrence, float32</td><td class="n"><i>0.796 ±0.007</i></td>
         <td>&larr; worse than random</td></tr>
-    <tr><td>trained recurrence, ternary</td><td class="n">0.966 ±0.011</td><td></td></tr>
+    <tr><td>trained recurrence, ternary</td><td class="n">0.964 ±0.011</td><td></td></tr>
   </table>
   </div>
 
@@ -129,7 +130,8 @@
   <p>So the task never tested what we thought. A faulty pump has a
   <em>different spectral shape</em>, permanently, throughout the recording — and that
   shows up in a ten-second average. Nothing has to model time at all. Worth noting the
-  shortcut is not simply volume: raw loudness only reaches 0.699.</p>
+  shortcut is not simply volume: average log-mel level reaches only 0.682, and raw
+  waveform loudness 0.699.</p>
 
   <h2>Taking the shortcut away</h2>
   <p>If the giveaway is each clip's average spectrum, then subtract it. Every recording
@@ -140,7 +142,7 @@
   <table>
     <tr><th>detector, shortcut removed</th><th>AUC</th></tr>
     <tr><td>trained recurrence, float32</td><td class="n"><i>0.483 ±0.016</i></td></tr>
-    <tr><td>trained recurrence, best ternary</td><td class="n">0.569 ±0.008</td></tr>
+    <tr><td>trained recurrence, best ternary</td><td class="n">0.568 ±0.009</td></tr>
     <tr><td>untrained recurrence</td><td class="n">0.645 ±0.027</td></tr>
     <tr><td>trivial frame-to-frame change</td><td class="n"><b>0.810 ±0.008</b></td></tr>
   </table>
@@ -184,11 +186,11 @@
     <tr><td>int8</td><td class="n">0.983</td><td class="n">0.983</td>
         <td class="n">0.989</td><td class="n">0.939</td><td class="n">305</td>
         <td class="n">512 bits</td></tr>
-    <tr><td>ternary</td><td class="n">0.977</td><td class="n">0.977</td>
-        <td class="n"><b>0.987</b></td><td class="n">0.959</td><td class="n">74</td>
+    <tr><td>ternary</td><td class="n">0.978</td><td class="n">0.978</td>
+        <td class="n"><b>0.987</b></td><td class="n">0.958</td><td class="n">74</td>
         <td class="n">101 bits</td></tr>
     <tr><td>binary</td><td class="n">0.960</td><td class="n">0.960</td>
-        <td class="n">0.964</td><td class="n"><b>0.945</b></td><td class="n">9.5</td>
+        <td class="n">0.964</td><td class="n"><b>0.944</b></td><td class="n">9.5</td>
         <td class="n">64 bits</td></tr>
   </table>
   </div>
@@ -197,7 +199,7 @@
     <p style="margin:0"><b>Ternary costs nothing.</b> Ternary weights against ternary
     inputs score <b>0.987</b> — a shade above the float32 reference of 0.983 — for
     <b>4.1× fewer gates</b>, with the entire detector stored in <b>101 bits</b>. Going all
-    the way to binary costs 0.038 AUC (0.945) for <b>32× fewer gates</b> and
+    the way to binary costs 0.039 AUC (0.944) for <b>32× fewer gates</b> and
     <b>64 bits</b>: the whole model fits in one machine word. Both still beat the
     published autoencoder baseline of ~0.85, and both beat our trained recurrence's
     0.796.</p>
@@ -217,7 +219,7 @@
   to 64 stored numbers, and a comparison between two versions of a broken thing measures
   nothing.</p>
   <p><b>Supported:</b> on this task, ternary arithmetic costs essentially nothing —
-  +0.004 AUC at 4.1× fewer gates — and binary costs 0.038 at 32× fewer gates, measured on
+  +0.004 AUC at 4.1× fewer gates — and binary costs 0.039 at 32× fewer gates, measured on
   the detector that genuinely wins, against a published baseline it genuinely beats.</p>
   <p>The second claim is the one we wanted, and we only got to make it honestly because
   the first one collapsed. Every run in this experiment now prints the no-model baselines
