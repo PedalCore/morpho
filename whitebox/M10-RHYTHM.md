@@ -130,3 +130,39 @@ DESIGN UPDATES (user+collaborator relay, adopted):
 - Two-grid split (metrical event + microtiming delta) later; GMD's
   score-vs-deviation annotations fit it exactly.
 - STILL OWED: free-running stability as first-class metric.
+
+
+## v3 results (2026-08-29): nine-voice clocked kit process
+
+Voices: Magenta 9-class reduction, x_t in {0,1}^9, 20 ms bins,
+clock-conditioned. bits/event over per-voice rate baselines:
+
+| rung | trainable | b/ev |
+|---|---|---|
+| clock only | 297 | +0.49 |
+| clock + own-voice traces | 387 | +1.14 |
+| clock + ALL-voice traces | 1107 | +1.31 |
+| + same-tick coupling (PL diagnostic) | 1188 | +4.51 |
+
+1. The compression SURVIVES the full kit process — the
+   make-or-break held: per-voice structure is far richer than the
+   near-saturated any-hit channel and tiny machinery still captures
+   it.
+2. CROSS-VOICE MEMORY IS REAL: +0.17 b/ev for reading the whole
+   kit's traces — every output voice reads all stacks.
+3. COINCIDENCE DOMINATES: same-tick coupling adds +3.2 b/ev on top
+   of everything (drums are chords). PL bound is diagnostic, not
+   causal; v4's required change is a within-tick autoregressive
+   factorization (fixed voice order, condition on already-decided
+   voices).
+
+FREE-RUN (seed 2 bars -> generate 16; clock+all-traces, 1107
+params; 15 test files long enough): rate ratio 1.09 (bar 1) ->
+1.23 (bar 16) — mild densification, no collapse/explosion;
+generated metrical R16 = 0.39 (human 0.59) — grid-locked but
+looser than human; voice-distribution JS = 0.023 bits — stable kit
+balance. The learned dynamical drum machine exists at ~1.1k params.
+
+NEXT: within-tick coupling (causal); velocity as a third stage;
+tick-lattice/subdivision-ratio port (the DAW instrument); render
+generated takes to audio; free-run at the coupled rung.
