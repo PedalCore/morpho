@@ -353,3 +353,22 @@ structure: +1.46 near-3-semitone, -1.64 broad, -0.39 same-key —
 Render: piano_v2.wav. Remaining gaps: interval still 2x human
 (hand/register state next), no rhythmic placement (ASAP clock),
 durations/velocity. 
+
+## M10-P conclusion (2026-08-29): THE BOUNDARY, heard and named
+
+v2's fixes worked as claimed (rate stable, intervals 29->12) and
+the output STILL sounds random (user ear-test x2) — because melody
+is not a statistics process. Two structural reasons: (1) entropy
+misallocation — 4,400 independent per-bin coin flips/s vs music's
+~2-3 near-determined note decisions/s; (2) decayed statistics
+cannot represent "mid-phrase" — that is ordered sequence memory
+(binding/retrieval). This is the program's cross-domain law, third
+appearance: statistics own texture/composition (clocked drums, DNA
+histones, harmony-as-pc-profile); binding owns sequence (melody,
+DNA splice, music LM where longhorn beat counters by 29%).
+M10-piano's contribution is this boundary + the decomposition
+table, not a listenable demo. Paths forward: (a) whitebox — v6
+slots over MELODIC FRAGMENTS (Hopfield sequence recall); (b)
+pragmatic — the M9 longhorn continuator (ppl 5.20) is the
+listenable piano generator we already own. No further piano-GLM
+renders: the rung is concluded.
