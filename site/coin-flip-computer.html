@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the coin-flip computer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root { --bg:#0d1015; --panel:#12151b; --panel2:#171b23; --line:#242a35;
+          --text:#d7dae2; --muted:#9aa1ad; --amber:#e2a13f; --green:#7bd8a5; --red:#d96c6c; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font:16px/1.7 -apple-system,"Segoe UI",sans-serif; padding:48px 20px 80px; }
+  article { max-width:44em; margin:0 auto; }
+  h1 { font-size:27px; font-weight:600; letter-spacing:.02em; margin-bottom:8px; }
+  h1 span { color:var(--amber); }
+  .sub { color:var(--muted); margin-bottom:24px; font-size:17px; }
+  h2 { font-size:20px; font-weight:600; margin:42px 0 12px; color:var(--amber); }
+  p { margin:14px 0; color:#c9cdd7; }
+  b { color:#e8ebf0; }
+  a { color:var(--amber); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:ui-monospace,"SF Mono",monospace; font-size:14px;
+         background:var(--panel2); padding:1px 6px; border-radius:4px; }
+  table { border-collapse:collapse; margin:18px 0; width:100%; font-size:15px; }
+  th,td { text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase;
+       letter-spacing:.05em; }
+  td b { color:var(--green); }
+  .aside { border-left:3px solid var(--line); padding:2px 0 2px 16px; margin:18px 0;
+           color:var(--muted); font-size:15px; }
+  .key { border-left:3px solid var(--amber); background:var(--panel); padding:12px 16px;
+         border-radius:0 8px 8px 0; margin:18px 0; }
+  .warn { border-left:3px solid var(--red); background:var(--panel); padding:12px 16px;
+          border-radius:0 8px 8px 0; margin:18px 0; }
+  .demo { background:var(--panel); border:1px solid var(--line); border-radius:11px;
+          padding:20px; margin:22px 0; }
+  .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin:8px 0; }
+  label { color:var(--muted); font-size:13.5px; display:inline-flex; align-items:center;
+          gap:8px; }
+  input[type=range] { accent-color:var(--amber); width:150px; }
+  button { background:var(--panel2); color:var(--text); border:1px solid var(--line);
+           border-radius:7px; padding:8px 16px; font:14px inherit; cursor:pointer; }
+  button:hover { border-color:var(--amber); }
+  button.primary { border-color:var(--amber); color:var(--amber); }
+  .stream { font-family:ui-monospace,monospace; font-size:11px; letter-spacing:1px;
+            line-height:1.5; color:#4e5560; word-break:break-all; margin:4px 0 2px; }
+  .stream i { font-style:normal; color:var(--amber); }
+  .lbl { font:12px ui-monospace,monospace; color:var(--muted); }
+  .big { font:22px ui-monospace,monospace; color:var(--green); }
+  .big.off { color:var(--red); }
+  canvas { border:1px solid var(--line); border-radius:8px; background:#0a0d11;
+           display:block; max-width:100%; margin-top:12px; }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin:18px 0 6px; }
+  .links a { border:1px solid var(--line); border-radius:8px; padding:7px 14px; }
+  .links a:hover { border-color:var(--amber); text-decoration:none; }
+  .foot { color:#6a7280; font-size:13.5px; margin-top:44px; border-top:1px solid var(--line);
+          padding-top:16px; }
+  .aidisc { color:#6a7280; font-size:12.5px; line-height:1.5; margin-top:22px;
+            border-top:1px solid #1c212b; padding-top:14px; }
+  .aidisc b { color:#8b929e; font-weight:600; }
+</style>
+</head>
+<body>
+<article>
+  <h1>the coin-flip <span>computer</span></h1>
+  <p class="sub">Multiplying two numbers normally costs a few hundred logic gates. There is
+  a way to do it with <b>one</b>. It sounds like a trick, and there is a catch — but the
+  catch is interesting, and the trick is real. Here is the whole idea, slowly.</p>
+
+  <div class="links">
+    <a href="wkv-cell.html">the circuit work this came from</a>
+    <a href="morpho-silicon.html">to silicon</a>
+  </div>
+
+  <h2>First: why multiplication is expensive</h2>
+  <p>
+    A chip stores a number the way you'd write it in binary — a row of switches, each
+    worth twice the one before. To multiply two such numbers, the chip has to do
+    something very like long multiplication on paper: multiply every digit by every other
+    digit, then add up all the partial results, carrying as it goes.
+  </p>
+  <p>
+    That takes a lot of parts. When we compiled a multiplier for our own hardware work,
+    an 8-bit one came to about <b>300 logic gates</b>. That's the price of one multiply.
+    A small neural network does <em>millions</em> of them per word it writes, so this
+    single number is why running an AI model on a cheap chip is hard.
+  </p>
+
+  <h2>Second: a different way to write a number</h2>
+  <p>
+    Here is the move. Instead of writing a number as a row of switches, write it as a
+    <b>stream of coin flips</b>, and let the number be <em>how often the coin comes up
+    heads</em>.
+  </p>
+  <p>
+    A coin that lands heads three-quarters of the time is the number 0.75. A fair coin is
+    0.5. A coin that never lands heads is 0. The number isn't stored anywhere in
+    particular — it's a property of the whole stream, spread out over time.
+  </p>
+  <div class="aside">
+    This should feel familiar even if the hardware doesn't. It's how polling works: nobody
+    stores "31% approval" anywhere: you ask people one at a time and the number emerges
+    from the tally. Longer poll, better number.
+  </div>
+
+  <h2>Third: why this makes multiplication almost free</h2>
+  <p>
+    Now take two of these streams — one for each number — and ask a very simple question
+    of each pair of flips: <b>did both coins land heads?</b>
+  </p>
+  <p>
+    If the first coin is heads 3 times in 4, and the second is heads half the time, then
+    both land heads 3-in-4 × 1-in-2 = 3-in-8 of the time. The "both heads" stream <em>is
+    the product</em>. And "are both of these things true?" is the single cheapest thing a
+    chip can do: one gate.
+  </p>
+  <div class="key">
+    <b>That's the whole trick.</b> Probabilities multiply when you combine independent
+    events. So if your numbers <em>are</em> probabilities, then a gate that combines two
+    streams is a multiplier — and it costs one gate instead of three hundred.
+  </div>
+
+  <div class="aside">
+    A detail for completeness: "both heads" only handles numbers from 0 to 1. To allow
+    negatives you keep everything the same but change the question to <em>"did the two
+    coins agree?"</em>, which stretches the range to −1…+1. Still one gate. The demo below
+    uses the simple version; the actual circuit uses the other one.
+  </div>
+
+  <h2>Watch it happen</h2>
+  <p>
+    Set two numbers below. The page generates a coin-flip stream for each, combines them
+    one flip at a time, and keeps a running tally of the result. Watch the estimate wander
+    at first and then settle onto the right answer.
+  </p>
+
+  <div class="demo">
+    <div class="row">
+      <label>first number <input type="range" id="a" min="0" max="1" step="0.01" value="0.75">
+        <span class="lbl" id="av">0.75</span></label>
+      <label>second number <input type="range" id="b" min="0" max="1" step="0.01" value="0.50">
+        <span class="lbl" id="bv">0.50</span></label>
+      <button class="primary" id="run">run</button>
+      <button id="reset">reset</button>
+    </div>
+    <div class="lbl">first stream</div>
+    <div class="stream" id="sa"></div>
+    <div class="lbl">second stream</div>
+    <div class="stream" id="sb"></div>
+    <div class="lbl">both-heads (the product)</div>
+    <div class="stream" id="sp"></div>
+    <div class="row" style="margin-top:14px">
+      <div><div class="lbl">flips so far</div><div class="big" id="n">0</div></div>
+      <div><div class="lbl">estimate</div><div class="big" id="est">—</div></div>
+      <div><div class="lbl">true answer</div><div class="big" id="tru">—</div></div>
+      <div><div class="lbl">error</div><div class="big" id="err">—</div></div>
+    </div>
+    <canvas id="cv" width="640" height="150"></canvas>
+  </div>
+
+  <h2>The catch: you pay in time</h2>
+  <p>
+    You've just seen it. The answer isn't available immediately — it arrives gradually, and
+    it only gets sharper the longer you watch. That's the trade: <b>the multiply became
+    almost free, and the cost moved into time</b>.
+  </p>
+  <p>
+    It's the polling trade too, with the same arithmetic. To halve your error you need four
+    times as many flips. Measured on our actual circuit:
+  </p>
+  <table>
+    <tr><th>flips</th><th>typical error</th></tr>
+    <tr><td>64</td><td>0.140</td></tr>
+    <tr><td>256</td><td>0.059</td></tr>
+    <tr><td>1,024</td><td>0.024</td></tr>
+    <tr><td>4,096</td><td>0.017</td></tr>
+    <tr><td>16,384</td><td><b>0.005</b></td></tr>
+  </table>
+  <p>
+    So for a result good to about three decimal places you need roughly sixteen thousand
+    flips. If that sounds terrible, remember what you bought: the circuit doing those flips
+    is about <b>seventy times smaller</b> than the exact one.
+  </p>
+
+  <h2>The catch that actually bites</h2>
+  <p>
+    There's a second catch, and it's sneakier, so it's worth showing rather than skipping.
+    Everything above depends on the two coins being <b>independent</b> — genuinely separate
+    sources of randomness.
+  </p>
+  <p>
+    Feed the <em>same</em> stream in as both inputs and ask for a number times itself.
+    "Did both coins land heads?" is now the same question asked twice, so the answer is
+    always yes when the single coin is heads. Our circuit, asked for a value we knew to be
+    <b>+0.34</b>, confidently answered <b>+1.00</b>.
+  </p>
+  <div class="warn">
+    It didn't crash, and it didn't return anything obviously wrong-looking. It returned a
+    clean, plausible number that happened to be nonsense. That's the real engineering risk
+    with this style of computing: the failure is silent, and it comes from <em>reusing</em>
+    randomness — which is exactly what a tired designer does to save space.
+  </div>
+
+  <h2>So what does this actually buy us?</h2>
+  <p>
+    Three things, in increasing order of how much we care.
+  </p>
+  <p>
+    <b>1. Things fit that didn't fit.</b> One layer of our small language model needs
+    147,456 multiplies. Built exactly, reusing the hardware as much as possible, that's
+    about <b>116,000 gates</b> — more than a ten-dollar FPGA has. The same layer built
+    this way is about <b>1,600 gates</b>. That is the difference between "needs a real
+    chip" and "fits on the cheapest programmable part you can buy", and it's the concrete
+    reason we built it.
+  </p>
+  <p>
+    <b>2. You can stop early.</b> An exact circuit gives you nothing until it's finished.
+    This one has an answer at every moment — rough at first, better later. So a
+    battery-powered sensor can compute until the answer is good enough, or until the power
+    budget runs out, and take whatever it has. Computation becomes something you can spend
+    more or less of, like fuel.
+  </p>
+  <p>
+    <b>3. It degrades instead of breaking.</b> In ordinary binary, a single flipped bit can
+    turn 8 into 136 — the damage depends on which bit. Here every flip carries the same
+    tiny weight, so corruption nudges the answer instead of destroying it. That matters
+    where electronics are stressed: very low voltage, high temperature, radiation.
+  </p>
+
+  <h2>What this has to do with the rest of this site</h2>
+  <p>
+    We came at this sideways. We'd been reading about
+    <a href="https://www.nature.com/articles/s41467-026-72401-z">memristor crossbars</a> —
+    real analog chips where a multiply is done by physics rather than logic, one device per
+    multiply, which is even cheaper than one gate. Their catch is different: they need
+    delicate converters at every edge, and the paper measures a real accuracy loss from
+    imperfect devices.
+  </p>
+  <p>
+    Which left an obvious question: is the cheapness coming from the <em>physics</em>, or
+    from being willing to accept an approximate answer? Coin-flip computing separates those
+    two things, because it buys most of the cheapness using nothing but ordinary logic —
+    no exotic devices, no new fabrication. It suggests a good deal of what analog hardware
+    offers is available to anyone willing to trade exactness for time.
+  </p>
+  <table>
+    <tr><th>approach</th><th>cost per multiply</th><th>time</th><th>error</th></tr>
+    <tr><td>ordinary digital</td><td>~300 gates</td><td>one step</td><td>none</td></tr>
+    <tr><td><b>coin-flip</b></td><td><b>~4 gates</b></td><td>thousands of flips</td><td>shrinks as you wait</td></tr>
+    <tr><td>memristor (analog)</td><td>1 device</td><td>~128 billionths of a second</td><td>fixed by the hardware</td></tr>
+  </table>
+
+  <h2>What we can actually do with it now</h2>
+  <p>
+    The honest answer is one clear next experiment and one longer road.
+  </p>
+  <p>
+    <b>The experiment:</b> take a language model we've already trained, replace the
+    multiplications in one layer with coin-flip ones, and measure how much worse the model
+    writes as a function of how long we let the streams run. We have the model, the
+    measuring tools, and now the circuit. That turns "seventy times smaller" from a
+    hardware fact into a statement about whether the thing still works — which is the only
+    version of the claim worth making.
+  </p>
+  <p>
+    <b>The road:</b> these models are being aimed at small, cheap, battery-powered hardware
+    — the <a href="morpho-silicon.html">FPGA work</a> on this site is the first step. A
+    seventy-fold reduction in the biggest cost is not a detail on that path. Whether the
+    accuracy holds up is exactly what we don't know yet, and won't claim until measured.
+  </p>
+
+  <p class="foot">
+    Everything here is real and runs: the circuit is
+    <code>morpho_stochastic.py</code> in the
+    <a href="https://github.com/PedalCore/morpho">repository</a>, written in MorphoHDL and
+    checked against ordinary arithmetic — including the correlation failure, which is a
+    test rather than an anecdote. The gate counts come from compiling it; the error table
+    comes from running it. The demo above is the same arithmetic in JavaScript so you can
+    watch it happen.
+  </p>
+
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+let timer = null, n = 0, ones = 0, hist = [];
+
+const val = id => +$(id).value;
+const fmt = v => v.toFixed(3);
+$('a').oninput = () => { $('av').textContent = fmt(val('a')); reset(); };
+$('b').oninput = () => { $('bv').textContent = fmt(val('b')); reset(); };
+
+function draw() {
+  const w = cv.width, h = cv.height;
+  ctx.fillStyle = '#0a0d11'; ctx.fillRect(0, 0, w, h);
+  const truth = val('a') * val('b');
+  const y = v => h - 12 - v * (h - 24);      // 0 at the bottom, 1 at the top
+  // true answer
+  ctx.strokeStyle = '#7bd8a5'; ctx.setLineDash([4,4]); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, y(truth)); ctx.lineTo(w, y(truth)); ctx.stroke();
+  ctx.setLineDash([]);
+  // zero line
+  ctx.strokeStyle = '#1c212b'; ctx.beginPath();
+  ctx.moveTo(0, y(0)); ctx.lineTo(w, y(0)); ctx.stroke();
+  // running estimate
+  if (hist.length > 1) {
+    ctx.strokeStyle = '#e2a13f'; ctx.lineWidth = 2; ctx.beginPath();
+    hist.forEach((v, i) => {
+      const x = (i / (hist.length - 1)) * w;
+      i ? ctx.lineTo(x, y(v)) : ctx.moveTo(x, y(v));
+    });
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#7bd8a5'; ctx.font = '11px ui-monospace';
+  ctx.fillText('true answer', 6, y(truth) - 5);
+  ctx.fillStyle = '#6a7280';
+  ctx.fillText('the estimate settling, flip by flip', 6, h - 7);
+}
+
+function reset() {
+  clearInterval(timer); timer = null;
+  n = 0; ones = 0; hist = [];
+  $('n').textContent = '0';
+  $('est').textContent = '—'; $('err').textContent = '—';
+  $('tru').textContent = fmt(val('a') * val('b'));
+  $('sa').innerHTML = $('sb').innerHTML = $('sp').innerHTML = '';
+  $('run').textContent = 'run';
+  draw();
+}
+
+function burst(count) {
+  const pa = val('a'), pb = val('b');
+  let sa = '', sb = '', sp = '';
+  for (let i = 0; i < count; i++) {
+    const fa = Math.random() < pa ? 1 : 0;     // two independent coins —
+    const fb = Math.random() < pb ? 1 : 0;     // separate draws, deliberately
+    const p = fa & fb;                         // "both heads" = the multiply
+    ones += p; n++;
+    if (i < 90) {
+      const m = v => v ? '<i>1</i>' : '0';
+      sa += m(fa); sb += m(fb); sp += m(p);
+    }
+    if (n % 4 === 0) hist.push(ones / n);
+  }
+  if (sa) { $('sa').innerHTML = sa + ' …'; $('sb').innerHTML = sb + ' …';
+            $('sp').innerHTML = sp + ' …'; }
+  const est = ones / n, truth = val('a') * val('b');
+  $('n').textContent = n.toLocaleString();
+  $('est').textContent = fmt(est);
+  const e = Math.abs(est - truth);
+  $('err').textContent = e.toFixed(3);
+  $('err').className = 'big' + (e > 0.05 ? ' off' : '');
+  if (hist.length > 320) hist = hist.filter((_, i) => i % 2 === 0);
+  draw();
+}
+
+$('run').onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; $('run').textContent = 'run'; return; }
+  $('run').textContent = 'pause';
+  timer = setInterval(() => { burst(n < 200 ? 1 : Math.ceil(n / 40)); }, 40);
+};
+$('reset').onclick = reset;
+reset();
+</script>
+  <p class="aidisc"><b>AI-generated research.</b> The experiments, code and write-ups on this site were produced by AI agents (Claude and Codex) working semi-autonomously, directed at a high level by a human. Nothing here is peer reviewed and none of it is affiliated with an academic institution. Measurements are reported as taken — including the nulls, the caveats and the corrections — but the work has had no external review.</p>
+</article>
+</body>
+</html>
