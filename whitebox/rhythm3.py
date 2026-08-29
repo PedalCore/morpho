@@ -276,7 +276,30 @@ def render():
     Xtr = np.concatenate([Ctr, Ttr], 1)
     _, npar, net, (mu, sd) = fit_heads(Xtr, Ytr, Xtr[:1])
     lam = np.array([0.5 ** (BIN / hl) for hl in TRACE_HL])
-    it = max(store['test'], key=lambda d: len(d['x']))
+    # pick a steady GROOVE (beat_type=beat), not a fill/solo session
+    import csv as _csv
+    import shutil
+    import mido as _mido
+    rows = [r for r in _csv.DictReader(open(GMD / 'info.csv'))
+            if r['split'] == 'test' and r['beat_type'] == 'beat'
+            and float(r['duration']) > 40
+            and r['time_signature'] == '4-4']
+    row = rows[0]
+    print(f"reference: {row['midi_filename']} ({row['style']}, "
+          f"{row['bpm']} bpm)", flush=True)
+    shutil.copy(GMD / row['midi_filename'], OUT / 'original.mid')
+    mid = _mido.MidiFile(GMD / row['midi_filename'])
+    t, ev = 0.0, []
+    for m_ in mid:
+        t += m_.time
+        if m_.type == 'note_on' and m_.velocity > 0 \
+                and m_.note in VOICE:
+            ev.append((t, VOICE[m_.note]))
+    n = int(ev[-1][0] / BIN) + 2
+    xx = np.zeros((n, NV), np.uint8)
+    for tt_, v_ in ev:
+        xx[int(tt_ / BIN), v_] = 1
+    it = dict(x=xx, bpm=float(row['bpm']))
     bpm, x = it['bpm'], it['x']
     bar_bins = int(4 * 60 / bpm / BIN)
     seed_n, gen_n = 2 * bar_bins, 16 * bar_bins
