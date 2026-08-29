@@ -59,3 +59,20 @@ music's expected 2-3 bits/chord — the preregistered failure mode
 rhythm lives on bars; ASAP's beat annotations give clean spans.
 NEXT: onset-weighted, duration-weighted, beat-aligned segmentation
 (ASAP), then re-judge progression models; only then rungs c/d.
+
+
+## Rung a+b v2 (2026-08-29): ASAP beat/bar-aligned lattice
+
+1,067 performances. The clock fixes ordering structure, monotone:
+| lattice | markov-1 | markov-2 |
+|---|---|---|
+| ARIA, beat-blind 0.5s hops | 5.63 | 5.80 (inverted!) |
+| ASAP, beat-aligned | 5.85 | 5.59 |
+| ASAP, BAR-aligned (downbeats) | 5.77 | **5.33** |
+M2>M1 only appears with the clock; harmonic rhythm lives at the
+bar. Remaining gap to tonal-theory ~2-3 b/chord owned by: (a) the
+chord abstraction (kmeans chroma + argmax root — replace with
+template matching against known chord shapes: readable symbols);
+(b) genuine classical modulation richness. NEXT: template chords,
+trace-conditioned progression model, then rung c (melody over the
+scaffold).
