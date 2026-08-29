@@ -372,3 +372,28 @@ slots over MELODIC FRAGMENTS (Hopfield sequence recall); (b)
 pragmatic — the M9 longhorn continuator (ppl 5.20) is the
 listenable piano generator we already own. No further piano-GLM
 renders: the rung is concluded.
+
+
+## Multi-horizon test (2026-08-30; preregistered in v2)
+
+bits/event predicting bin t+k from state at t (feature families
+alone; GMD test):
+
+| features | 20ms | 100ms | 500ms | 1s | 2s |
+|---|---|---|---|---|---|
+| traces | +.272 | +.092 | +.075 | +.069 | +.068 |
+| oscillators | +.206 | +.065 | +.051 | +.042 | +.030 |
+| CLOCK @ target time | +.445 | ~ | +.447 | ~ | +.447 |
+
+THE LAW: predictive information = clock (HORIZON-INVARIANT — the
+transport knows the future grid) + fast history (decays within
+~100ms) + a slow context floor (~0.07 b/ev, style/density, never
+expires). METER-REDEMPTION FALSIFIED: self-clocked oscillators sit
+below traces at EVERY horizon, and the linear readout could absorb
+the fixed phase-advance rotation, so propagatable phase was
+available and still lost. The M8 oscillatory thesis takes a real
+hit on drums; its periodicity case now rests on pitch (validated)
+and DNA (untested). TEST BUG recorded: clock evaluated at
+prediction time collapses at k>=25 (tempo-dependent rotation is
+unlearnable by a fixed readout) — oracle clocks must be evaluated
+at target time, which transports permit.
