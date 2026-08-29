@@ -338,3 +338,18 @@ harmonic color held, no melody/phrasing (expected at this rung).
 NEXT for piano: calibrated free-running (scheduled sampling or
 rate-bias fitting) instead of imposed inhibition; durations/pedal;
 clocked piano via ASAP; motif slots with self-clocked segmentation.
+
+
+## M10-P v2 (2026-08-29): calibrated free-running + voice-leading
+
+SCHEDULED SAMPLING (parallel file-streams, eps ramp 0->0.5, traces
+updated from the model's own samples, loss vs truth) FIXED the
+avalanche: free-run WITHOUT inhibition holds ~35 ev/2s for 20 s
+(was 460/s runaway). Calibration learned, not imposed.
+VOICE-LEADING kernels (3 shared params) learned interpretable
+structure: +1.46 near-3-semitone, -1.64 broad, -0.39 same-key —
+"move locally, don't cluster, don't restrike." Median |dpitch|
+29(random-ish) -> 12 vs human 6. pc JS 0.391.
+Render: piano_v2.wav. Remaining gaps: interval still 2x human
+(hand/register state next), no rhythmic placement (ASAP clock),
+durations/velocity. 
