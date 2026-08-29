@@ -16,10 +16,12 @@ parameter-free. The M8 oscillator bank is not analogous to meter —
 it is meter.
 
 ## Data
-ARIA unique subset -> onset trains: all notes -> one channel,
-velocity stripped, 20 ms bins (fine grid PRESERVES swing/expressive
-timing — do not quantize to tatum; expressiveness is signal).
-Train/val split by performance.
+PRIMARY (user): Groove MIDI Dataset (Magenta) — 13.6 h of real
+drummers, e-kit, metronome-aligned, tempo+style annotated, human
+microtiming preserved. Drums ARE rhythm: nothing to strip. Collapse
+to one onset channel for the ladder (9-channel kit version later).
+20 ms bins; do NOT quantize to tatum (expressiveness is signal).
+Official train/val/test split. SECONDARY: ARIA onsets (transfer).
 
 ## The ladder (params ~, preregistered predictions)
 L0 Bernoulli / bin-conditional Markov floor (1-10): the nothing.
