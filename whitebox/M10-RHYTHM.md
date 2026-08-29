@@ -284,3 +284,18 @@ to the seeded groove, bars 9-16:
 Generative retrieval rule: cos x g/(g+2) — attractor depth = TTG
 win count (the paper's consolidation, used as retrieval weighting).
 Renders: arcA_mem.wav / arcB_copy.wav.
+
+
+## M10-P design (2026-08-29): piano spike ladder (preregistered)
+
+ARIA has NO beat annotation -> FREE-CLOCK regime (the hard question;
+ASAP dataset restores clocked piano later). 88 onset streams, 20 ms
+bins, onsets only (duration/pedal deferred, recorded scope cut).
+Ladder: rate / per-key traces (880 state) / PITCH-CLASS traces (12
+shared across octaves, 120 state) / both / +copy-prev.
+PREREGISTERED: pitch-class counters are the sufficient statistic
+for harmony (decayed per-class counts = key/chord memory); if 120
+state ~ 880, tonality is the piano analog of "counters own
+composition". Chord (within-tick) structure expected to matter far
+more than drums (+coupling rung ordered bass->treble). Metric:
+bits/event over per-key rates; subset ~1-2k performances first.
