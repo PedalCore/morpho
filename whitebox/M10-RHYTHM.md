@@ -320,3 +320,21 @@ crude 2s copy echo is a bad motif proxy (noise), proper motif
 memory needs the v6 slot machinery with self-clocked segmentation.
 Free-clock piano is HARD in absolute terms (+0.22 vs clocked drums
 +1.5 b/ev) — the clock's value, cross-domain.
+
+
+## M10-P generation (2026-08-29): piano_gen.wav + the instability
+## finding
+
+FREE-RUNNING INSTABILITY, MEASURED: the piano GLM avalanches
+without intervention (460 onsets/s from a 21/s seed; a polyphony
+cap alone just saturates the cap). Clocked drums free-ran stably;
+free-clock piano explodes — the collaborator's predicted failure
+mode, now on record, and another measured value of the clock.
+Stabilizer adopted: DIVISIVE INHIBITION (homeostatic rescale of
+per-bin expected onsets to the seed rate) -> stable 23.4/s vs seed
+21.3/s, pitch-class JS 0.305 bits. Render: piano_gen.wav (10s seed
++ 20s gen): texturally plausible tonal wandering — register and
+harmonic color held, no melody/phrasing (expected at this rung).
+NEXT for piano: calibrated free-running (scheduled sampling or
+rate-bias fitting) instead of imposed inhibition; durations/pedal;
+clocked piano via ASAP; motif slots with self-clocked segmentation.

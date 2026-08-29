@@ -45,9 +45,18 @@ def main():
                 net(Xt[ii]), Yt[ii])
             opt.zero_grad(); loss.backward(); opt.step()
 
-    x = max(store['test'], key=lambda a: len(a))
     seed_n, gen_n = int(SEED_S / BIN), int(GEN_S / BIN)
-    seed = x[:seed_n]
+    # densest 10s window across test files (silent seeds tell nothing)
+    best, bx, bo = None, None, -1
+    for a in store['test']:
+        if len(a) < seed_n:
+            continue
+        c = np.convolve(a.sum(1), np.ones(seed_n), 'valid')
+        i = int(np.argmax(c))
+        if c[i] > bo:
+            bo, bx, best = c[i], a, i
+    x = bx
+    seed = x[best:best + seed_n]
     lam = np.array([0.5 ** (BIN / hl) for hl in HL])
     skey = np.zeros((len(HL), NK))
     spc = np.zeros((len(HL), 12))
@@ -65,13 +74,22 @@ def main():
         push(y)
     rng = np.random.default_rng(5)
     gen = np.zeros((gen_n, NK), np.uint8)
+    target = seed.sum() / len(seed)          # homeostatic rate target
     for t in range(gen_n):
         f = np.concatenate([skey.reshape(-1), spc.reshape(-1)])
         f = (f - mu) / sd
         with torch.no_grad():
             p = torch.sigmoid(net(torch.from_numpy(
                 f.astype(np.float32)))).numpy()
+        # divisive inhibition: hold expected onsets/bin at seed rate
+        if p.sum() > target:
+            p = p * (target / p.sum())
         y = (rng.random(NK) < p).astype(np.uint8)
+        if y.sum() > 8:                      # polyphony cap: keep the
+            keep = np.argsort(p)[-8:]        # 8 most probable
+            y2 = np.zeros(NK, np.uint8)
+            y2[[k for k in keep if y[k]]] = 1
+            y = y2
         gen[t] = y
         push(y)
     full = np.vstack([seed, gen])
