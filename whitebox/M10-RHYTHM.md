@@ -242,3 +242,31 @@ continuous style axes (v5b).
   7 groove / 1 sparse / 7 groove / 1 sparse, hand-steered.
 NEXT: labeled fill submodes; learned bar-boundary transitions;
 velocity in navigated renders; continuous style axes (v5b).
+
+
+## v6 (2026-08-29): SHN-inspired motif memory (paper 3798 —
+## WTA slots + SIM-STDP refresh + TTG consolidation, online,
+## gradient-free)
+
+Slots store bar grids; retrieval supplies a per-(position,voice)
+memory prior to the GLM. Copy-prev-bar preregistered as the null.
+
+| features | params | b/ev |
+|---|---|---|
+| clock+traces | 1071 | +1.317 |
+| +copy-prev (null) | 1080 | +1.450 |
+| +slot memory | 1080 | +1.470 |
+| +both | 1089 | +1.490 |
+
+Slot memory BEATS the copy null (+0.15 vs +0.13; +0.04 combined —
+partially complementary). Running best: 1089 params, +1.49 b/ev.
+
+TEST-DESIGN FAILURE recorded: the post-fill-recovery test is
+invalid on GMD as stored — fills are separate FILES, so within-file
+sparse bars are intros/breakdowns whose continuation IS sparse;
+slot retrieval (reinstating the groove) mispredicts there
+(post-sparse b/ev 5.99 vs copy 7.23). The memory's signature claim
+needs groove->fill->groove arcs inside one sequence: session files
+or stitched beat+fill sequences. NEXT: stitched-arc eval;
+memory-conditioned navigate render (audible motif return);
+slot-churn/consolidation metrics; transitions.
