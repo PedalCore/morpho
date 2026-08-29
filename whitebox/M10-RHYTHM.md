@@ -299,3 +299,24 @@ state ~ 880, tonality is the piano analog of "counters own
 composition". Chord (within-tick) structure expected to matter far
 more than drums (+coupling rung ordered bass->treble). Metric:
 bits/event over per-key rates; subset ~1-2k performances first.
+
+
+## M10-P v1 results (2026-08-29, ARIA 291-file subset, free-clock)
+
+| rung | state | params | b/ev |
+|---|---|---|---|
+| PITCH-CLASS traces (12) | 60 | 5.4k | **+0.216** |
+| per-key traces (88) | 440 | 38.8k | +0.193 |
+| key + pc | 500 | 44k | +0.213 |
+| + copy(2s echo) | 500 | 52k | +0.180 (hurts) |
+
+PREREGISTERED BET LANDED: pitch-class counters ARE the sufficient
+statistic for next-onset harmony — 60 state beats 440, and adding
+per-key detail to pc adds nothing. Tonality = the piano analog of
+"counters own composition" (third domain for the thesis). Caveats:
+small subset/test (30 files, 15k events); per-key rung may be
+under-optimized (39k params, 4 epochs) — verify before quoting;
+crude 2s copy echo is a bad motif proxy (noise), proper motif
+memory needs the v6 slot machinery with self-clocked segmentation.
+Free-clock piano is HARD in absolute terms (+0.22 vs clocked drums
++1.5 b/ev) — the clock's value, cross-domain.
