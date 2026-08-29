@@ -966,3 +966,81 @@ topology/weights, tanh) 37.9±0.2 · +neuron-free delay-line bank 37.3±0.2
 This closes the reservoir-readout campaign. The substrate contributes;
 the architecture around it cannot reach usable generation (v15/v17/v18
 taxonomy). Pivot documented at site/changing-tack.html.
+
+---
+
+## v19 — MIMII industrial anomaly detection: the control killed the result
+
+**Why.** The circuit work claims a weight in {−1,0,+1} turns a 305-gate
+multiplier into a 74-gate add/subtract. TinyStories cannot test whether
+that survives deployment. MIMII (Purohit et al. 2019) can: real pump
+recordings, normal vs faulty, scored by ROC AUC against a published
+autoencoder baseline (~0.85 for pump @ 6 dB).
+
+**Setup.** Pump id_00 @ +6 dB, 1006 normal + 143 abnormal 10 s clips, 64-bin
+log-mel. A diagonal recurrence (h ← a·h + b·u, d=64, 8,384 params, constant
+state) trained on NORMAL only to predict the next frame; anomaly score =
+prediction error. 5 seeds moving both split and init.
+
+**First result, and why it was wrong.** Float 0.806, ternary 0.912 — ternary
+apparently *better*, +0.106. It reproduced across 5 seeds, winning 5/5.
+Two controls dismantled it:
+
+```
+  no model: spectrum template   0.983 ±0.001      <- 64 stored numbers
+  no model: frame delta         0.810 ±0.008
+  no model: loudness            0.682 ±0.001
+  untrained control             0.923 ±0.047      <- random weights
+  float32 (trained)             0.796 ±0.007
+  ternary keep=0.5              0.966 ±0.011
+```
+
+1. **An untrained random recurrence (0.923) beats the trained one (0.796).**
+   Training reliably *destroys* the score. Ternarizing partially undoes the
+   training, so "ternary wins 5/5" is a win over a broken baseline.
+2. **Distance from the mean normal spectrum scores 0.983 with no model and no
+   training**, beating everything here and the paper's autoencoder. The task
+   is solved by a static template; it never tested temporal modelling. The
+   confound is not loudness (RMS only 0.699) but spectral shape.
+
+**Removing the shortcut.** Subtracting each clip's own mean spectrum (CMVN)
+leaves only temporal structure. Everything collapses: float 0.483 ±0.016
+(chance), best ternary 0.569, untrained 0.645 — all far below the trivial
+frame-delta statistic (0.810). This recurrence extracts no usable temporal
+information here.
+
+**A methodological trap worth recording.** Under CMVN the template score is
+identically zero in exact arithmetic. Its float32 rounding residue (~5e-7)
+still reached **0.892 AUC** — a quantity that is mathematically zero
+separating the classes. Correlation with loudness was only 0.17, so it was
+not simply leaking volume. Baselines are now always computed pre-CMVN.
+
+**The hardware question, asked properly.** The detector that works IS a
+crossbar: a stored 64-value template dotted against each clip's mean
+spectrum. So quantize *that* (5 seeds, template from training normals only):
+
+```
+  template     float32      int8   ternary    binary   gates/MAC   stored
+  float32        0.983     0.983     0.989     0.939        305     2048b
+  int8           0.983     0.983     0.989     0.939        305      512b
+  ternary        0.977     0.977     0.987     0.959         74      101b
+  binary         0.960     0.960     0.964     0.945        9.5       64b
+```
+
+Ternary on both sides: **0.987 (+0.004 vs float)**, 4.1× fewer gates, whole
+detector in **101 bits**. Binary both sides: 0.945 (−0.038), 32× fewer gates,
+**64 bits** — the entire model fits in one machine word. Both beat the
+published autoencoder baseline (~0.85) and our trained recurrence (0.796).
+
+**Conclusions.**
+1. Claim *not* supported: "ternary survives on our trained sequence model."
+   The model never worked; the comparison was vacuous.
+2. Claim supported: on this task, ternary weights cost nothing (+0.004) at
+   4.1× fewer gates, and binary costs 0.038 AUC at 32× fewer gates —
+   measured on the detector that actually wins.
+3. Every future run reports no-model baselines in the same table. A trained
+   model that cannot beat 64 stored numbers must not be written up as one
+   that can.
+
+Code: `spikelm/mimii_experiment.py`, `spikelm/mimii_template_quant.py`,
+`spikelm/mimii_fetch.py` (Zip64 ranged fetch: 13 MB instead of 7.66 GB).
