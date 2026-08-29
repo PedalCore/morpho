@@ -42,3 +42,20 @@ PREREGISTERED BET: a sub-10k-parameter hierarchy audibly beats the
 flat GLM, because decisions finally live at music's own rate and
 vocabulary. Failure mode to watch: chord segmentation quality
 bounds everything above it (garbage lattice -> garbage hierarchy).
+
+
+## Rung a+b v1 results (2026-08-29)
+
+VOCABULARY PARTLY MUSICAL: quality clusters include the MAJOR TRIAD
+(q7: +0/.40 +7/.28 +4/.12), major-third (q6), minor-third (q0),
+quartal (q4) — inspectable, real. But single-pc (q2) and
+near-silence (q1) clusters dominate: fixed 0.5s hops with no beat
+alignment over-fragment harmony.
+PROGRESSIONS on this lattice: uniform 6.58 / unigram 6.12 /
+markov-1 5.63 / markov-2 5.80 (sparse-context overfit) bits/chord.
+Real structure found (-0.95 vs unigram) but far above tonal
+music's expected 2-3 bits/chord — the preregistered failure mode
+(lattice bounds hierarchy) fired. FIX = the clock, again: harmonic
+rhythm lives on bars; ASAP's beat annotations give clean spans.
+NEXT: onset-weighted, duration-weighted, beat-aligned segmentation
+(ASAP), then re-judge progression models; only then rungs c/d.
