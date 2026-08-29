@@ -270,3 +270,17 @@ needs groove->fill->groove arcs inside one sequence: session files
 or stitched beat+fill sequences. NEXT: stitched-arc eval;
 memory-conditioned navigate render (audible motif return);
 slot-churn/consolidation metrics; transitions.
+
+
+## v6 demo (2026-08-29): AUDIBLE MOTIF RETURN — the Hopfield memory
+## doing its job
+
+Stitched arc (4 seed groove bars | 3 gen | 1 REAL fill forced | 8
+gen), same trained readout, two arms. Post-fill cosine similarity
+to the seeded groove, bars 9-16:
+  memory arm: .07 .24 .35 .42 .35 .37 .44 .53 (monotone RETURN —
+    the consolidated slot is an attractor; generation falls back in)
+  copy-only : .21 .28 .27 .28 .30 .12 .16 .15 (drifts, no recovery)
+Generative retrieval rule: cos x g/(g+2) — attractor depth = TTG
+win count (the paper's consolidation, used as retrieval weighting).
+Renders: arcA_mem.wav / arcB_copy.wav.
