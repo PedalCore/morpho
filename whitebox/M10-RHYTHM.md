@@ -199,3 +199,26 @@ velocities at true tempo). Ghost-note flattening was the earlier
 NEXT: nonlinear/interaction velocity head; microtiming delta stage;
 SNN rung; DAW/live port of the tick-lattice process (the natural
 deployment — all state is 90 scalars + 1107 weights).
+
+
+## v5 design (2026-08-29, user concept): NAVIGABLE MODE SPACE
+
+Diagnosis: traces are FAST state; generation is grid-true but
+non-committal because there is no SLOW mode variable ("this groove"
+vs "fill"). Human drumming is regime-switching.
+
+v5a — switching spike-GLM (preregistered):
+1. Bar features: 9x16 slot-occupancy grids (144-d — the drum-machine
+   pattern page, inspectable by eye).
+2. k-means K=12 over training bars -> modes are pattern heatmaps.
+3. VALIDATION AGAINST LABELS (unsupervised first): GMD marks files
+   beat vs fill. PREDICT: >=1 cluster majority-fill; beat/fill
+   separation visible without supervision.
+4. Mode-conditioned GLM (+K one-hot features). PREDICT: b/ev gain
+   over the 'all' rung (0.792) — the mode carries pattern identity
+   the traces cannot hold.
+5. Generation = NAVIGATION: user/DAW chooses the bar-mode sequence
+   (e.g. 7 bars groove cluster, 1 bar fill cluster). Render demo.
+Program tie-in: mode = M4 slot (which regime is active), traces =
+fast dynamics within it. Later: learned transitions (tiny Markov),
+continuous style axes (v5b).
