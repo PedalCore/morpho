@@ -79,3 +79,54 @@ per-oscillator decay, onset-level metrics, L4 ceiling reference.
 Method note: fixed-physics dynamics + trained readouts only —
 param counts are honest; first sweep was non-converged (bias/scale)
 and is superseded by this one.
+
+
+## v2 results (2026-08-29; collaborator-sharpened metrics/ladder)
+
+bits/EVENT over rate baseline (GMD test, 20 ms unless noted):
+
+| rung | trainable | state | b/ev | F1@80ms |
+|---|---|---|---|---|
+| traces (10 dyadic) | 11 | 10 | +0.232 | .00 |
+| oscillators only | 33 | 32 | +0.158 | .00 |
+| traces+osc | 43 | 42 | +0.257 | .01 |
+| FIR-500 | 501 | 500 | +0.227 | .05 |
+| nonlinear head | 705 | 42 | +0.394 | .05 |
+| CLOCK oracle (16th-phase bins) | 17 | 0 | +0.445 | .00 |
+| clock + traces | 43 | 10 | +0.630 | .18 |
+
+FINDINGS
+1. THE CLOCK IS MACHINERY, MEASURED: the transport clock alone
+   (zero state) beats every self-clocked model; clock+traces are
+   nearly ADDITIVE (0.445+0.232 ~ 0.630) — clock = where in the
+   cycle, traces = what is being played. In a DAW the clock is
+   free: 43 trainable / 10 state extracts 0.63 b/ev given it.
+2. Self-clocked oscillators recover only ~35% of the clock's info —
+   the measured cost of DISCOVERING pulse vs being handed it.
+3. Dynamics compress: 10 traces ~ 500-tap FIR (0.232 vs 0.227).
+4. GRID ABLATION (L5 per grid): 80ms +0.277 / 40ms +0.335 /
+   20ms +0.394 / 10ms +0.446 — NO saturation by 10 ms; microtiming
+   is signal (collaborator's 40ms-suffices guess falsified).
+5. Metrical structure lives at the 16TH level, not the beat:
+   onset phase concentration R_16 = 0.59 vs R_beat = 0.07
+   (drummers occupy all beat slots; oracle/anchoring must target
+   the concentrated level). Three oracle bugs found en route
+   (per-file phase offset; 1st-harmonic-only sin/cos readout vs
+   comb hazard -> phase BINS; anchor level) — recorded, fixed.
+
+DESIGN UPDATES (user+collaborator relay, adopted):
+- Contract v1: integer 20ms cells, 0/1, no tokenizer — continuously
+  meaningful dynamics, discretely permitted events.
+- CLOCK-CONDITIONING LADDER promoted to main axis: BPM-only ->
+  +pulse phase -> +bar phase -> full position; each rung prices what
+  the transport provides.
+- DAW formulation (target instrument): musical-tick lattice,
+  subdivision-RATIO oscillators (w_k = r_k w_master; tempo scales
+  all dynamics coherently), playhead-as-read-head, swing as
+  substrate deformation, loop/seek semantics explicit.
+- v3: multi-channel spikes (9-piece kit) on the tick lattice —
+  collapsed-to-one-channel occupancy is ~1 hit per 16th, so pattern
+  information lives in WHICH drum, not whether.
+- Two-grid split (metrical event + microtiming delta) later; GMD's
+  score-vs-deviation annotations fit it exactly.
+- STILL OWED: free-running stability as first-class metric.
