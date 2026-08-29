@@ -76,3 +76,19 @@ template matching against known chord shapes: readable symbols);
 (b) genuine classical modulation richness. NEXT: template chords,
 trace-conditioned progression model, then rung c (melody over the
 scaffold).
+
+
+## EAR-TEST PASSED (2026-08-29): prog_real AND prog_markov2 both
+## sound good (user verdict)
+
+The factorization is vindicated audibly at rung a+b: (1) the chord
+abstraction preserves musicality (real lattice re-voiced sounds
+good — decoder ceiling is high enough); (2) a MARKOV-2 COUNTS
+TABLE over 96 symbols produces good-sounding harmony — where the
+flat 88-key GLM sounded random at any calibration. Decisions at
+music's rate and vocabulary make tiny machinery musical: the
+sub-10k bet's core mechanism is confirmed. Remaining for the full
+bet: rung c (melody over the scaffold), harmonic rhythm (span
+durations — currently fixed 1 bar per chord at render), and rung d
+(full stack + the three-way listening test); then the band: this
+harmony engine + the M10 drum machine share a clock by design.
