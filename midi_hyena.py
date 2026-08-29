@@ -66,7 +66,8 @@ def main():
 
     def loss_of(x, y):
         logits = model(x).logits
-        return F.cross_entropy(logits.reshape(-1, VOCAB), y.reshape(-1))
+        return F.cross_entropy(logits.reshape(-1, logits.size(-1)),
+                               y.reshape(-1))
 
     for step in range(args.steps):
         lr = 3e-4 * min(1.0, (step + 1) / 200) * \
