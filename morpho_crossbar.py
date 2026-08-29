@@ -6,13 +6,21 @@ page measured at 0.2% of the model's arithmetic. This describes the other
 
 A crossbar is a grid where every crosspoint holds a weight, inputs travel
 along rows, and products accumulate down columns. Memristive arrays do this
-in the analog domain — Ohm's law multiplies, Kirchhoff's current law sums,
-and a whole matrix-vector product settles in one step (see Deng et al.,
-Nature Communications 2026, which builds exactly this for compressed
-sensing). Morpho cannot describe that: it emits LUTs and wires, not
-conductances. What it can describe is the same *topology* in digital logic,
-where the trade is inverted — exact arithmetic, no converters, no drift, at
-the cost of gates per crosspoint instead of one device.
+in the analog domain: Ohm's law multiplies, Kirchhoff's current law sums.
+
+Deng et al. (Nature Communications 2026) go further than a multiply, and the
+distinction matters. Wrapping the array in op-amp feedback makes the
+circuit's *settling point* the solution to a linear system —
+V_o = -A^T(AA^T)^-1 V_y — so a matrix pseudo-inverse falls out in one step,
+in about 128 ns, with no iteration at all. A digital crossbar cannot do
+that. Multiplication maps across; inversion does not, because digitally an
+inverse is an iterative solve and there is no equivalent of letting physics
+find a fixed point.
+
+So this file claims the narrower thing: the same *topology*, in exact
+digital logic, for the multiply-accumulate half. Gates per crosspoint
+instead of one device — and in exchange, no converters, no conductance
+drift, no write-and-verify, and no 1.83-5.61 dB gap to the numerical model.
 
 Both are built here so the comparison is concrete rather than rhetorical:
 
@@ -84,6 +92,26 @@ def crossbar(w_ref, row_ref, W, x):
                crossbar(w_ref, row_ref, rest, x))
 
 
+# ------------------------------------------------- the part that transfers
+
+@morpho
+def event_gate(feature, threshold, payload):
+    """Run the expensive path only when a cheap feature says it is worth it.
+
+    The paper's largest win is not the analog speed — it is that a cheap
+    first estimate is fed to a detector, and the iterative stage is skipped
+    entirely for uninteresting inputs. That is a decision, not a device, and
+    it costs a comparator and a mask.
+
+    Returns `payload` when feature >= threshold, zeros otherwise, so the
+    downstream array sees no activity for signals that failed the test.
+    """
+    from tiny_morpho import Not, And, REPEAT
+    diff, _borrow = brent_kung_adder(feature, Not(threshold), np.ones((1,), np.int32))
+    fire = Not(diff[-1:])                       # no borrow => feature >= threshold
+    return And(payload, REPEAT(fire, payload))
+
+
 # ------------------------------------------------------------ verification
 
 def refs(bits, n_in):
@@ -143,9 +171,18 @@ if __name__ == "__main__":
     print(f"                   {per * 384 / 1e3:,.0f}k gates, 384 cycles per output")
 
     print("\nagainst the analog article (Deng et al., Nat. Commun. 2026):")
-    print("  analog   1 memristor per crosspoint, O(1) settling, but 14-bit")
-    print("           converters on every edge and a measured 2.9-5.6 dB loss")
-    print("           against simulation from quantisation and device non-ideality")
-    print(f"  digital  ~{per:.0f} gates per crosspoint, exact — no converters, no")
-    print("           drift, no write-and-verify, and the same crossbar topology")
-    print("\nThe topology is the shared idea; the substrate is the trade.")
+    print("  analog   1 memristor per crosspoint. Crucially it does more than")
+    print("           multiply: op-amp feedback makes the settling point solve")
+    print("           A^T(AA^T)^-1 y — a pseudo-inverse in ~128 ns, no iteration.")
+    print("           Paid for with 14-bit converters and a measured 1.83-5.61 dB")
+    print("           loss to quantisation, wire resistance, parasitics and write error.")
+    print(f"  digital  ~{per:.0f} gates per crosspoint, exact. The multiply maps over;")
+    print("           the one-step inverse does not — digitally that is an iterative")
+    print("           solve, and no arrangement of gates settles into an answer.")
+    print("\nThe topology transfers. The physics does not — and their result is")
+    print("mostly the physics.")
+    print("\nWhat does transfer is their control flow. In the paper the cheap")
+    print("operation runs once (MRI, ~6% of the time) and the expensive one")
+    print("iterates (RSP, ~94%); the 45x energy win comes mostly from a detector")
+    print("deciding which inputs deserve the expensive path at all. That is")
+    print("ordinary logic — see event_gate below.")
