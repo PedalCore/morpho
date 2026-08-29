@@ -242,12 +242,78 @@ def freerun():
     print(f'  voice-distribution JS: median {np.median(voices):.3f} bits')
 
 
+GM_NOTE = [36, 38, 42, 46, 43, 47, 50, 49, 51]   # 9 voices -> GM drums
+
+
+def raster_to_midi(x, path):
+    import mido
+    mid = mido.MidiFile()
+    tr = mido.MidiTrack()
+    mid.tracks.append(tr)
+    tpb = mid.ticks_per_beat                      # 120 bpm fixed render
+    spb = 0.5
+    events = []
+    for t, row in enumerate(x):
+        for v in np.where(row)[0]:
+            events.append((t * BIN, 1, GM_NOTE[v]))
+            events.append((t * BIN + 0.03, 0, GM_NOTE[v]))
+    events.sort()
+    prev = 0.0
+    for tt, on, note in events:
+        dt = max(0, int(round((tt - prev) / spb * tpb)))
+        prev = tt
+        tr.append(mido.Message('note_on' if on else 'note_off',
+                               note=note, velocity=100 if on else 0,
+                               channel=9, time=dt))
+    mid.save(path)
+
+
+def render():
+    """(a) truth round-trip render; (b) spike-GLM seed+free-run."""
+    import torch
+    store = np.load(OUT / 'gmd9.npy', allow_pickle=True).item()
+    Ctr, Ttr, Ytr = assemble('train', store)
+    Xtr = np.concatenate([Ctr, Ttr], 1)
+    _, npar, net, (mu, sd) = fit_heads(Xtr, Ytr, Xtr[:1])
+    lam = np.array([0.5 ** (BIN / hl) for hl in TRACE_HL])
+    it = max(store['test'], key=lambda d: len(d['x']))
+    bpm, x = it['bpm'], it['x']
+    bar_bins = int(4 * 60 / bpm / BIN)
+    seed_n, gen_n = 2 * bar_bins, 16 * bar_bins
+    raster_to_midi(x[:seed_n + gen_n], OUT / 'truth.mid')
+    tr = np.zeros((NV, 10))
+    for t in range(seed_n):
+        tr = tr * lam
+        tr += x[t][:, None]
+    C = clock_feats(np.vstack([x[:seed_n],
+                               np.zeros((gen_n, NV), np.uint8)]), bpm)
+    rng = np.random.default_rng(1)
+    gen = np.zeros((seed_n + gen_n, NV), np.uint8)
+    gen[:seed_n] = x[:seed_n]
+    for t in range(gen_n):
+        f = np.concatenate([C[seed_n + t], tr.reshape(-1)])
+        f = (f - mu) / sd
+        with torch.no_grad():
+            p = torch.sigmoid(net(torch.from_numpy(
+                f.astype(np.float32)))).numpy()
+        s = (rng.random(NV) < p).astype(np.uint8)
+        gen[seed_n + t] = s
+        tr = tr * lam
+        tr += s[:, None]
+    raster_to_midi(gen, OUT / 'spikeglm.mid')
+    print(f'rendered truth.mid + spikeglm.mid (bpm {bpm:.0f}, '
+          f'{npar} params, seed 2 bars + gen 16)', flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--prep', action='store_true')
     ap.add_argument('--sweep', action='store_true')
     ap.add_argument('--freerun', action='store_true')
+    ap.add_argument('--render', action='store_true')
     a = ap.parse_args()
+    if a.render:
+        render()
     if a.prep:
         prep()
     if a.sweep:
