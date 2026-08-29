@@ -245,7 +245,10 @@ def freerun():
 GM_NOTE = [36, 38, 42, 46, 43, 47, 50, 49, 51]   # 9 voices -> GM drums
 
 
-def raster_to_midi(x, path):
+def raster_to_midi(x, path, vel=None):
+    """vel: optional (T, NV) velocity raster in 1..127 — ghost notes
+    survive; without it everything renders at a flat 100 (the 'fury
+    of snares' artifact)."""
     import mido
     mid = mido.MidiFile()
     tr = mido.MidiTrack()
@@ -255,15 +258,16 @@ def raster_to_midi(x, path):
     events = []
     for t, row in enumerate(x):
         for v in np.where(row)[0]:
-            events.append((t * BIN, 1, GM_NOTE[v]))
-            events.append((t * BIN + 0.03, 0, GM_NOTE[v]))
+            vv = int(vel[t, v]) if vel is not None else 100
+            events.append((t * BIN, 1, GM_NOTE[v], vv))
+            events.append((t * BIN + 0.03, 0, GM_NOTE[v], 0))
     events.sort()
     prev = 0.0
-    for tt, on, note in events:
+    for tt, on, note, vv in events:
         dt = max(0, int(round((tt - prev) / spb * tpb)))
         prev = tt
         tr.append(mido.Message('note_on' if on else 'note_off',
-                               note=note, velocity=100 if on else 0,
+                               note=note, velocity=vv,
                                channel=9, time=dt))
     mid.save(path)
 
@@ -294,16 +298,19 @@ def render():
         t += m_.time
         if m_.type == 'note_on' and m_.velocity > 0 \
                 and m_.note in VOICE:
-            ev.append((t, VOICE[m_.note]))
+            ev.append((t, VOICE[m_.note], m_.velocity))
     n = int(ev[-1][0] / BIN) + 2
     xx = np.zeros((n, NV), np.uint8)
-    for tt_, v_ in ev:
+    vv = np.zeros((n, NV), np.int16)
+    for tt_, v_, w_ in ev:
         xx[int(tt_ / BIN), v_] = 1
-    it = dict(x=xx, bpm=float(row['bpm']))
+        vv[int(tt_ / BIN), v_] = max(vv[int(tt_ / BIN), v_], w_)
+    it = dict(x=xx, bpm=float(row['bpm']), vel=vv)
     bpm, x = it['bpm'], it['x']
     bar_bins = int(4 * 60 / bpm / BIN)
     seed_n, gen_n = 2 * bar_bins, 16 * bar_bins
-    raster_to_midi(x[:seed_n + gen_n], OUT / 'truth.mid')
+    raster_to_midi(x[:seed_n + gen_n], OUT / 'truth.mid',
+                   vel=it['vel'][:seed_n + gen_n])
     tr = np.zeros((NV, 10))
     for t in range(seed_n):
         tr = tr * lam
@@ -323,7 +330,15 @@ def render():
         gen[seed_n + t] = s
         tr = tr * lam
         tr += s[:, None]
-    raster_to_midi(gen, OUT / 'spikeglm.mid')
+    # GLM is binary: render each voice at its per-voice median human
+    # velocity from this take (ghost-note modeling = next stage)
+    med = np.zeros(NV, np.int16)
+    for v_ in range(NV):
+        w = it['vel'][:, v_][it['vel'][:, v_] > 0]
+        med[v_] = int(np.median(w)) if len(w) else 90
+    genvel = gen * med[None, :]
+    genvel[:seed_n] = it['vel'][:seed_n]
+    raster_to_midi(gen, OUT / 'spikeglm.mid', vel=genvel)
     print(f'rendered truth.mid + spikeglm.mid (bpm {bpm:.0f}, '
           f'{npar} params, seed 2 bars + gen 16)', flush=True)
 
