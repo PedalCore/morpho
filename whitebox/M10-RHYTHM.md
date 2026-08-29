@@ -54,3 +54,28 @@ stratified metrics).
    The answer either way is a headline.
 
 Status: design only. Build: data prep + L0-L2 first (Mac-scale).
+
+
+## v1 results (2026-08-29, GMD test split, 20 ms bins, next-bin NLL)
+
+| rung | params | bits/bin | onset F1 (prec) |
+|---|---|---|---|
+| L0a rate | 1 | 0.600 | - |
+| L1 single LIF | 3 | 0.598 | 0 |
+| L2 oscillators only | 33 | 0.591 | 0 |
+| L0b 8-tap Markov | 9 | 0.577 | 0 |
+| L3 taps+counters | 417 | 0.532 | 0.12 (0.79p) |
+| L3 + oscillators | 929 | 0.530 | 0.11 (0.78p) |
+
+Findings: (1) single LIF learns nothing (predicted). (2) Short raw
+history > pure phase at next-bin range. (3) 417 params of
+taps+counters ~ everything; oscillators add 0.002 bits GIVEN
+history — the meter prediction fails AT THIS LENS. Diagnosis
+(preregistered for v2): next-20ms prediction is dominated by local
+micro-structure; meter's value lives at long horizons where phase
+outlasts history. v2 eval: multi-horizon prediction (t+k, hidden
+intermediates, k to ~1 bar) + continuation quality; plus learned
+per-oscillator decay, onset-level metrics, L4 ceiling reference.
+Method note: fixed-physics dynamics + trained readouts only —
+param counts are honest; first sweep was non-converged (bias/scale)
+and is superseded by this one.
