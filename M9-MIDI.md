@@ -9,9 +9,18 @@ seed, L4 + FLA. wandb: morpho-whitebox-midi.
 | arm | params | val ppl |
 |---|---|---|
 | counter (CRSA) | 22.0M | 7.29 |
+| WKV (RWKV4-form) | 29.3M | 5.94 |
+| hyena (param-matched, 2nd sweep) | 15.9M | 5.55 |
 | mixed (half counter / half delta) | 22.7M | 5.53 |
 | qkv attention (control) | 29.3M | 5.39 |
 | LONGHORN | 29.4M | **5.20** |
+
+Second-sweep notes: WKV lands between counters and the binding arms
+(its normalized-counter anatomy, in its place); hyena at the
+smallest size reaches the hybrid's level but does NOT repeat its
+DNA-splice dominance — music's structure rewards associative state
+over global convolution here. Longhorn remains champion. All six
+continuations share one held-out prompt (runs/midi/*/continuation).
 
 FINDINGS (one seed, prereg-consistent but unreplicated):
 1. **Longhorn > attention on music at equal params** — the first
