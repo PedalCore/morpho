@@ -166,3 +166,36 @@ balance. The learned dynamical drum machine exists at ~1.1k params.
 NEXT: within-tick coupling (causal); velocity as a third stage;
 tick-lattice/subdivision-ratio port (the DAW instrument); render
 generated takes to audio; free-run at the coupled rung.
+
+
+## v4 (2026-08-29): tick-lattice exact + velocity — collaborator's
+## rhythm3_exact.py merged (built remotely, pulled in)
+
+Tick lattice (48 steps/quarter, BPM never a feature — one process,
+any host tempo), musical-time trace half-lives, causal
+within-tick coupling, drift-resolved free-run:
+
+| rung | trainable | state | b/ev | free-run |
+|---|---|---|---|---|
+| clock | 261 | 0 | +0.303 | stable |
+| +own traces | 351 | 90 | +0.661 | stable |
+| +all traces | 1071 | 90 | +0.792 | stable |
+| +causal coupling | 1107 | 90 | +0.852 | stable, R16 0.378 (hum .584) |
+
+CORRECTION THAT MATTERS: causal within-tick coupling is worth
++0.06 b/ev — the earlier +3.2 PL 'bound' was almost entirely
+information flowing backwards through the conditioning, not
+causally available. Preregistration discipline caught it; quote
+0.06, never 3.2.
+
+VELOCITY STAGE: per-voice linear head on the same features, 1071
+params: RMSE 31.5 vs 34.1 per-voice-mean baseline (MIDI units) —
+accent position is linearly learnable, phrase dynamics are not.
+Renders: truth.wav (velocity-true round trip — user-verified
+'sounds great'); spikeglm_vel.wav (coupled model + learned
+velocities at true tempo). Ghost-note flattening was the earlier
+'fury of snares' artifact — representation, not model.
+
+NEXT: nonlinear/interaction velocity head; microtiming delta stage;
+SNN rung; DAW/live port of the tick-lattice process (the natural
+deployment — all state is 90 scalars + 1107 weights).
