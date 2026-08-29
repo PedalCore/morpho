@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the control that killed the result</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root { --bg:#0d1015; --panel:#12151b; --panel2:#171b23; --line:#242a35;
+          --text:#d7dae2; --muted:#9aa1ad; --amber:#e2a13f; --green:#7bd8a5; --red:#d96c6c; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font:16px/1.7 -apple-system,"Segoe UI",sans-serif; padding:48px 20px 80px; }
+  article { max-width:44em; margin:0 auto; }
+  h1 { font-size:27px; font-weight:600; letter-spacing:.02em; margin-bottom:8px; }
+  h1 span { color:var(--amber); }
+  .sub { color:var(--muted); margin-bottom:24px; font-size:17px; }
+  h2 { font-size:20px; font-weight:600; margin:42px 0 12px; color:var(--amber); }
+  p { margin:14px 0; color:#c9cdd7; }
+  b { color:#e8ebf0; }
+  a { color:var(--amber); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:ui-monospace,"SF Mono",monospace; font-size:14px;
+         background:var(--panel2); padding:1px 6px; border-radius:4px; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; margin:18px 0; width:100%; font-size:15px; }
+  th,td { text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--line);
+          white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase;
+       letter-spacing:.05em; }
+  td.n { font-family:ui-monospace,monospace; }
+  td b { color:var(--green); }
+  td i { font-style:normal; color:var(--red); }
+  .aside { border-left:3px solid var(--line); padding:2px 0 2px 16px; margin:18px 0;
+           color:var(--muted); font-size:15px; }
+  .key { border-left:3px solid var(--amber); background:var(--panel); padding:12px 16px;
+         border-radius:0 8px 8px 0; margin:18px 0; }
+  .warn { border-left:3px solid var(--red); background:var(--panel); padding:12px 16px;
+          border-radius:0 8px 8px 0; margin:18px 0; }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin:18px 0 6px; }
+  .links a { border:1px solid var(--line); border-radius:8px; padding:7px 14px; }
+  .links a:hover { border-color:var(--amber); text-decoration:none; }
+  .foot { color:#6a7280; font-size:13.5px; margin-top:44px; border-top:1px solid var(--line);
+          padding-top:16px; }
+  .aidisc { color:#6a7280; font-size:12.5px; line-height:1.5; margin-top:22px;
+            border-top:1px solid #1c212b; padding-top:14px; }
+  .aidisc b { color:#8b929e; font-weight:600; }
+</style>
+</head>
+<body>
+<article>
+  <h1>the control that <span>killed the result</span></h1>
+  <p class="sub">We tested whether a model still works when its weights are crushed down
+  to <b>−1, 0 and +1</b>, using recordings of real industrial pumps — some healthy, some
+  faulty. The first answer was that crushing the weights made the model
+  <em>better</em>. It reproduced across every seed. It was also completely worthless, and
+  the thing that exposed it took four lines of code.</p>
+
+  <h2>Why pumps</h2>
+  <p>Everything else on this site has been measured on text. Text is a bad place to ask a
+  hardware question, because nobody deploys a tiny language model into a factory. So we
+  went to <b>MIMII</b> — a public dataset of industrial machine sound, recorded by
+  Hitachi. We used the pump: 1,006 recordings of a healthy pump and 143 of a faulty one,
+  ten seconds each, with factory noise mixed in at a realistic level.</p>
+
+  <p>The job is <b>anomaly detection</b>, and the setup matters: the model is only ever
+  shown <em>healthy</em> sound. It learns to predict what the pump does next. When a
+  machine starts to fail it stops sounding like what the model learned, the predictions
+  get worse, and that error is the alarm. You never have to collect examples of the
+  failure — which is the entire appeal, since failures are rare and you cannot ask a
+  factory to break its pump for your training set.</p>
+
+  <p>Scores are <b>AUC</b>: the chance that a randomly chosen faulty clip is rated more
+  anomalous than a randomly chosen healthy one. 0.5 is a coin flip. 1.0 is perfect. The
+  paper that published the dataset reports about <b>0.85</b> for this pump using a neural
+  autoencoder, so that is the number to beat.</p>
+
+  <h2>The result that looked good</h2>
+  <p>Our model is the same recurrence the rest of this site keeps coming back to —
+  <code>h ← a·h + b·u</code>, a running state that decays a little and takes in a little,
+  8,384 parameters, no growing memory. Trained on healthy sound only. Then we took the
+  trained weights and forced every one of them to −1, 0 or +1, and scored it again.</p>
+
+  <table>
+    <tr><th>weights</th><th>AUC</th><th>gates per multiply</th></tr>
+    <tr><td>float32</td><td class="n">0.806</td><td class="n">305</td></tr>
+    <tr><td>ternary {−1,0,+1}</td><td class="n"><b>0.912</b></td><td class="n">74</td></tr>
+  </table>
+
+  <p>Ternary was <b>better</b>, by a lot, at a quarter of the hardware cost. Run over five
+  different random seeds it won five times out of five. That is the kind of result that
+  writes its own headline.</p>
+
+  <h2>The four lines that killed it</h2>
+  <p>Before scoring a trained model, we also scored it <b>untrained</b> — random weights,
+  straight from initialisation, no learning at all. If a random model does just as well,
+  then whatever is happening has nothing to do with training.</p>
+
+  <p>And separately, the dumbest detector we could think of. Average each recording down
+  to a single 64-number spectrum — how much energy sits at each pitch, averaged over the
+  whole ten seconds. Take the average of all the healthy ones. Score a new clip by how far
+  its spectrum sits from that average. No model. No training. No time. Just a stored
+  template and a distance.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th>detector</th><th>AUC (5 seeds)</th><th></th></tr>
+    <tr><td>no model: spectrum template</td><td class="n"><b>0.983 ±0.001</b></td>
+        <td>64 stored numbers</td></tr>
+    <tr><td>no model: frame-to-frame change</td><td class="n">0.810 ±0.008</td><td></td></tr>
+    <tr><td>no model: loudness</td><td class="n">0.682 ±0.001</td><td></td></tr>
+    <tr><td>no model: texture</td><td class="n">0.513 ±0.008</td><td></td></tr>
+    <tr><td>untrained recurrence</td><td class="n">0.923 ±0.047</td><td>random weights</td></tr>
+    <tr><td>trained recurrence, float32</td><td class="n"><i>0.796 ±0.007</i></td>
+        <td>&larr; worse than random</td></tr>
+    <tr><td>trained recurrence, ternary</td><td class="n">0.966 ±0.011</td><td></td></tr>
+  </table>
+  </div>
+
+  <div class="warn">
+    <p style="margin:0"><b>Two things are wrong here at once.</b> The untrained model
+    (0.923) beats the trained one (0.796) — so training was actively <em>destroying</em>
+    the score, and ternarising it was simply undoing some of the damage. "Ternary wins
+    5/5" was a win over a baseline we had broken ourselves. And nothing we built came near
+    a stored template of 64 numbers, which scores 0.983 and beats the published
+    autoencoder too.</p>
+  </div>
+
+  <p>So the task never tested what we thought. A faulty pump has a
+  <em>different spectral shape</em>, permanently, throughout the recording — and that
+  shows up in a ten-second average. Nothing has to model time at all. Worth noting the
+  shortcut is not simply volume: raw loudness only reaches 0.699.</p>
+
+  <h2>Taking the shortcut away</h2>
+  <p>If the giveaway is each clip's average spectrum, then subtract it. Every recording
+  gets its own average removed, so all that survives is how the sound <em>changes</em>
+  over time — which is exactly what a recurrence is supposed to be good at, and the only
+  thing left to be good at.</p>
+
+  <table>
+    <tr><th>detector, shortcut removed</th><th>AUC</th></tr>
+    <tr><td>trained recurrence, float32</td><td class="n"><i>0.483 ±0.016</i></td></tr>
+    <tr><td>trained recurrence, best ternary</td><td class="n">0.569 ±0.008</td></tr>
+    <tr><td>untrained recurrence</td><td class="n">0.645 ±0.027</td></tr>
+    <tr><td>trivial frame-to-frame change</td><td class="n"><b>0.810 ±0.008</b></td></tr>
+  </table>
+
+  <p>The trained model lands at <b>0.483</b> — a coin flip. Take away the static
+  giveaway and this recurrence extracts essentially nothing usable from the timing of the
+  sound, while a one-line statistic about how fast the spectrum wobbles gets 0.810. That
+  is a clean negative result, and it is the honest ceiling on what our sequence model did
+  here.</p>
+
+  <div class="aside">
+    <p style="margin:0"><b>A trap worth recording.</b> When we first removed the
+    shortcut, we kept computing the template baseline anyway — and it still scored
+    <b>0.892</b>. It should have been exactly 0.5, because after subtracting each clip's
+    own average, that average <em>is zero</em>. It was zero: about 5×10⁻⁷, the rounding
+    error left behind by doing the subtraction in 32-bit floating point. A quantity that
+    is mathematically zero was separating healthy pumps from broken ones, and not merely
+    by leaking volume — its correlation with loudness was only 0.17. Benchmarks leak
+    through cracks this small.</p>
+  </div>
+
+  <h2>Asking the hardware question properly</h2>
+  <p>The original question was never really about our model. It was: <b>does arithmetic
+  this cheap still detect a broken pump?</b> We had been asking it of a model that did not
+  work. So ask it of the detector that does.</p>
+
+  <p>That turns out to be the same shape as the hardware anyway. A stored template of 64
+  numbers, with a live measurement compared against it, <em>is</em> a
+  <a href="morpho-silicon.html">crossbar</a> — the template is the array of weights, the
+  incoming sound is the signal passing through, and scoring a clip is one
+  multiply-accumulate per pitch band. So we quantised both sides: the stored template, and
+  the live measurement streaming in.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th>stored template</th><th>float32 in</th><th>int8 in</th><th>ternary in</th>
+        <th>binary in</th><th>gates/MAC</th><th>template size</th></tr>
+    <tr><td>float32</td><td class="n">0.983</td><td class="n">0.983</td>
+        <td class="n">0.989</td><td class="n">0.939</td><td class="n">305</td>
+        <td class="n">2048 bits</td></tr>
+    <tr><td>int8</td><td class="n">0.983</td><td class="n">0.983</td>
+        <td class="n">0.989</td><td class="n">0.939</td><td class="n">305</td>
+        <td class="n">512 bits</td></tr>
+    <tr><td>ternary</td><td class="n">0.977</td><td class="n">0.977</td>
+        <td class="n"><b>0.987</b></td><td class="n">0.959</td><td class="n">74</td>
+        <td class="n">101 bits</td></tr>
+    <tr><td>binary</td><td class="n">0.960</td><td class="n">0.960</td>
+        <td class="n">0.964</td><td class="n"><b>0.945</b></td><td class="n">9.5</td>
+        <td class="n">64 bits</td></tr>
+  </table>
+  </div>
+
+  <div class="key">
+    <p style="margin:0"><b>Ternary costs nothing.</b> Ternary weights against ternary
+    inputs score <b>0.987</b> — a shade above the float32 reference of 0.983 — for
+    <b>4.1× fewer gates</b>, with the entire detector stored in <b>101 bits</b>. Going all
+    the way to binary costs 0.038 AUC (0.945) for <b>32× fewer gates</b> and
+    <b>64 bits</b>: the whole model fits in one machine word. Both still beat the
+    published autoencoder baseline of ~0.85, and both beat our trained recurrence's
+    0.796.</p>
+  </div>
+
+  <p>The gate counts are not estimates — they are measured by compiling the arithmetic in
+  <a href="morpho-silicon.html">MorphoHDL</a> and counting: 305 gates for an exact signed
+  multiply-accumulate, 74 when the weight is ternary and the multiply collapses into an
+  add or a subtract or nothing at all, 9.5 when both sides are one bit and the whole
+  operation is an XNOR and a popcount.</p>
+
+  <h2>What we actually learned</h2>
+  <p>Two claims, kept carefully apart, because the difference between them is the whole
+  point of this page.</p>
+  <p><b>Not supported:</b> "ternary weights survive in our trained sequence model on a
+  real deployment task." The model never worked. It lost to random initialisation and then
+  to 64 stored numbers, and a comparison between two versions of a broken thing measures
+  nothing.</p>
+  <p><b>Supported:</b> on this task, ternary arithmetic costs essentially nothing —
+  +0.004 AUC at 4.1× fewer gates — and binary costs 0.038 at 32× fewer gates, measured on
+  the detector that genuinely wins, against a published baseline it genuinely beats.</p>
+  <p>The second claim is the one we wanted, and we only got to make it honestly because
+  the first one collapsed. Every run in this experiment now prints the no-model baselines
+  in the same table as the model, so a trained network that cannot beat 64 stored numbers
+  can never again be written up as one that can.</p>
+
+  <div class="links">
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/spikelm/mimii_experiment.py">mimii_experiment.py</a>
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/spikelm/mimii_template_quant.py">mimii_template_quant.py</a>
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/snn/EXPERIMENT.md">the log</a>
+    <a href="coin-flip-computer.html">the coin-flip computer</a>
+    <a href="index.html">index</a>
+  </div>
+
+  <p class="foot">MIMII: Purohit et al., <em>MIMII Dataset: Sound Dataset for Malfunctioning
+  Industrial Machine Investigation and Inspection</em> (arXiv:1909.09347), CC-BY-SA 4.0.
+  Pump, machine id_00, +6&nbsp;dB signal-to-noise. All figures are means over 5 seeds that
+  move both the held-out split and the initialisation; the template is always built from
+  training-set healthy clips only.</p>
+
+  <p class="aidisc"><b>AI-generated research.</b> The experiments, code and write-ups on this site were produced by AI agents (Claude and Codex) working semi-autonomously, directed at a high level by a human. Nothing here is peer reviewed and none of it is affiliated with an academic institution. Measurements are reported as taken — including the nulls, the caveats and the corrections — but the work has had no external review.</p>
+</article>
+</body>
+</html>
