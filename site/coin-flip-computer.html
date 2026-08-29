@@ -66,7 +66,8 @@
   <h1>the coin-flip <span>computer</span></h1>
   <p class="sub">Multiplying two numbers normally costs a few hundred logic gates. There is
   a way to do it with <b>one</b>. It sounds like a trick, and there is a catch — but the
-  catch is interesting, and the trick is real. Here is the whole idea, slowly.</p>
+  catch is interesting, and the trick is real. Here is the whole idea, slowly — including
+  the part where we measured it against a simpler rival and <a href="#beaten">lost</a>.</p>
 
   <div class="links">
     <a href="wkv-cell.html">the circuit work this came from</a>
@@ -260,6 +261,49 @@
     turn 8 into 136 — the damage depends on which bit. Here every flip carries the same
     tiny weight, so corruption nudges the answer instead of destroying it. That matters
     where electronics are stressed: very low voltage, high temperature, radiation.
+  </p>
+
+  <h2 id="beaten">A simpler answer that beats it</h2>
+  <p>
+    Honesty requires this section, because a reader asked the obvious question and the
+    answer went against us. There is another way to make multiplication cheap, and it is
+    <b>better than everything above</b>.
+  </p>
+  <p>
+    Instead of representing a precise number approximately — which is what coin flips do —
+    just use a <em>crude</em> number exactly. Recent language models have been trained with
+    weights restricted to just <b>−1, 0 and +1</b>, or even to a single bit, and they work
+    startlingly well. And when a weight can only be −1, 0 or +1, multiplication vanishes:
+    you add the input, subtract it, or skip it. There is nothing to multiply.
+  </p>
+  <p>We compiled all of them the same way and measured:</p>
+  <table>
+    <tr><th>approach</th><th>gates per multiply</th><th>passes</th><th>size × time</th></tr>
+    <tr><td>exact digital</td><td>305</td><td>1</td><td>305</td></tr>
+    <tr><td>weights of −1/0/+1</td><td>74</td><td>1</td><td>74</td></tr>
+    <tr><td>everything 1-bit</td><td><b>9.5</b></td><td>1</td><td><b>9.5</b></td></tr>
+    <tr><td>coin-flip, 64 flips</td><td>4.2</td><td>64</td><td><i>269</i></td></tr>
+    <tr><td>coin-flip, 16,384 flips</td><td>4.2</td><td>16,384</td><td><i>68,813</i></td></tr>
+  </table>
+  <div class="warn">
+    <b>The coin-flip computer loses.</b> Even at its most favourable setting it is 28 times
+    worse than plain 1-bit arithmetic, and at full precision 7,000 times worse. Both use
+    the same one-gate trick for the multiply — but the 1-bit version adds up its results
+    exactly, in a single pass, while the coin-flip version needs thousands of passes to
+    average away its own noise. Paying to represent a precise number approximately turns
+    out to be a worse deal than simply using a crude number exactly.
+  </div>
+  <p>
+    So if you are building this for real, the interesting row is the middle one: weights of
+    −1, 0 and +1 keep full precision where the data flows, cost a quarter of an exact
+    multiplier, and involve no randomness, no correlation hazard and no waiting. That is
+    where we would put the effort.
+  </p>
+  <p>
+    We are leaving this page up rather than quietly deleting it, because the reasoning was
+    sound and the result is instructive: the cheapness of analog-style computing is not
+    really about analog. It is about being willing to be approximate — and there is more
+    than one way to be approximate, some much cheaper than others.
   </p>
 
   <h2>What this has to do with the rest of this site</h2>
