@@ -202,17 +202,51 @@
     randomness — which is exactly what a tired designer does to save space.
   </div>
 
+  <h2>But wait — what does all that waiting do to speed?</h2>
+  <p>
+    This is the question that decides whether any of it is useful, and the answer is less
+    flattering than the gate count alone suggests. A fair way to compare two circuits is
+    <b>size × time</b>: how much silicon, for how long. On that measure:
+  </p>
+  <table>
+    <tr><th>one multiply</th><th>size × time</th><th>versus exact</th></tr>
+    <tr><td>exact digital</td><td>302 gates × 1 step</td><td>—</td></tr>
+    <tr><td>coin-flip, 64 flips</td><td>4.2 × 64</td><td><b>0.9× — slightly better</b></td></tr>
+    <tr><td>coin-flip, 256 flips</td><td>4.2 × 256</td><td>3.6× worse</td></tr>
+    <tr><td>coin-flip, 16,384 flips</td><td>4.2 × 16,384</td><td><i>228× worse</i></td></tr>
+  </table>
+  <div class="warn">
+    So the honest version of the headline: if you need a genuinely precise answer, this is
+    a <b>bad trade</b> — you save 70× on parts and pay 16,000× in time, which is a net loss
+    of more than two hundred fold. At a fixed chip budget the exact circuit would run our
+    model at around 43,000 words per second and the coin-flip one at about <b>191</b>.
+  </div>
+  <p>
+    The break-even sits at <b>72 flips</b>. Below that the coin-flip circuit is genuinely
+    ahead; above it, behind. So everything hinges on one question we have not yet answered:
+    <em>how sloppy can each multiplication be before the model stops writing sensibly?</em>
+  </p>
+  <p>
+    There is real reason to think the answer is "quite sloppy". Neural networks are already
+    noise-tolerant — we have measured on this site that squeezing ours down to 8-bit
+    numbers costs it essentially nothing, and that replacing its activations with crude
+    spikes costs a few percent. A network is an averaging machine, and each output here
+    sums hundreds of products, so individual errors partly cancel. But "there is reason to
+    think" is not a measurement, and we are not going to pretend otherwise.
+  </p>
+
   <h2>So what does this actually buy us?</h2>
   <p>
     Three things, in increasing order of how much we care.
   </p>
   <p>
-    <b>1. Things fit that didn't fit.</b> One layer of our small language model needs
-    147,456 multiplies. Built exactly, reusing the hardware as much as possible, that's
-    about <b>116,000 gates</b> — more than a ten-dollar FPGA has. The same layer built
-    this way is about <b>1,600 gates</b>. That is the difference between "needs a real
-    chip" and "fits on the cheapest programmable part you can buy", and it's the concrete
-    reason we built it.
+    <b>1. Things fit that didn't fit — if the accuracy holds.</b> One layer of our small
+    language model needs 147,456 multiplies. Built exactly, reusing the hardware as much as
+    possible, that's about <b>116,000 gates</b> — more than a ten-dollar FPGA has. The same
+    arrangement built this way is about <b>1,600 gates</b>. That is the difference between
+    "needs a real chip" and "fits on the cheapest programmable part you can buy" — but it
+    is only a real advantage at short stream lengths, per the section above. It buys
+    <em>fitting</em>, not speed.
   </p>
   <p>
     <b>2. You can stop early.</b> An exact circuit gives you nothing until it's finished.
@@ -258,10 +292,11 @@
   <p>
     <b>The experiment:</b> take a language model we've already trained, replace the
     multiplications in one layer with coin-flip ones, and measure how much worse the model
-    writes as a function of how long we let the streams run. We have the model, the
-    measuring tools, and now the circuit. That turns "seventy times smaller" from a
-    hardware fact into a statement about whether the thing still works — which is the only
-    version of the claim worth making.
+    writes as the streams get shorter. This is not a nice-to-have — it is <em>the</em>
+    question. If the model still writes sensibly at 64 flips per multiply, this approach
+    beats exact arithmetic in the same silicon. If it needs 4,000, it is a curiosity. We
+    have the model, the measuring tools and now the circuit; what we do not have is the
+    answer, and the number decides everything.
   </p>
   <p>
     <b>The road:</b> these models are being aimed at small, cheap, battery-powered hardware
