@@ -98,3 +98,28 @@ distance between HEU-as-principle and HEU-as-deployed-system.
 v3 (if pursued): per-band threshold calibration (CMA on train
 split) + FSM-style post-processing — i.e., converging on what
 mature onset detectors already do, which is itself a finding.
+
+
+## Measure 2 (2026-09-01): COMPLETE — commitment adds
+## representational value beyond detection accuracy
+
+Single-channel bar-grid consolidation (16 slots, our WTA/TTG store)
++ shared stability metrics, 12 GMD files:
+
+| event source | retrieval margin | consol recall@1 |
+|---|---|---|
+| ground-truth MIDI (dense) | +0.064 | 0.25 |
+| truth @ HEU-matched density | +0.104 | 0.34 |
+| HEU-committed (F1 0.29!) | +0.166 | 0.41 |
+
+Density control separates the effect: sparsification helps
+(saturated grids are inseparable), and HEU commitment beats
+density-matched RANDOM sparsification — it selects accent-
+structured events (energy-peak commitment; accents recur bar to
+bar). POSITIVE finding for their thesis at the declared seam: an
+imperfect excitable encoder yields MORE consolidatable temporal
+structure than perfect detection. Caveats: n=12, 16-d single-
+channel grids, one arm, modest absolute margins vs our 9-voice
+memory (+0.252). M12 declared scope now fully tested: replication
+(partial, filed), measure 1 (front-end/commitment, our extension
+twice-failed), measure 2 (stability, positive with control).
