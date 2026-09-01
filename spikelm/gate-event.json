@@ -1,0 +1,203 @@
+{
+ "reference_ppl": 6.704313950782036,
+ "arms": [
+  {
+   "mode": "quant",
+   "param": 1,
+   "label": "quantised, 1 bit",
+   "ppl": 8.133372807826486,
+   "delta_pct": 21.3155121841774,
+   "density": 0.23500865035586888,
+   "model_macs_saved": 0.2942274421708197
+  },
+  {
+   "mode": "quant",
+   "param": 2,
+   "label": "quantised, 2 bit",
+   "ppl": 6.865250614489791,
+   "delta_pct": 2.4004941428642734,
+   "density": 0.5645347568723891,
+   "model_macs_saved": 0.16748663197215805
+  },
+  {
+   "mode": "quant",
+   "param": 3,
+   "label": "quantised, 3 bit",
+   "ppl": 6.722391581261358,
+   "delta_pct": 0.26964176516843796,
+   "density": 0.7449578311708238,
+   "model_macs_saved": 0.09809314185737546
+  },
+  {
+   "mode": "quant",
+   "param": 4,
+   "label": "quantised, 4 bit",
+   "ppl": 6.7081284970938055,
+   "delta_pct": 0.05689689265409026,
+   "density": 0.854676710234748,
+   "model_macs_saved": 0.05589357298663539
+  },
+  {
+   "mode": "binary",
+   "param": 0.3,
+   "label": "binary at r>0.3",
+   "ppl": 7.831372557722145,
+   "delta_pct": 16.81094613429672,
+   "density": 0.3824363946914673,
+   "model_macs_saved": 0.2375244635802049
+  },
+  {
+   "mode": "binary",
+   "param": 0.5,
+   "label": "binary at r>0.5",
+   "ppl": 8.133372807826486,
+   "delta_pct": 21.3155121841774,
+   "density": 0.23500865035586888,
+   "model_macs_saved": 0.2942274421708197
+  },
+  {
+   "mode": "binary",
+   "param": 0.7,
+   "label": "binary at r>0.7",
+   "ppl": 14.522451144317843,
+   "delta_pct": 116.61353049589582,
+   "density": 0.12321262889438206,
+   "model_macs_saved": 0.3372259119636992
+  },
+  {
+   "mode": "topp",
+   "param": 0.5,
+   "label": "top-50%, magnitudes",
+   "ppl": 6.964295577762381,
+   "delta_pct": 3.8778259623420297,
+   "density": 0.5000000264909532,
+   "model_macs_saved": 0.19230768211886415
+  },
+  {
+   "mode": "topp",
+   "param": 0.25,
+   "label": "top-25%, magnitudes",
+   "ppl": 8.866618586029126,
+   "delta_pct": 32.25243702966603,
+   "density": 0.2500000662273831,
+   "model_macs_saved": 0.28846151298946804
+  },
+  {
+   "mode": "topp",
+   "param": 0.1,
+   "label": "top-10%, magnitudes",
+   "ppl": 36.82607480906827,
+   "delta_pct": 449.28923495255805,
+   "density": 0.09895833333333333,
+   "model_macs_saved": 0.34655448717948717
+  },
+  {
+   "mode": "topp",
+   "param": 0.05,
+   "label": "top-5%, magnitudes",
+   "ppl": 445.55758212126625,
+   "delta_pct": 6545.834091186816,
+   "density": 0.04947920640309652,
+   "model_macs_saved": 0.3655849206141937
+  },
+  {
+   "mode": "topp_binary",
+   "param": 0.5,
+   "label": "top-50%, binary (gain inflated)",
+   "ppl": 15.320792356589147,
+   "delta_pct": 128.52140381644907,
+   "density": 0.5000000132454766,
+   "model_macs_saved": 0.19230768721327823
+  },
+  {
+   "mode": "topp_binary",
+   "param": 0.25,
+   "label": "top-25%, binary (gain inflated)",
+   "ppl": 10.640835825782414,
+   "delta_pct": 58.71625201175426,
+   "density": 0.2500000132454766,
+   "model_macs_saved": 0.2884615333671244
+  },
+  {
+   "mode": "topp_binary",
+   "param": 0.1,
+   "label": "top-10%, binary (gain inflated)",
+   "ppl": 28.970819781782957,
+   "delta_pct": 332.1220634126719,
+   "density": 0.09895837306976318,
+   "model_macs_saved": 0.34655447189624494
+  },
+  {
+   "mode": "topp_binary",
+   "param": 0.05,
+   "label": "top-5%, binary (gain inflated)",
+   "ppl": 274.47789433805906,
+   "delta_pct": 3994.0489415183506,
+   "density": 0.04947917991214328,
+   "model_macs_saved": 0.36558493080302185
+  },
+  {
+   "mode": "topp_gain",
+   "param": 0.5,
+   "label": "top-50%, event + gain kept",
+   "ppl": 8.030825171625615,
+   "delta_pct": 19.785935303474943,
+   "density": 0.5000000397364298,
+   "model_macs_saved": 0.1923076770244501
+  },
+  {
+   "mode": "topp_gain",
+   "param": 0.25,
+   "label": "top-25%, event + gain kept",
+   "ppl": 9.329246931600416,
+   "delta_pct": 39.152894689727205,
+   "density": 0.25000003973642987,
+   "model_macs_saved": 0.2884615231782962
+  },
+  {
+   "mode": "topp_gain",
+   "param": 0.1,
+   "label": "top-10%, event + gain kept",
+   "ppl": 38.63191973980451,
+   "delta_pct": 476.22480127587437,
+   "density": 0.09895837306976318,
+   "model_macs_saved": 0.34655447189624494
+  },
+  {
+   "mode": "topp_gain",
+   "param": 0.05,
+   "label": "top-5%, event + gain kept",
+   "ppl": 462.2881453360522,
+   "delta_pct": 6795.38331184696,
+   "density": 0.0494791931576199,
+   "model_macs_saved": 0.36558492570860773
+  },
+  {
+   "mode": "binary_gain",
+   "param": 0.3,
+   "label": "event at r>0.3, gain kept",
+   "ppl": 7.404743605931116,
+   "delta_pct": 10.447447125702958,
+   "density": 0.4047374063067966,
+   "model_macs_saved": 0.22894715142046287
+  },
+  {
+   "mode": "binary_gain",
+   "param": 0.5,
+   "label": "event at r>0.5, gain kept",
+   "ppl": 8.191235536665527,
+   "delta_pct": 22.178579296842837,
+   "density": 0.2468774980968899,
+   "model_macs_saved": 0.2896625007319654
+  },
+  {
+   "mode": "binary_gain",
+   "param": 0.7,
+   "label": "event at r>0.7, gain kept",
+   "ppl": 16.963329274126664,
+   "delta_pct": 153.02110549503647,
+   "density": 0.12816137737698025,
+   "model_macs_saved": 0.3353225471626999
+  }
+ ]
+}
