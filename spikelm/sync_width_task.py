@@ -161,13 +161,21 @@ def main():
     ap.add_argument("--steps", type=int, default=2000)
     ap.add_argument("--seeds", type=int, default=2)
     ap.add_argument("--pairs", type=int, default=512)
+    ap.add_argument("--arms", nargs="+", default=None,
+                    help="subset of sync32/act32/act128/act512")
     ap.add_argument("--out", default="sync-width-task.json")
     a = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
 
-    arms = [("sync  D=32", 32, "sync"),
-            ("act   D=32", 32, "act"),
-            ("act   D=128", 128, "act")]
+    all_arms = [("sync32", "sync  D=32", 32, "sync"),
+                ("act32", "act   D=32", 32, "act"),
+                ("act128", "act   D=128", 128, "act"),
+                # readout-parameter-matched control: sync/D=32 reads K outputs
+                # off 512 pairs; 512 activations match that readout width with
+                # a 16x larger state. If act/512 matches sync/32, the width
+                # result was about readout parameters, not about pairs.
+                ("act512", "act   D=512", 512, "act")]
+    arms = [x[1:] for x in all_arms if x[0] in (a.arms or ["sync32", "act32", "act128"])]
 
     print(f"K x {a.subset}-bit XOR · L={a.length} bits · {a.steps} steps · {a.seeds} seeds "
           f"· P={a.pairs} · {dev}")
