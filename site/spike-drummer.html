@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — the eleven-hundred-parameter drummer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root {
+    --bg: #0d1015; --panel: #12151b; --panel2: #171b23; --line: #242a35;
+    --text: #d7dae2; --muted: #9aa1ad; --amber: #e2a13f; --green: #7bd8a5;
+    --red: #d96c6c; --blue: #6fa8dc;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+         font: 16px/1.65 -apple-system, "Segoe UI", sans-serif;
+         padding: 48px 20px 80px; }
+  article { max-width: 54em; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+  h1 span { color: var(--amber); }
+  .sub { color: var(--muted); margin-bottom: 22px; max-width: 46em; }
+  h2 { font-size: 19px; font-weight: 600; margin: 40px 0 8px; color: var(--amber); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
+  p { margin: 10px 0; color: #c4c9d4; max-width: 46em; }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", monospace; font-size: 14px;
+         background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
+  table { border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  td b { color: var(--green); }
+  td, th { font-variant-numeric: tabular-nums; }
+  .exhibit { background: var(--panel); border: 1px solid var(--line);
+             border-radius: 10px; padding: 16px 18px 14px; margin: 14px 0; }
+  .exhibit h3 { margin-top: 0; }
+  .exhibit .cap { color: var(--muted); font-size: 13.5px; margin: 4px 0 10px; }
+  audio { width: 100%; height: 36px; }
+  .neg { color: var(--red); }
+  .pos { color: var(--green); }
+  .links { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .links a { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; }
+  .links a:hover { border-color: var(--amber); text-decoration: none; }
+  .rule { border: 0; border-top: 1px solid var(--line); margin: 34px 0; }
+</style>
+</head>
+<body>
+<article>
+<h1>the <span>eleven-hundred-parameter</span> drummer</h1>
+<p class="sub">Spikes as rhythm: what happens when the representation maps one-to-one
+to musical output, the dynamics are fixed physics, and only readouts learn.
+Every number below is committed in the
+<a href="https://github.com/PedalCore/whitebox-lm">whitebox-lm</a> repo (M9&ndash;M12 docs),
+failures included &mdash; several sections exist <em>because</em> a prediction died.</p>
+
+<h2>1 &middot; the contract</h2>
+<p>Time is integer 20&thinsp;ms cells (or musical ticks under a transport). Each cell holds
+0 or 1 per drum voice. The model sees preceding cells and emits the probability the next
+cell fires. Generated MIDI is exactly the cells where it fired. No tokens, no embeddings,
+no semantic gap between model output and music. Internal state is decaying traces,
+resonators and clock phases &mdash; <em>fixed physics</em>; the only learned object is a
+linear readout (one small MLP in one rung).</p>
+
+<h2>2 &middot; what a clock is worth</h2>
+<p>The one quantity that kept showing up everywhere, measured in bits of predictive
+information per drum event (Groove MIDI Dataset, real drummers):</p>
+<table>
+<tr><th>machinery (alone)</th><th>trainable</th><th>state</th><th>bits/event</th></tr>
+<tr><td>transport-clock phase bins</td><td>17</td><td><b>0</b></td><td><b>+0.445</b></td></tr>
+<tr><td>10 decaying spike traces</td><td>11</td><td>10</td><td>+0.232</td></tr>
+<tr><td>500-tap FIR history</td><td>501</td><td>500</td><td>+0.227</td></tr>
+<tr><td>16 tempo resonators</td><td>33</td><td>32</td><td>+0.158</td></tr>
+<tr><td>clock + traces</td><td>43</td><td>10</td><td><b>+0.630</b></td></tr>
+</table>
+<p>The clock alone &mdash; zero recurrent state &mdash; beats every self-clocked model we
+built. Clock and history are near-additive: <em>where in the cycle</em> plus <em>what has
+been played</em>. And the clock&rsquo;s value is <b>horizon-invariant</b> (+0.447 predicting
+20&thinsp;ms or 2&thinsp;s ahead) while history decays to a small permanent style floor
+within ~100&thinsp;ms. <span class="neg">Falsified along the way:</span> our bet that
+resonators would win at long horizons &mdash; they lose to plain traces at <em>every</em>
+horizon. In a DAW the clock is free. Take it.</p>
+
+<h2>3 &middot; the drummer</h2>
+<div class="exhibit"><h3>original performance</h3>
+<p class="cap">A real drummer (GMD, soul groove, 86 bpm), MIDI rendered directly.</p>
+<audio controls preload="none" src="drummer-audio/original.m4a"></audio></div>
+<div class="exhibit"><h3>through the spike representation</h3>
+<p class="cap">The same performance pushed through the exact encoding the model sees
+(20&thinsp;ms bins, 9 voices) and back out, original velocities carried through.
+Whatever survives here is the representation&rsquo;s ceiling.</p>
+<audio controls preload="none" src="drummer-audio/truth.m4a"></audio></div>
+<div class="exhibit"><h3>the 1,107-parameter drummer</h3>
+<p class="cap">Two bars of the human seed, then sixteen bars generated: clock-conditioned
+spike-GLM (+0.85 bits/event with causal within-tick coupling), learned velocity head.
+Free-runs stably &mdash; rate, meter and voice balance hold without any imposed limits.</p>
+<audio controls preload="none" src="drummer-audio/drummer.m4a"></audio></div>
+<p>Honest ledger for this section: causal coupling is worth <b>+0.06</b> bits/event
+&mdash; an earlier pseudolikelihood bound said +3.2, and that number was information
+flowing backwards through the conditioning. The correction is the published figure.</p>
+
+<h2>4 &middot; a memory that returns to the groove</h2>
+<p>Slot memory after the Spiking Hopfield Network recipe: winner-take-all bar-pattern
+slots, local refresh, threshold-gated consolidation &mdash; online, gradient-free.
+Retrieval weighted by consolidation depth turns recurring patterns into attractors.
+The test: seed a groove, force a <em>real rock fill</em> into bar 8, listen to what
+happens next.</p>
+<div class="exhibit"><h3>with consolidated memory</h3>
+<p class="cap">Similarity to the seeded groove after the fill: .07 &rarr; .24 &rarr; .35
+&rarr; .42 &rarr; .35 &rarr; .37 &rarr; .44 &rarr; <b>.53</b> &mdash; it finds its way
+back (with one honest dip: our own metric flags the trajectory as non-monotone).</p>
+<audio controls preload="none" src="drummer-audio/arc_memory.m4a"></audio></div>
+<div class="exhibit"><h3>copy-rule control</h3>
+<p class="cap">Identical everything, memory feature off: .21 &rarr; .15 &mdash; repeats
+fill fragments and drifts. The attractor was doing the work.</p>
+<audio controls preload="none" src="drummer-audio/arc_copy.m4a"></audio></div>
+
+<h2>5 &middot; a space you can steer</h2>
+<div class="exhibit"><h3>navigated generation</h3>
+<p class="cap">Bars clustered into 12 inspectable pattern modes (each mode is literally a
+drum-machine grid you can read). The mode path here is hand-chosen: seven bars groove,
+one bar sparse, repeat &mdash; generation as something you drive, not dice you roll.
+<span class="neg">Prediction failure kept on the books:</span> no unsupervised cluster
+was majority-fill &mdash; fills are 2% of bars and need their own labeled vocabulary.</p>
+<audio controls preload="none" src="drummer-audio/navigate.m4a"></audio></div>
+
+<h2>6 &middot; harmony, vertical and horizontal</h2>
+<p>Chords are vertical (what sounds together &mdash; statistics own it), melody and
+progression are horizontal (what follows what &mdash; sequence memory owns it). Factor
+music that way and the decisions land at music&rsquo;s own rate over tiny vocabularies:</p>
+<div class="exhibit"><h3>real progression, re-voiced</h3>
+<p class="cap">A real ASAP performance&rsquo;s harmonic skeleton through our chord lattice
+(root-normalised chroma clusters &mdash; the major triad emerges unsupervised) and a
+block-chord decoder. This is the abstraction&rsquo;s ceiling.</p>
+<audio controls preload="none" src="drummer-audio/prog_real.m4a"></audio></div>
+<div class="exhibit"><h3>a counts table, playing</h3>
+<p class="cap">Same decoder, chords <em>sampled from a Markov-2 counts table</em> over 96
+symbols &mdash; no neural network at all. Order-structure in progressions only becomes
+measurable on a beat-aligned lattice (5.63 &rarr; 5.33 bits/chord, blind &rarr; bar).</p>
+<audio controls preload="none" src="drummer-audio/prog_markov2.m4a"></audio></div>
+
+<h2>7 &middot; the boundary, audible</h2>
+<div class="exhibit"><h3>where statistics end</h3>
+<p class="cap">Free-clock piano from the same machinery: calibrated (scheduled sampling
+fixed a 460-events/s avalanche), voice-leading kernels learned an interpretable rule
+(&ldquo;move locally, don&rsquo;t restrike&rdquo;) &mdash; and it <em>still sounds
+random</em>, because melody is a sequence process and bags of decayed statistics cannot
+represent &ldquo;mid-phrase&rdquo;. We kept this render as the honest edge of the method:
+44,000 parameters flipping coins at 50&thinsp;Hz, versus music making 2&ndash;3 nearly
+determined decisions per second.</p>
+<audio controls preload="none" src="drummer-audio/piano_v2.m4a"></audio></div>
+
+<h2>8 &middot; closing the loop with real audio</h2>
+<p>The live-instrument chain needs audio &rarr; events. We blind-replicated an external
+excitable-commitment unit (the HEU &mdash; reimplemented from the written paper only;
+its core separation result survived, our extension of it failed twice, all filed on
+<a href="https://hi-sci-collab.com/projects/can-recurrent-temporal-structure-form-stable-representations/">hi-sci-collab</a>)
+and wired it in. Against the standard onset detector it loses on F1 (0.29 vs 0.42) and
+wins on discipline (2.4&times; less fragmentation) &mdash; and its accent-selective
+events <em>consolidate better than perfect MIDI</em> (margin +0.166 vs +0.064, density-controlled).</p>
+<div class="exhibit"><h3>standard peak-picker, clicking along</h3>
+<p class="cap">Hip-hop groove, 92 bpm. Flux + adaptive peak-picking: more onsets, more stutter.</p>
+<audio controls preload="none" src="drummer-audio/hear_baseline.m4a"></audio></div>
+<div class="exhibit"><h3>excitable commitment, clicking along</h3>
+<p class="cap">Same groove, HEU commitment: fewer clicks, riding the accents.</p>
+<audio controls preload="none" src="drummer-audio/hear_committed.m4a"></audio></div>
+<div class="exhibit"><h3>call and response</h3>
+<p class="cap">Eight bars of real audio in &mdash; commitment &rarr; clocked GLM &mdash;
+eight bars generated out. The first audio-in/response-out artifact of the program.
+Known flaw, on the record: the response runs denser than the call.</p>
+<audio controls preload="none" src="drummer-audio/callresponse.m4a"></audio></div>
+
+<hr class="rule" />
+<h2>the law this page keeps demonstrating</h2>
+<p>One envelope cannot be post-decay and pre-sustain. One leaky integrator cannot drum.
+Fast traces cannot hold a mode. One state cannot be mid-phrase. One pooled statistic
+cannot bind. <em>Conflicting temporal configurations demand independent state variables
+&mdash; and parameter search cannot substitute for state.</em> Everything above is that
+sentence, measured five ways, at under 1,200 trainable parameters a time.</p>
+<div class="links">
+<a href="https://github.com/PedalCore/whitebox-lm">code &amp; M-docs</a>
+<a href="https://github.com/PedalCore/heu-replication">HEU replication</a>
+<a href="https://hi-sci-collab.com/projects/pitch-tracking-via-online-complex-regression">pitch tracker claims</a>
+<a href="whitebox-lab.html">whitebox lab</a>
+</div>
+</article>
+</body>
+</html>
