@@ -76,3 +76,25 @@ its interaction with threshold+refractory commitment is our
 extension. v2: per-band envelopes -> per-band commitment, then
 re-test the two-voice prediction where the front end is no longer
 the binding constraint.
+
+
+## Measure 1, v2 (per-band): prediction fails twice, diagnosis moves
+
+| arm | F1 | rec | fragmentation |
+|---|---|---|---|
+| single broadband | 0.292 | .28 | 0.58 |
+| two-voice broadband | 0.304 | .36 | 0.97 |
+| single per-band (6) | 0.302 | .47 | 1.65 |
+| two-voice per-band | 0.293 | .56 | 2.30 |
+
+Per-band buys recall, explodes fragmentation (uniform 0.8
+thresholds: cymbal wash re-triggers high bands; 10ms cross-band
+merge insufficient for band group-delay spread). TWO-VOICE
+FRAGMENTS MORE AT BOTH OPERATING POINTS — our extension prediction
+is twice-failed. Fair scope note: their pipeline fed PITCH
+LIKELIHOOD to per-key units + an FSM post-processor, never raw
+flux to bare commitment; our failed extension measures the
+distance between HEU-as-principle and HEU-as-deployed-system.
+v3 (if pursued): per-band threshold calibration (CMA on train
+split) + FSM-style post-processing — i.e., converging on what
+mature onset detectors already do, which is itself a finding.
