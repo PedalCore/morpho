@@ -53,3 +53,26 @@ sustain-fragmentation reduction); slot stability comparable to
 clean-MIDI baseline if commitment F1@40ms > ~0.8.
 Status: design only; build after their spec clarifications or
 independently on synthesized audio.
+
+
+## Measure 1, v1 results (2026-09-01; synthesized GMD audio,
+## broadband envelope, 12 files, tol 40ms)
+
+| commitment arm | F1 | prec | rec | fragmentation |
+|---|---|---|---|---|
+| single (defaults) | 0.292 | .32 | .28 | 0.58 extra/true |
+| single (fast-recovery) | 0.290 | .34 | .26 | 0.51 |
+| two-voice | 0.304 | .27 | .36 | 0.97 |
+
+Two findings, both honest: (1) the BROADBAND front end is the
+bottleneck (all arms weak on dense drum audio) — per-band flux is
+required, consistent with the program's standing front-end law and
+their per-key CQT design; commitment cannot rescue a poor
+envelope. (2) The two-voice fragmentation PREDICTION FAILED at
+this operating point: recall up, fragmentation UP (attack-biased
+voice sustains through cymbal wash and re-crosses threshold).
+Caveat recorded: their two-voice claim concerned envelope FITTING;
+its interaction with threshold+refractory commitment is our
+extension. v2: per-band envelopes -> per-band commitment, then
+re-test the two-voice prediction where the front end is no longer
+the binding constraint.
