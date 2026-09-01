@@ -1,0 +1,64 @@
+{
+ "sizes": [
+  128
+ ],
+ "flips": [
+  0.1,
+  0.2,
+  0.3,
+  0.4
+ ],
+ "ceiling": 64,
+ "by_flip": {
+  "linear (classical Hopfield)": [
+   12,
+   6,
+   6,
+   2
+  ],
+  "poly3  (Krotov order 3)": [
+   512,
+   512,
+   128,
+   6
+  ],
+  "poly5  (Krotov order 5)": [
+   8192,
+   8192,
+   2048,
+   6
+  ],
+  "poly9  (Krotov order 9)": [
+   8192,
+   8192,
+   8192,
+   6
+  ],
+  "exp    (modern Hopfield)": [
+   8192,
+   8192,
+   8192,
+   6
+  ],
+  "topk1  (AMPLITUDE-FREE, WTA)": [
+   8192,
+   8192,
+   8192,
+   6
+  ],
+  "topk3  (AMPLITUDE-FREE, k=3)": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ "count_bits": {
+  "1": 0,
+  "2": 2,
+  "3": 1024,
+  "4": 2048,
+  "6": 8192,
+  "None": 8192
+ }
+}
