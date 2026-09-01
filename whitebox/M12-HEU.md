@@ -123,3 +123,22 @@ channel grids, one arm, modest absolute margins vs our 9-voice
 memory (+0.252). M12 declared scope now fully tested: replication
 (partial, filed), measure 1 (front-end/commitment, our extension
 twice-failed), measure 2 (stability, positive with control).
+
+
+## Hearables + legitimacy baseline + the first full loop (2026-09-01)
+
+BASELINE (12 files, 40ms): flux+peak-pick F1 0.415 / frag 1.42 vs
+HEU 0.292 / 0.58. VERDICT, precisely: HEU is NOT a better onset
+detector than the standard method (never claim it); it is a
+2.4x-lower-fragmentation, accent-selective COMMITTER — and measure
+2 showed that is the property consolidation rewards. Different
+virtues, both measured.
+Renders (runs/m12): hear_committed.wav / hear_baseline.wav (92bpm
+hiphop groove + clicks — the difference is audible), and
+CALLRESPONSE.WAV: 8 bars real audio -> HEU commitment -> clocked
+GLM -> 8 generated bars. First audio-in/response-out artifact of
+the program. Known flaw: response denser than call (177 vs 103
+events — single-channel free-run drift; the 9-voice + coupling
+stack is the fix when this graduates from demo to instrument).
+Not blocked on the author: clarifications gate only the
+replication ratio re-run and v3 calibration.
