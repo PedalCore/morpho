@@ -33,7 +33,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ctm import CTM, ctm_loss, mean_tick_loss, last_tick_loss
+from ctm import CTM, ctm_loss, mean_tick_loss, last_tick_loss, tail_mean_loss
 
 
 def batch(B, L, rng, device):
@@ -95,12 +95,12 @@ def main():
     ap.add_argument("--steps", type=int, default=1500)
     ap.add_argument("--ticks", type=int, nargs="+", default=[1, 2, 4, 8, 16])
     ap.add_argument("--seeds", type=int, default=2)
-    ap.add_argument("--loss", choices=["last", "mean", "two_tick"], default="last")
+    ap.add_argument("--loss", choices=["tail", "last", "mean", "two_tick"], default="tail")
     ap.add_argument("--out", default="ctm-parity.json")
     a = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
-    loss_fn = {"last": last_tick_loss, "mean": mean_tick_loss,
-               "two_tick": ctm_loss}[a.loss]
+    loss_fn = {"tail": tail_mean_loss, "last": last_tick_loss,
+               "mean": mean_tick_loss, "two_tick": ctm_loss}[a.loss]
 
     print(f"parity of {a.length} bits · {a.steps} steps · {a.seeds} seeds "
           f"· {dev} · {a.loss} loss\n")

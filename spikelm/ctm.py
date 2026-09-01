@@ -222,3 +222,25 @@ def last_tick_loss(logits, target):
     one for adaptive-computation claims and this one for tick ablations.
     """
     return F.cross_entropy(logits[:, -1], target), None, None
+
+
+def tail_mean_loss(logits, target, frac=0.5):
+    """Mean over the final fraction of ticks — the only one of these four
+    that can actually run a tick ablation.
+
+    The other three each fail in a different way, all measured here:
+      two_tick   degenerate when ticks ~ classes (loss -> 0 at chance)
+      mean       penalises large T by supervising un-answerable early ticks
+      last_tick  gradient too sparse to train: 55.8% at 4-bit parity where
+                 the mean loss reaches 100% on the identical model
+
+    Supervising the tail keeps dense gradients while excluding the ticks
+    that cannot have seen the data yet, so raising T adds capacity instead
+    of adding penalty.
+    """
+    B, T, C = logits.shape
+    start = max(0, T - max(1, int(round(T * frac))))
+    tail = logits[:, start:]
+    n = tail.shape[1]
+    tgt = target.unsqueeze(1).expand(B, n).reshape(-1)
+    return F.cross_entropy(tail.reshape(B * n, C), tgt), None, None
