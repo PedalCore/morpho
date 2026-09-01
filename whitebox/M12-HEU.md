@@ -142,3 +142,31 @@ events — single-channel free-run drift; the 9-voice + coupling
 stack is the fix when this graduates from demo to instrument).
 Not blocked on the author: clarifications gate only the
 replication ratio re-run and v3 calibration.
+
+
+## RESOLUTION (2026-09-01): author replied — replication upgraded
+## to DECISIVE confirmation
+
+All five ambiguities answered on the wall (ms units confirmed;
+per-voice inputs to fitted two-voice — THE fix; theta bounds
+[-2,2]/[-3,3]; active-window descriptive; gap floor = residual
+grace decay). Re-run same day: single-voice 0.01709 (2/4 at
+bounds), two-voice 1.0e-08 (0/8) — separation ~1.7e6x overall,
+~5e9x gap. The published 7.7x/21x were UNDERSTATEMENTS (their
+two-voice hadn't fully converged). Fingerprint exact. Open:
+coupling-ablation parameterization + byte-exact target floor
+(repo now canonical, consultation authorized post-filing).
+
+Author's broader updates, noteworthy: (1) his newer matched
+multiscale LEAKY-INTEGRATOR control reproduces much of the HEU's
+useful behavior — independent convergence on the program's core
+primitive; (2) he reframes our consolidation result as evidence
+for SELECTIVE TEMPORAL COMMITMENT rather than HEU-specific
+nonlinearity — adopted; the dynamics control (HEU vs matched
+integrator vs hysteresis, same commitment protocol, our metrics)
+is the agreed joint next experiment against HEUv2; (3) paper
+RENAMED same-day per our feedback; HEUv2 rebuild announced.
+The full loop this collaboration was meant to test — blind
+replication, honest disagreement, author correction, same-day
+re-run, upgraded verdict, next experiment co-designed — closed in
+72 hours between two parties who have never met.
