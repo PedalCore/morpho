@@ -61,27 +61,34 @@ def spike(z):
     return z + (hard - z).detach()
 
 
-def quantise(x, bits, decay):
-    """The accumulator as a real counter: fixed width, fixed LSB, per pair.
+def quantise(x, bits, den):
+    """The accumulator as a real counter: fixed width, correct full scale.
 
-    Two earlier versions of this measured the quantiser instead of the
-    model, and both read as chance:
+    THREE earlier versions of this measured the quantiser rather than the
+    model, and all three read as chance:
 
-      per-tensor scale  one scale across all 256 pairs flushes the quiet
-                        pairs to zero (6 bits -> 51.5%)
-      per-batch-max     the scale moves with batch composition, so the
-                        counter the model trained against is not the one
-                        it is evaluated with (8 bits -> 51.6%)
+      per-tensor scale     one scale across all 256 pairs flushes the quiet
+                           pairs to zero (6 bits -> 51.5%)
+      per-batch max        scale moves with batch composition, so the
+                           counter trained against is not the one evaluated
+                           (8 bits -> 51.6%)
+      asymptotic bound     1/(1-decay) is the limit over INFINITE ticks; at
+                           T=8 the real maximum is ~100x smaller, so the LSB
+                           was ~100x too coarse (8 bits -> 51.4%)
 
-    A hardware counter has neither problem: its range is known in advance.
-    With binary spikes prod is in {0,1} and num <- decay*num + prod, so the
-    accumulator is bounded by 1/(1-decay), analytically, per pair. That
-    bound is the counter's full scale and it never moves.
+    The correct full scale was already being computed: den. Since prod is
+    in {0,1} for binary spikes, num <- decay*num + prod is bounded term by
+    term by den <- decay*den + 1. So num/den is in [0,1] by construction and
+    den is exactly the counter's full scale at every tick.
     """
     if bits is None:
         return x
-    full = 1.0 / (1.0 - decay).clamp_min(1e-3)          # per-pair bound
-    s = full / (2 ** bits - 1)
+    # den is EXACTLY the largest num can be: prod is in {0,1} for binary
+    # spikes, so num <- decay*num + prod is bounded above by
+    # den <- decay*den + 1 term by term. Using the asymptotic bound
+    # 1/(1-decay) instead overestimates the range by ~100x at T=8 and makes
+    # the LSB far too coarse — that was our 8-bit "51.4%", not the model.
+    s = den / (2 ** bits - 1)
     q = torch.round(x / s).clamp(0, 2 ** bits - 1) * s   # unsigned: num >= 0
     return x + (q - x).detach()
 
@@ -91,9 +98,9 @@ def patched_step(self, z, num, den):
     decay = torch.exp(-F.softplus(self.r_raw))
     zz = spike(z) if CFG["spike"] else z
     prod = zz[:, self.ia] * zz[:, self.ib]        # an AND when zz is binary
-    num = quantise(decay * num + prod, CFG["bits"], decay)
-    den = decay * den + 1.0                       # data-independent
-    return num / den.sqrt().clamp_min(1e-6), num, den
+    den_next = decay * den + 1.0
+    num = quantise(decay * num + prod, CFG["bits"], den_next)
+    return num / den_next.sqrt().clamp_min(1e-6), num, den_next
 
 
 def run(seed, L, T, steps, device, B=128, lr=2e-3):

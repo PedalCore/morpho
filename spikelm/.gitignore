@@ -3,3 +3,4 @@ runs/**/ckpt.pt
 runs/*/ckpt.pt
 __pycache__/
 *.pyc
+*.log
