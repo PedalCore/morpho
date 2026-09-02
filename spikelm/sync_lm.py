@@ -113,11 +113,44 @@ class SyncTickHead(nn.Module):
         return self.w_out(s_out.reshape(B, N, -1))
 
 
+class PlainAttnHead(nn.Module):
+    """The control for the sync-tick head: ONE-SHOT causal attention, query
+    straight from the trunk state — no ticks, no spikes, no sync — with an
+    FFN sized to match the sync head's parameter count (~244k). If this does
+    as well on a frozen trunk, the unique machinery adds nothing beyond
+    ordinary attention plus capacity; the sync head must beat THIS, not the
+    trunk, to claim anything.
+    """
+
+    def __init__(self, d, d_head=64, ffn=350):
+        super().__init__()
+        self.q = nn.Linear(d, d_head, bias=False)
+        self.k = nn.Linear(d, d_head, bias=False)
+        self.v = nn.Linear(d, d_head, bias=False)
+        self.ffn = nn.Sequential(
+            nn.Linear(d + d_head, ffn), nn.GELU(), nn.Linear(ffn, d))
+        nn.init.zeros_(self.ffn[-1].weight)
+        nn.init.zeros_(self.ffn[-1].bias)      # exact no-op at step 0
+        self.scale = d_head ** -0.5
+
+    def forward(self, h):
+        B, N, _ = h.shape
+        mask = torch.full((N, N), float("-inf"), device=h.device).triu(1)
+        att = torch.softmax(
+            self.q(h) @ self.k(h).transpose(1, 2) * self.scale + mask, -1)
+        return self.ffn(torch.cat([h, att @ self.v(h)], dim=-1))
+
+
 class SyncLM(nn.Module):
-    def __init__(self, cfg, use_sync, **head_kw):
+    def __init__(self, cfg, use_sync, head_type="sync", **head_kw):
         super().__init__()
         self.core = RWKVMini(cfg)
-        self.sync_head = SyncTickHead(cfg.n_embd, **head_kw) if use_sync else None
+        if not use_sync:
+            self.sync_head = None
+        elif head_type == "attn":
+            self.sync_head = PlainAttnHead(cfg.n_embd)
+        else:
+            self.sync_head = SyncTickHead(cfg.n_embd, **head_kw)
 
     def forward(self, idx, targets=None):
         m = self.core
@@ -175,14 +208,16 @@ def main():
     ap.add_argument("--init-from", default=None,
                     help="load trunk (core.*) weights from this checkpoint")
     ap.add_argument("--freeze-trunk", type=int, default=0)
+    ap.add_argument("--head", choices=["sync", "attn"], default="sync")
     a = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
 
     tok = get_tokenizer()
     cfg = Config(vocab_size=tok.vocab_size, n_embd=a.d, n_layer=a.layers)
     torch.manual_seed(a.seed)
-    model = SyncLM(cfg, use_sync=bool(a.sync), D=a.D, ticks=a.ticks,
-                   pairs=a.pairs, spike_sync=bool(a.spike_sync)).to(dev)
+    model = SyncLM(cfg, use_sync=bool(a.sync), head_type=a.head, D=a.D,
+                   ticks=a.ticks, pairs=a.pairs,
+                   spike_sync=bool(a.spike_sync)).to(dev)
     if a.init_from:
         ck = torch.load(a.init_from, map_location="cpu")
         core = {k[5:]: v for k, v in ck["model"].items() if k.startswith("core.")}
@@ -195,7 +230,9 @@ def main():
     n_all = sum(p.numel() for p in model.parameters())
     n_head = (sum(p.numel() for p in model.sync_head.parameters())
               if model.sync_head else 0)
-    print(f"{'sync-tick head' if a.sync else 'trunk only':<16} d={a.d} "
+    kind = ("trunk only" if not a.sync
+            else "sync-tick head" if a.head == "sync" else "plain-attn head")
+    print(f"{kind:<16} d={a.d} "
           f"L={a.layers} D={a.D} T={a.ticks} P={a.pairs} · {dev}")
     print(f"params {n_all:,} (head {n_head:,}, "
           f"{100 * n_head / n_all:.1f}%)")
