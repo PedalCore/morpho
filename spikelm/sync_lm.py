@@ -172,6 +172,9 @@ def main():
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--tag", default="run")
+    ap.add_argument("--init-from", default=None,
+                    help="load trunk (core.*) weights from this checkpoint")
+    ap.add_argument("--freeze-trunk", type=int, default=0)
     a = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -180,6 +183,15 @@ def main():
     torch.manual_seed(a.seed)
     model = SyncLM(cfg, use_sync=bool(a.sync), D=a.D, ticks=a.ticks,
                    pairs=a.pairs, spike_sync=bool(a.spike_sync)).to(dev)
+    if a.init_from:
+        ck = torch.load(a.init_from, map_location="cpu")
+        core = {k[5:]: v for k, v in ck["model"].items() if k.startswith("core.")}
+        model.core.load_state_dict(core)
+        print(f"trunk initialised from {a.init_from}")
+    if a.freeze_trunk:
+        for p_ in model.core.parameters():
+            p_.requires_grad_(False)
+        print("trunk FROZEN — only the head trains; step 0 equals the trunk's own ppl")
     n_all = sum(p.numel() for p in model.parameters())
     n_head = (sum(p.numel() for p in model.sync_head.parameters())
               if model.sync_head else 0)
@@ -191,7 +203,8 @@ def main():
     train = load_split("train")
     valid = load_split("valid")
     vb = batches_from(valid, 16384, 8, cfg.ctx, 7, dev)   # matches bit_budget
-    opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.01)
+    opt = torch.optim.AdamW([p_ for p_ in model.parameters() if p_.requires_grad],
+                            lr=a.lr, weight_decay=0.01)
     sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, a.steps)
 
     os.makedirs("runs-lm", exist_ok=True)
