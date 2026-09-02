@@ -1044,3 +1044,66 @@ published autoencoder baseline (~0.85) and our trained recurrence (0.796).
 
 Code: `spikelm/mimii_experiment.py`, `spikelm/mimii_template_quant.py`,
 `spikelm/mimii_fetch.py` (Zip64 ranged fetch: 13 MB instead of 7.66 GB).
+
+---
+
+## v20 — SyncLM: the spiking-synchronisation head, taken to language and beaten by its own control
+
+**The build.** With the silicon constraint relaxed by decision, everything
+that survived the CTM campaign went into one architecture: an RWKV trunk
+plus a per-token tick head — D=64 neurons seeded from the trunk state,
+neuron-level models over tick history, SPIKING synchronisation over 512
+pairs, sync-driven causal cross-attention, factored P→d readout,
+zero-init residual (verified exact no-op at step 0). d=256, L=4 trunk,
+3000 steps, identical seed and data order across all arms. TinyStories,
+val ppl on a fixed 16,384 tokens.
+
+**The ledger.**
+
+```
+  trunk alone (base)                          13.590
+  trunk + sync head, JOINT training           16.152   (+19%)
+    └ same trunk, head bypassed              136.7     <- trunk collapsed
+  FROZEN base trunk + sync head (244k)        13.161   (−3.2%)
+  FROZEN base trunk + plain attention (251k)  12.927   (−4.9%)  <- control wins
+```
+
+1. **Joint training fails by co-adaptation, not by mechanism.** The tick
+   probe on the trained sync arm shows the loop genuinely working:
+   per-tick readout 22.6→18.3→16.7→16.2, the query relocating ~11% of its
+   attention mass per tick, spike bits flipping 12–22%/tick at rate ~0.53.
+   But the bypass test shows the trunk underneath collapsed to 136.7 —
+   the head became the load-bearing path and carried a broken trunk 8.5×.
+2. **On a frozen healthy trunk the head adds real marginal value**
+   (13.59→13.16), which looked like vindication for one hour.
+3. **The parameter-matched control removes it.** One-shot causal
+   attention, query straight from the trunk state, no ticks, no spikes,
+   no sync, FFN sized to match (251,358 vs 244,160 params): 12.927,
+   beating the sync head by 0.23 ppl and learning faster throughout.
+
+**Verdict, stated plainly:** on next-token prediction at this scale, the
+tick/spike/sync machinery adds nothing beyond ordinary attention plus
+matched capacity. The machinery *functions* — the probe proves iterative
+refinement is really happening — but its value on language is negative
+relative to the simplest alternative spend of the same parameters.
+
+**Also in this round:** the act/D=512 arm (readout-parameter-matched)
+overturned the strong reading of the width result — 68.6/84.4/100.0% at
+K=4/16/64 against sync/32's 80.6/67.9/86.9. "Pairs beat activations" was
+substantially a readout-parameter effect; what survives is a
+small-state trade, not dominance.
+
+**Where sync still stands after all of this:** +34.4 on parity with a
+visible per-tick computation trace; iteration-hungry tasks remain the
+mechanism's home turf. Language, per the bit-budget audit and now this,
+is not.
+
+**Instrument-bug ledger for this round** (the recurring theme of the
+campaign): a chained waiter deadlocked because its `pgrep -f` pattern
+matched its own command line, its liveness check "confirmed" a run that
+had never started, and a cleanup `pkill` matched and killed its own SSH
+session. Runs are now verified by log content, never by process-name
+greps, and all patterns use the bracket trick.
+
+Code: `spikelm/sync_lm.py`, `spikelm/tick_probe.py`.
+Artifacts: `spikelm/results-synclm/`.

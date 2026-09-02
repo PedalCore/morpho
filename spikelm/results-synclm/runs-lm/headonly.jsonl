@@ -1,0 +1,12 @@
+{"step": 250, "loss": 2.7177, "val_ppl": 13.5008, "mins": 1.3}
+{"step": 500, "loss": 2.5112, "val_ppl": 13.4418, "mins": 2.6}
+{"step": 750, "loss": 2.4751, "val_ppl": 13.4021, "mins": 3.9}
+{"step": 1000, "loss": 2.7162, "val_ppl": 13.3475, "mins": 5.2}
+{"step": 1250, "loss": 2.452, "val_ppl": 13.2975, "mins": 6.6}
+{"step": 1500, "loss": 2.6813, "val_ppl": 13.262, "mins": 7.9}
+{"step": 1750, "loss": 2.5832, "val_ppl": 13.2374, "mins": 9.2}
+{"step": 2000, "loss": 2.5353, "val_ppl": 13.1934, "mins": 10.5}
+{"step": 2250, "loss": 2.5989, "val_ppl": 13.1857, "mins": 11.8}
+{"step": 2500, "loss": 2.7007, "val_ppl": 13.1596, "mins": 13.1}
+{"step": 2750, "loss": 2.5629, "val_ppl": 13.1604, "mins": 14.4}
+{"step": 3000, "loss": 2.4954, "val_ppl": 13.1614, "mins": 15.7}
