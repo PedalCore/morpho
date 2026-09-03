@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>The State-Compression Ladder</title>
+
+<style>
+  :root{
+    --paper:#f4f1ec; --ink:#1a1815; --ink-soft:#4a463f;
+    --rule:#d9d2c6; --accent:#c17817; --accent-soft:#e8a24a;
+    --panel:#ebe6dd; --good:#3f7d54; --bad:#a63a2b;
+    --serif: "Charter","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans: system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono: ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#141210; --ink:#ece6da; --ink-soft:#a49b8a;
+      --rule:#332e27; --accent:#e0a03a; --accent-soft:#b9791e;
+      --panel:#1d1a16; --good:#6fbf87; --bad:#e07a63;
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#f4f1ec; --ink:#1a1815; --ink-soft:#4a463f;
+    --rule:#d9d2c6; --accent:#c17817; --accent-soft:#e8a24a;
+    --panel:#ebe6dd; --good:#3f7d54; --bad:#a63a2b;
+  }
+  :root[data-theme="dark"]{
+    --paper:#141210; --ink:#ece6da; --ink-soft:#a49b8a;
+    --rule:#332e27; --accent:#e0a03a; --accent-soft:#b9791e;
+    --panel:#1d1a16; --good:#6fbf87; --bad:#e07a63;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--serif); line-height:1.62;
+    font-size:19px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:50rem; margin:0 auto; padding:4rem 1.5rem 6rem}
+  @media(max-width:600px){ body{font-size:17px} .wrap{padding:2.5rem 1.15rem 4rem} }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--accent); margin:0 0 1.4rem;
+  }
+  h1{
+    font-size:2.55rem; line-height:1.1; font-weight:600; margin:0 0 .5rem;
+    letter-spacing:-.015em; text-wrap:balance;
+  }
+  @media(max-width:600px){ h1{font-size:1.95rem} }
+  .sub{
+    font-size:1.24rem; color:var(--ink-soft); font-style:italic;
+    margin:0 0 1.8rem; text-wrap:balance;
+  }
+  .byline{
+    font-family:var(--sans); font-size:.85rem; color:var(--ink-soft);
+    border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+    padding:.8rem 0; margin:0 0 2.6rem;
+    display:flex; flex-wrap:wrap; gap:.4rem 1.4rem;
+  }
+  .byline b{color:var(--ink); font-weight:600}
+
+  h2{
+    font-size:1.02rem; font-family:var(--sans); font-weight:700;
+    letter-spacing:-.01em; margin:3.2rem 0 .2rem; display:flex; gap:.7rem; align-items:baseline;
+  }
+  h2 .n{font-family:var(--mono); font-size:.8rem; color:var(--accent); font-weight:600}
+  h2 .q{color:var(--ink-soft); font-weight:400; font-style:italic; font-family:var(--serif); font-size:1.05rem}
+  h3{font-size:1rem; font-family:var(--sans); font-weight:700; margin:2rem 0 .1rem}
+
+  p{margin:.9rem 0}
+  a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-soft)}
+  a:hover{background:var(--accent-soft); color:var(--paper)}
+  strong{font-weight:600}
+  .mono{font-family:var(--mono); font-size:.9em; font-variant-numeric:tabular-nums}
+
+  .abstract{
+    background:var(--panel); border-left:3px solid var(--accent);
+    padding:1.2rem 1.4rem; margin:0 0 1rem; font-size:1.02rem;
+  }
+  .abstract p:first-child{margin-top:0}
+  .abstract p:last-child{margin-bottom:0}
+
+  .lead{font-size:1.06rem}
+
+  figure{margin:2.2rem 0; }
+  figcaption{
+    font-family:var(--sans); font-size:.8rem; color:var(--ink-soft);
+    line-height:1.5; margin-top:.7rem;
+  }
+  figcaption b{color:var(--ink)}
+  .fig-card{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:1.3rem 1.2rem}
+  svg{display:block; width:100%; height:auto; overflow:visible}
+  .fig-scroll{overflow-x:auto}
+
+  table{
+    width:100%; border-collapse:collapse; font-family:var(--mono);
+    font-size:.82rem; font-variant-numeric:tabular-nums; margin:.5rem 0;
+  }
+  th,td{text-align:right; padding:.42rem .6rem; border-bottom:1px solid var(--rule)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{color:var(--accent); border-bottom:1.5px solid var(--rule); font-weight:600}
+  tbody tr:hover{background:var(--panel)}
+  td .win{color:var(--good); font-weight:700}
+
+  .box{
+    border:1px solid var(--rule); border-radius:6px; padding:1.1rem 1.3rem;
+    margin:2rem 0; background:var(--panel);
+  }
+  .box h3{margin-top:0}
+  .box.audit{border-left:3px solid var(--good)}
+
+  ul,ol{margin:.8rem 0; padding-left:1.3rem}
+  li{margin:.35rem 0}
+
+  .kv{font-family:var(--mono); font-size:.82rem; color:var(--ink-soft)}
+  .boundary{
+    font-family:var(--serif); font-size:1.15rem; text-align:center;
+    padding:1.4rem 1rem; margin:1.5rem 0; border-top:2px solid var(--accent);
+    border-bottom:2px solid var(--accent); text-wrap:balance;
+  }
+  hr{border:0; border-top:1px solid var(--rule); margin:3rem 0}
+  .foot{font-family:var(--sans); font-size:.82rem; color:var(--ink-soft); line-height:1.6}
+  .foot a{border:none; text-decoration:underline}
+  .aidisc{font-family:var(--sans); font-size:.76rem; color:var(--ink-soft);
+          line-height:1.55; margin-top:2rem; border-top:1px solid var(--rule);
+          padding-top:1rem}
+  .aidisc b{color:var(--ink); font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="eyebrow">Whitebox LM · M13 · preprint</p>
+  <h1>The state-compression ladder</h1>
+  <p class="sub">How much of learning a dynamical neuron can be decoupled from the neuron itself?</p>
+
+  <div class="byline">
+    <span><b>PedalCore / Whitebox LM</b></span>
+    <span>Hodgkin–Huxley surrogate study</span>
+    <span class="mono">code: github.com/PedalCore/state-compression-ladder</span>
+  </div>
+
+  <div class="abstract">
+    <p><strong>We ask how many dynamical degrees of freedom a neuron's computation actually requires, and — more sharply — which parts of <em>learning</em> a self-coupled dynamical system can be parallelised and which cannot.</strong> Using a Hodgkin–Huxley teacher whose four state variables are known, we build an instrument (a compression ladder) and drive it through eleven preregistered rounds, an external code audit, and a single-shot held-out evaluation.</p>
+    <p>Two results survive. <strong>(1) A compact primitive:</strong> a frozen, parallel-trained vector field plus a ~34-parameter, single-scalar bounded correction reaches <span class="mono">≈0.88</span> held-out spike-timing F1 with the correct anodal-break rebound and near-perfect firing-rate curve. <strong>(2) A boundary:</strong> local dynamics, state representation, and even own-trajectory generation all parallelise — but high-fidelity closed-loop learning was reached <em>only</em> by long-horizon sequential credit assignment. Freshness, short-block coupling, and every offline distribution/label/objective correction we tried fell short.</p>
+  </div>
+
+  <p class="lead">The neuron is usually the cheap part of a network — a weight and a nonlinearity. This study starts from the opposite premise: that a neuron is a small stateful dynamical system, and asks what that state is <em>for</em>, how little of it is needed, and — the question that turned out to matter most — how much of the difficulty of learning it is irreducibly sequential.</p>
+
+  <p>Working against a known-dimensional teacher lets every claim be an instrument reading rather than an assertion. What follows is organised as the eight questions the programme actually answered, in order.</p>
+
+  <h2><span class="n">Q1</span> <span>How much state is needed?</span></h2>
+  <p>We built a <strong>collision diagnostic</strong>: two representations that map to nearby points must demand consistent futures, or the representation is insufficient. Applied to learned encoders of the HH state, sufficiency drops sharply and then plateaus — a knee at roughly <strong>three</strong> effective coordinates, consistent with the classical fast-<span class="mono">m</span> reduction (V, h, n) rather than the full four. The instrument measures a <em>minimal realisation for a model class under an input distribution</em>, not a canonical dimension — an important scoping that recurs throughout.</p>
+
+  <h2><span class="n">Q2</span> <span>Can voltage history recover hidden state?</span></h2>
+  <p>Instantaneous voltage is ambiguous (collision ratio <span class="mono">0.35</span>). A rolling <strong>12 ms window of five voltage samples</strong> reaches the same sufficiency floor as the full-state encoders (<span class="mono">0.14</span>). Informationally, recent history substitutes for the hidden gating variables — a measured Takens-style result on the exact data.</p>
+
+  <h2><span class="n">Q3</span> <span>Can local dynamics be learned in parallel?</span></h2>
+  <p>Yes, and cheaply. Training a vector field on independent <span class="mono">(state, input) → dV/dt</span> samples is roughly <strong>15× faster</strong> than sequential rollout training and reproduces the firing-rate curve and the anodal-break rebound. An integrator-isolation control (RK4 vs Euler on identical weights) came back null: discretisation is not the bottleneck.</p>
+
+  <h2><span class="n">Q4</span> <span>Why does event fidelity plateau?</span></h2>
+  <p>The parallel-trained field sits at <span class="mono">≈0.74</span> spike F1 despite excellent waveform statistics. Purpose-built metrics found the cause, and it was none of the obvious candidates. Spike-miss F1 is <em>flat across the rollout</em> — not accumulating drift. Misses are <strong>episodic</strong>: <span class="mono">P(miss | previous miss) = 0.69</span> against a base rate of <span class="mono">0.29</span>. Episodes are entered rarely, then healed by the input in <span class="mono">≈5.4 ms</span>. Initiation is a slow inter-spike <em>under-excitability drift</em> (n rising, h falling) visible ~5 ms before the missed spike. The plateau is an <strong>event-decision</strong> problem, not a stability failure.</p>
+
+  <h2><span class="n">Q5</span> <span>Can a tiny bounded correction solve it?</span></h2>
+  <p>Freeze the good field; add a small recurrent correction, hard-bounded to the empirically located drift/decision voltage band so it cannot rewrite the physics. It crosses the original F1&gt;0.9 gate that every prior model failed. The correction is <em>inspectable</em>: its magnitude is near-zero everywhere except the drift and decision bands — the credit state doing exactly the job the causal anatomy predicted.</p>
+
+  <figure>
+    <div class="fig-card fig-scroll">
+      <table>
+        <thead>
+          <tr><th>model</th><th>corr. params</th><th>state/neuron</th><th>held-out F1 (s0/s1)</th><th>f-I (Hz)</th><th>rebound</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>trust-hybrid, kc=8</td><td>396</td><td>8</td><td><span class="win">0.879 / 0.888</span></td><td>0.5 / 0.3</td><td>✓ / ✓</td></tr>
+          <tr><td>trust-hybrid, kc=1</td><td>32</td><td>1 scalar</td><td>0.861 / 0.836</td><td>0.6 / 9.9</td><td>✓ / ✓</td></tr>
+          <tr><td>observable parallel baseline</td><td>—</td><td>—</td><td>≈0.264</td><td>—</td><td>—</td></tr>
+          <tr><td>sequential GRU (long-horizon)</td><td>930</td><td>8</td><td>0.869</td><td>14.5</td><td>✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figcaption><b>Held-out performance (single-shot, locked corpus, new RNG seed).</b> The frozen field plus a bounded correction reaches ≈0.88 spike-timing F1 with correct rebound; a <b>single scalar of state and 32 shared parameters</b> holds ≈0.85. Numbers are reported once on a corpus generated after all code fixes and never used for any decision (dev↔test gap ≈0.02–0.06).</figcaption>
+  </figure>
+
+  <h2><span class="n">Q6</span> <span>Does the correction really need much state?</span></h2>
+  <p>No. Compressing the corrector from 396 parameters to <strong>32 parameters and one scalar of runtime state</strong> costs almost nothing. And in complete coordinates, a matched-parameter <em>static</em> correction performs the same as a recurrent one — so recurrence, at matched size, adds nothing <em>when the coordinates already expose the state</em>.</p>
+
+  <h2><span class="n">Q7</span> <span>Then when is state actually required?</span></h2>
+  <p>Exactly when the coordinates hide it. The sharpest contrast in the study: given the same 12 ms voltage history, a <em>static</em> map fails utterly — <span class="mono">0.004</span> F1 even with oracle-perfect history — while a <em>recurrent</em> model reaches <span class="mono">0.87+</span>. Identical information, opposite outcomes. <strong>Internal state is a computational resource for reconstructing hidden state under partial observation, not a universal enhancer.</strong> A selective (Mamba-style) affine accumulator matched the GRU at a fraction of the training cost — the right machinery is cheap and parallel-trainable.</p>
+
+  <h2><span class="n">Q8</span> <span>Why does the observable parallel model still fall short — and what remains?</span></h2>
+  <p>Everything else was exonerated by preregistered control: state amount, state form, capacity, field-error magnitude, error placement, label alignment, and the state-shaping objective (a JEPA-style latent-future target changed nothing). The observable ceiling is <span class="mono">≈0.264</span>. What remains is the coupling between a model's parameters and the trajectory distribution those parameters induce.</p>
+
+  <p>We priced it directly. Offline training on the model's own distribution — at any mixture up to 100% — collapsed. A block-coupling experiment (in the style of test-time training) then separated the two candidate resources with a built-in invariant: at block size 1, where no through-time credit exists, the detached and backprop-through-time arms are byte-identical, validating the harness. Above it, <em>neither</em> fresh-state resynchronisation <em>nor</em> short-block through-time credit crossed the gap. Only long-horizon sequential training ever did.</p>
+
+  <figure>
+    <div class="fig-card fig-scroll" id="figboundary"></div>
+    <figcaption><b>The block-coupling discriminator (held-out F1 vs coupling block size).</b> Same generated block, same targets, same budget for both arms; the only difference is whether gradient flows through earlier self-generated states. The b=1 invariant holds exactly (bars coincide). Neither arm rises meaningfully above the ≈0.24 baseline at any block size — short-horizon coupling of either kind is insufficient. The dashed line marks long-horizon sequential training (0.869), the only regime that crosses.</figcaption>
+  </figure>
+
+  <div class="boundary">
+    Most of learning a self-coupled dynamical primitive decouples and parallelises.<br>
+    The irreducible remainder is <strong>long-horizon contemporaneous credit</strong> — the feedback between parameter updates and the distribution they induce.
+  </div>
+
+  <figure>
+    <div class="fig-card fig-scroll" id="figstack"></div>
+    <figcaption><b>What parallelises, and what does not.</b> Each stage of learning the primitive was tested for whether it can be trained on independent / detached / offline data. Only the closed-loop credit path resisted every decoupling attempt.</figcaption>
+  </figure>
+
+  <hr>
+
+  <h2><span class="n">§</span> <span>What this buys, in hardware terms</span></h2>
+  <p>The decomposition has a clean deployment reading. The dynamics are trained <em>once</em>, paying the one-time sequential cost. Thereafter the primitive freezes: a shared ~34-parameter law plus one scalar of state per neuron. Downstream networks train connectivity and readouts <em>around</em> the frozen cell with no coupling problem at all, because a frozen field's rollout distribution no longer moves. Bounded per-population adaptation stays parallel; only rewriting the core dynamics reawakens the sequential cost. Coupled training is a cost you pay to mint the primitive — not one you repay on every use.</p>
+
+  <div class="box audit">
+    <h3>Reproducibility &amp; validation</h3>
+    <p>An independent code-path review found indexing (an off-by-one in the flagship target), a chunk-boundary regularisation error, current-inconsistent phase labels, and a data-budget confound in the coupling sweep. All were corrected and the affected experiments rerun. The corrected runs <strong>preserved every headline conclusion</strong> — and tightened one: the single-scalar corrector improved with correct targets. The observable baseline was corrected upward (≈0.20 → ≈0.264). A closed-form scan implementation was unit-tested against an explicit recurrence to <span class="mono">1×10⁻⁷</span> in value and gradient. Final performance was then measured <strong>once</strong> on a freshly generated locked corpus. Repeatedly-scored figures are labelled development metrics; the held-out numbers above are the reported test performance.</p>
+  </div>
+
+  <h2><span class="n">→</span> <span>Where this goes next</span></h2>
+  <p>The primitive is proven; the next question is whether richer dynamics <em>buy computation per unit hardware</em>. That becomes a measurement — Information Processing Capacity (linear and nonlinear orders) per state-bit, per gate, per picojoule — comparing the frozen primitive against LIF, AdEx, and a matched timescale-spectrum control. Beyond it: a four-neuron re-taskability test (fixed weights, changing only a context vector) as the bridge toward synchronisation-as-computation. Connectivity cost, which scales roughly quadratically, is measured separately from neuron cost — the real hardware argument may be that a richer neuron needs <em>fewer</em> neurons and therefore far fewer connections.</p>
+
+  <hr>
+  <p class="foot">
+    A whitebox LM research note. Full lab notebook — including preregistrations, failed recipes, published corrections, and every intermediate result in chronological order — plus a clean reproducibility path (<span class="mono">repro/</span>) at <a href="https://github.com/PedalCore/state-compression-ladder">github.com/PedalCore/state-compression-ladder</a>. Eleven development rounds and this synthesis were shaped throughout by an external reviewer's critiques; the audit above is theirs.
+    Part of <a href="index.html">soundlark.studio</a> — see also <a href="whitebox-lab.html">the white-box lab</a> and <a href="thinking-in-ticks.html">thinking in ticks</a>.
+  </p>
+
+  <p class="aidisc"><b>AI-generated research.</b> The experiments, code and write-ups on this site were produced by AI agents (Claude and Codex) working semi-autonomously, directed at a high level by a human. Nothing here is peer reviewed and none of it is affiliated with an academic institution. Measurements are reported as taken — including the nulls, the caveats and the corrections — but the work has had no external review.</p>
+
+</div>
+
+<script>
+(function(){
+  var css = getComputedStyle(document.documentElement);
+  var ink = css.getPropertyValue('--ink').trim() || '#1a1815';
+  var soft = css.getPropertyValue('--ink-soft').trim() || '#666';
+  var acc = css.getPropertyValue('--accent').trim() || '#c17817';
+  var good = css.getPropertyValue('--good').trim() || '#3f7d54';
+  var bad = css.getPropertyValue('--bad').trim() || '#a63a2b';
+  var rule = css.getPropertyValue('--rule').trim() || '#ddd';
+  var mono = 'ui-monospace,"SF Mono",Menlo,monospace';
+  var sans = 'system-ui,-apple-system,sans-serif';
+
+  // ---- Figure: block-coupling discriminator ----
+  function boundaryFig(){
+    var W=680,H=300,ml=48,mr=16,mt=22,mb=54;
+    var pw=W-ml-mr, ph=H-mt-mb;
+    var bs=[1,5,10,20,50];
+    var detach={1:.215,5:.023,10:.047,20:.194,50:.111};
+    var bptt={1:.215,5:.009,20:.251,50:.227};
+    var ymax=.9;
+    function y(v){return mt+ph-(v/ymax)*ph;}
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="block coupling discriminator bar chart" font-family="'+sans+'">';
+    // gridlines
+    [0,.2,.4,.6,.8].forEach(function(g){
+      s+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="'+rule+'" stroke-width="1"/>';
+      s+='<text x="'+(ml-8)+'" y="'+(y(g)+4)+'" text-anchor="end" font-size="11" fill="'+soft+'" font-family="'+mono+'">'+g.toFixed(1)+'</text>';
+    });
+    // v4 long-horizon reference
+    s+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y(.869)+'" y2="'+y(.869)+'" stroke="'+acc+'" stroke-width="1.5" stroke-dasharray="6 4"/>';
+    s+='<text x="'+(W-mr)+'" y="'+(y(.869)-6)+'" text-anchor="end" font-size="11" fill="'+acc+'" font-family="'+mono+'">long-horizon sequential · 0.869</text>';
+    // baseline band
+    s+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y(.24)+'" y2="'+y(.24)+'" stroke="'+soft+'" stroke-width="1" stroke-dasharray="2 3"/>';
+    s+='<text x="'+(ml+4)+'" y="'+(y(.24)-5)+'" font-size="10" fill="'+soft+'" font-family="'+mono+'">baseline ≈0.24</text>';
+    var groups=bs.length, gw=pw/groups, bw=gw*0.3;
+    bs.forEach(function(b,i){
+      var cx=ml+gw*i+gw/2;
+      var dv=detach[b], bv=bptt[b];
+      // detach bar
+      s+='<rect x="'+(cx-bw-3)+'" y="'+y(dv)+'" width="'+bw+'" height="'+(y(0)-y(dv))+'" fill="'+soft+'" opacity="0.8"/>';
+      // bptt bar (may be undefined for b=10)
+      if(bv!==undefined){
+        s+='<rect x="'+(cx+3)+'" y="'+y(bv)+'" width="'+bw+'" height="'+(y(0)-y(bv))+'" fill="'+acc+'"/>';
+      }
+      s+='<text x="'+cx+'" y="'+(H-mb+18)+'" text-anchor="middle" font-size="12" fill="'+ink+'" font-family="'+mono+'">b='+b+'</text>';
+    });
+    // x axis label
+    s+='<text x="'+(ml+pw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="'+soft+'">coupling block size (samples between synchronisations)</text>';
+    // legend
+    s+='<rect x="'+(ml)+'" y="6" width="11" height="11" fill="'+soft+'" opacity="0.8"/><text x="'+(ml+16)+'" y="15" font-size="11" fill="'+ink+'">detached</text>';
+    s+='<rect x="'+(ml+92)+'" y="6" width="11" height="11" fill="'+acc+'"/><text x="'+(ml+108)+'" y="15" font-size="11" fill="'+ink+'">through-time (BPTT)</text>';
+    s+='</svg>';
+    return s;
+  }
+
+  // ---- Figure: what parallelises stack ----
+  function stackFig(){
+    var rows=[
+      ['local dynamical field','parallel (iid samples)',1],
+      ['hidden-state inference','parallel (delay geometry)',1],
+      ['selective state propagation','parallel (associative scan)',1],
+      ['bounded event correction','parallel (frozen field)',1],
+      ['own-trajectory generation','parallel (gradient-free)',1],
+      ['offline own-distribution retrain','insufficient',0],
+      ['long-horizon closed-loop credit','irreducibly sequential',0],
+    ];
+    var W=680, rh=34, mt=6, ml=8, H=mt+rows.length*rh+6;
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="what parallelises table" font-family="'+sans+'">';
+    rows.forEach(function(r,i){
+      var yy=mt+i*rh;
+      var col=r[2]?good:bad;
+      s+='<rect x="'+ml+'" y="'+yy+'" width="'+(W-2*ml)+'" height="'+(rh-6)+'" rx="4" fill="'+col+'" opacity="'+(r[2]?0.12:0.14)+'"/>';
+      s+='<rect x="'+ml+'" y="'+yy+'" width="4" height="'+(rh-6)+'" rx="2" fill="'+col+'"/>';
+      s+='<text x="'+(ml+16)+'" y="'+(yy+rh/2)+'" dominant-baseline="middle" font-size="13.5" fill="'+ink+'">'+r[0]+'</text>';
+      s+='<text x="'+(W-ml-12)+'" y="'+(yy+rh/2)+'" dominant-baseline="middle" text-anchor="end" font-size="12" fill="'+col+'" font-family="'+mono+'" font-weight="600">'+r[1]+'</text>';
+    });
+    s+='</svg>';
+    return s;
+  }
+
+  document.getElementById('figboundary').innerHTML=boundaryFig();
+  document.getElementById('figstack').innerHTML=stackFig();
+})();
+</script>
+</body>
+</html>
