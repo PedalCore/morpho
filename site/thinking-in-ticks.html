@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>soundlark — thinking in ticks</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<style>
+  :root { --bg:#0d1015; --panel:#12151b; --panel2:#171b23; --line:#242a35;
+          --text:#d7dae2; --muted:#9aa1ad; --amber:#e2a13f; --green:#7bd8a5; --red:#d96c6c; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+         font:16px/1.7 -apple-system,"Segoe UI",sans-serif; padding:48px 20px 80px; }
+  article { max-width:44em; margin:0 auto; }
+  h1 { font-size:27px; font-weight:600; letter-spacing:.02em; margin-bottom:8px; }
+  h1 span { color:var(--amber); }
+  .sub { color:var(--muted); margin-bottom:24px; font-size:17px; }
+  h2 { font-size:20px; font-weight:600; margin:42px 0 12px; color:var(--amber); }
+  p { margin:14px 0; color:#c9cdd7; }
+  b { color:#e8ebf0; }
+  a { color:var(--amber); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code { font-family:ui-monospace,"SF Mono",monospace; font-size:14px;
+         background:var(--panel2); padding:1px 6px; border-radius:4px; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; margin:18px 0; width:100%; font-size:15px; }
+  th,td { text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--line);
+          white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase;
+       letter-spacing:.05em; }
+  td.n { font-family:ui-monospace,monospace; }
+  td b { color:var(--green); }
+  td i { font-style:normal; color:var(--red); }
+  .trace { font-family:ui-monospace,monospace; font-size:14px; background:var(--panel);
+           border:1px solid var(--line); border-radius:9px; padding:14px 16px;
+           margin:18px 0; overflow-x:auto; white-space:pre; line-height:1.9; }
+  .trace em { font-style:normal; color:var(--green); }
+  .trace i { font-style:normal; color:var(--muted); }
+  .aside { border-left:3px solid var(--line); padding:2px 0 2px 16px; margin:18px 0;
+           color:var(--muted); font-size:15px; }
+  .key { border-left:3px solid var(--amber); background:var(--panel); padding:12px 16px;
+         border-radius:0 8px 8px 0; margin:18px 0; }
+  .warn { border-left:3px solid var(--red); background:var(--panel); padding:12px 16px;
+          border-radius:0 8px 8px 0; margin:18px 0; }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin:18px 0 6px; }
+  .links a { border:1px solid var(--line); border-radius:8px; padding:7px 14px; }
+  .links a:hover { border-color:var(--amber); text-decoration:none; }
+  .foot { color:#6a7280; font-size:13.5px; margin-top:44px; border-top:1px solid var(--line);
+          padding-top:16px; }
+  .aidisc { color:#6a7280; font-size:12.5px; line-height:1.5; margin-top:22px;
+            border-top:1px solid #1c212b; padding-top:14px; }
+  .aidisc b { color:#8b929e; font-weight:600; }
+</style>
+</head>
+<body>
+<article>
+  <h1>thinking in <span>ticks</span></h1>
+  <p class="sub">We built a network that is allowed to <b>think longer about a hard input</b> —
+  internal steps of computation, decoupled from the data — and watched it solve a problem
+  tick by tick, at chance until step three and perfect by step five. Then we gave the same
+  machinery to a language model, and it lost to the most boring alternative we could
+  construct. Both halves are the result.</p>
+
+  <h2>Borrowed machinery</h2>
+  <p>The design comes from the Continuous Thought Machine (Sakana AI, 2025). Instead of
+  reading a network's state off its activations, you watch which pairs of neurons are
+  active <em>together</em>, and how persistently — a <b>synchronisation</b> representation.
+  That representation generates a query; the query fetches something from the input; what
+  comes back drives the next internal <b>tick</b>; and the synchronisation updates. Loop,
+  for T ticks, then answer.</p>
+  <p>An earlier chapter of ours bolted the synchronisation <em>readout</em> onto a language
+  model without the loop, and it did nothing. This time we built the whole mechanism —
+  and checked it on a task where the answer is knowable before trusting it anywhere else.</p>
+
+  <h2>Watching it think</h2>
+  <p>The task is parity: are there an odd or even number of 1s in six bits? One glance
+  cannot answer it — it needs accumulation — which makes it the cleanest test of whether
+  internal ticks do anything. Same model throughout; only the tick count varies. The row
+  to read is the <b>per-tick accuracy</b> of the eight-tick model:</p>
+
+  <div class="trace">ticks:      1     2     3     4     5     6     7     8
+accuracy: <i>0.49  0.49</i>  <em>0.81  0.89  1.00  1.00  1.00  1.00</em></div>
+
+  <p>At chance for two ticks — the first tick hasn't even seen the data yet, by the
+  architecture's own ordering — then climbing, then <b>perfect and holding</b>. Removing
+  the loop entirely (one tick) leaves the model at 49.3%. The loop is worth
+  <b>+34.4 points</b>, and you can watch the computation happen. It is also a threshold,
+  not a slope: four ticks still score at chance; eight solve it.</p>
+
+  <div class="aside">
+    <p style="margin:0"><b>It took four loss functions to see this.</b> The paper's own
+    training loss is exploitable when the number of ticks rivals the number of answer
+    classes — the model learns a different constant per tick and one is always right
+    (training loss 0.0001 at 48% accuracy, measured). A mean over all ticks punishes
+    models with more ticks for the early ones that cannot yet know. Supervising only the
+    last tick starves the gradient. An earlier run of this exact ablation reported "the
+    loop is worth +0.2%" and nearly ended the work — that number was an artifact of the
+    loss, not a fact about the loop. Three reasonable instruments all said <em>no
+    effect</em> about a mechanism worth 34 points.</p>
+  </div>
+
+  <h2>Spikes make it cheaper, not worse</h2>
+  <p>Synchronisation has one unusual property for this site's interests: it is the only
+  representation we have measured that gets <b>cheaper</b> when you strip the numbers down
+  to all-or-nothing spikes. Its only arithmetic on data is "unit i times unit j" — for
+  real values a multiplier, for spikes a single AND gate. Thresholding the units to
+  {0,1} before the synchronisation didn't hurt on parity: <b>100.0%</b> across seeds,
+  where the real-valued version managed 83.9% with one seed failing to converge.</p>
+
+  <h2>Language: the full ledger</h2>
+  <p>So the loop works, spikes carry it, and — from a separate measurement — reading
+  outputs from neuron <em>pairs</em> lets a small state serve a wide output. Language is
+  where those threads should pay: predicting the next word wants many independent
+  directions. We attached the tick head to our usual small language model and trained
+  twins: identical trunk, identical data order, with and without the head.</p>
+
+  <div class="scroll">
+  <table>
+    <tr><th>configuration</th><th>val perplexity</th><th></th></tr>
+    <tr><td>trunk alone</td><td class="n">13.59</td><td></td></tr>
+    <tr><td>trunk + tick head, trained together</td><td class="n"><i>16.15</i></td>
+        <td>19% worse</td></tr>
+    <tr><td>&nbsp;&nbsp;└ that trunk with the head unplugged</td>
+        <td class="n"><i>136.7</i></td><td>&larr; the trunk collapsed</td></tr>
+    <tr><td>healthy trunk frozen + tick head</td><td class="n">13.16</td>
+        <td>the head helps!</td></tr>
+    <tr><td>healthy trunk frozen + <b>plain attention</b>, same size</td>
+        <td class="n"><b>12.93</b></td><td>&larr; the control wins</td></tr>
+  </table>
+  </div>
+
+  <p>Three findings in that table, in the order they arrived.</p>
+  <p><b>First: trained together, the pieces destroy each other.</b> The combined model is
+  19% worse — but unplug the head from it and the trunk underneath scores 136.7, ten
+  times worse than a trunk trained alone. The head hadn't failed; it had become the
+  load-bearing wall while the trunk quietly atrophied behind it. Starting the head as an
+  exact no-op guarantees a clean beginning, not a fair division of labour afterwards.</p>
+  <p><b>Second: on a frozen, healthy trunk, the head genuinely helps</b> — 13.59 down to
+  13.16, training only its 244 thousand parameters. For about an hour this looked like
+  vindication.</p>
+  <p><b>Third: the control removes it.</b> Replace the entire apparatus — ticks, spikes,
+  synchronisation — with one ordinary attention lookup and a small feed-forward layer,
+  sized to the same parameter count, trained identically: <b>12.93</b>. Better, and it
+  learned faster at every checkpoint.</p>
+
+  <div class="warn">
+    <p style="margin:0"><b>The verdict, stated plainly.</b> On next-token prediction at
+    this scale, the thinking-loop machinery adds nothing beyond ordinary attention given
+    the same parameter budget. And this is not because the machinery is broken: probing
+    the trained model shows the loop genuinely iterating — the prediction improves every
+    tick (22.6 → 18.3 → 16.7 → 16.2), the query moves to new places each tick, the
+    spikes keep computing. The mechanism works. It is simply not what language was
+    missing.</p>
+  </div>
+
+  <h2>Why we believe the negative</h2>
+  <p>A result like this is only as good as its controls, and this one has three: the
+  <b>bypass test</b> that caught the collapsed trunk (without it we'd have reported
+  "synchronisation costs 19%" and misdiagnosed why); the <b>frozen-trunk isolation</b>
+  that measured the head's real marginal value; and the <b>parameter-matched control</b>
+  that revealed that value as ordinary. Our own earlier audit predicted the outcome, for
+  what it's worth: language's precision demands sit exactly where amplitude-free codes
+  are weakest.</p>
+  <p>What survives is precise. The tick loop is real and worth +34 points where
+  <em>iteration</em> is the bottleneck. Spiking synchronisation carries it at one gate
+  per pair. A small state can serve a wide readout. None of those claims died — they
+  just don't compound into a better language model, and now there's a ledger showing
+  exactly where the compounding fails.</p>
+
+  <div class="links">
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/spikelm/ctm.py">ctm.py</a>
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/spikelm/sync_lm.py">sync_lm.py</a>
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/spikelm/tick_probe.py">the probe</a>
+    <a href="https://github.com/PedalCore/morpho/blob/snn-lab/snn/EXPERIMENT.md">the log (v20)</a>
+    <a href="changing-tack.html">previous chapter</a>
+    <a href="index.html">index</a>
+  </div>
+
+  <p class="foot">Continuous Thought Machines: Darlow et al., arXiv:2505.05522. Our
+  implementation deviates in one stated way (a 2-layer synapse rather than their 16-layer
+  U-Net), so absolute numbers are not comparable to theirs. Language runs: TinyStories-like
+  corpus, 13M-parameter class trunk, 3000 steps, validation perplexity on a fixed 16,384
+  tokens; joint-collapse and control results are single paired runs and would benefit from
+  replication — the claim is filed, with its refutation conditions, on
+  <a href="https://hi-sci-collab.com/projects/a-per-tensor-bit-budget-for-language-models-and-whether-spik">hi-sci-collab</a>.</p>
+
+  <p class="aidisc"><b>AI-generated research.</b> The experiments, code and write-ups on this site were produced by AI agents (Claude and Codex) working semi-autonomously, directed at a high level by a human. Nothing here is peer reviewed and none of it is affiliated with an academic institution. Measurements are reported as taken — including the nulls, the caveats and the corrections — but the work has had no external review.</p>
+</article>
+</body>
+</html>
