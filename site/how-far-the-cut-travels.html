@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>Part IX &mdash; How far the cut travels</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+      --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+      --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  }
+  :root[data-theme="dark"]{--bg:#14110d;--surface:#1e1a14;--surface2:#26211a;
+    --text:#ece4d6;--muted:#a89a84;--faint:#6f6353;--accent:#e8a33d;
+    --accent2:#6fb3a8;--danger:#cf6a4c;--rule:rgba(236,228,214,.12);}
+  :root[data-theme="light"]{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+    --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+    --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.2vw,3.05rem);
+    line-height:1.08;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  .callout.warn{border-left-color:var(--danger)}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  .leg{display:flex;gap:1.3rem;flex-wrap:wrap;font-family:var(--mono);
+    font-size:.72rem;margin:.5rem 0 0}
+  .leg span{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .ledger{width:100%;border-collapse:collapse;margin:1.4rem 0;
+    font-family:var(--mono);font-size:.8rem}
+  .ledger th,.ledger td{text-align:right;padding:.5rem .55rem;
+    border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+  .ledger th:first-child,.ledger td:first-child{text-align:left}
+  .ledger thead th{color:var(--muted);font-weight:400;font-size:.68rem;
+    letter-spacing:.05em;text-transform:uppercase}
+  .ledger .win{color:var(--accent2)} .ledger .bad{color:var(--danger)}
+  .ax{stroke:var(--rule)}
+  .cV{stroke:var(--accent);fill:none;stroke-width:2.4}
+  .cD{stroke:var(--accent2);fill:none;stroke-width:2.4}
+  .dV{fill:var(--accent)} .dD{fill:var(--accent2)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sF{fill:var(--faint)}
+  .sD{fill:var(--danger)} .mono{font-family:var(--mono)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);line-height:1.7}
+  .aidisc { color:#6a7280; font-size:12.5px; line-height:1.5; margin-top:22px;
+            border-top:1px solid #1c212b; padding-top:14px; }
+  .aidisc b { color:#8b929e; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; Part IX &middot; generalization</p>
+  <h1>How far the cut <em>travels</em></h1>
+  <p class="dek">Breaking one long trajectory into short blocks worked on
+  a pendulum, and again on the Lorenz attractor. So does the <em>cut</em>
+  itself generalize? Across four dynamical systems it does &mdash; but
+  three honest edges say it is not a free, uniform law.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>generalization sweep</span>
+  <span>Van der Pol &middot; Duffing</span></p>
+
+  <p class="lede">Parts VI&ndash;VIII established the mechanism on a tame
+  forced pendulum and stress-tested it on Lorenz. The open worry was
+  over-fitting to two friendly systems. So we ran the same block-length
+  sweep on two more: <strong>Van der Pol</strong> (a relaxation
+  oscillator, dialled from mild to stiff) and <strong>Duffing</strong> (a
+  driven cubic oscillator &mdash; strongly nonlinear but not stiff). The
+  headline holds. The interesting part is exactly where it frays.</p>
+
+  <h2><span class="n">01</span>Four systems, one cut</h2>
+  <table class="ledger">
+    <thead><tr><th>system</th><th>character</th><th>best vs single shoot</th><th>optimum</th></tr></thead>
+    <tbody>
+      <tr><td>Pendulum</td><td>mild</td><td class="win">interior</td><td>T_block ~ 4</td></tr>
+      <tr><td>Van der Pol (&mu;=1)</td><td>moderate</td><td class="win">9.9&times;</td><td>T_block 4 (interior)</td></tr>
+      <tr><td>Duffing</td><td>strong, non-stiff</td><td class="win">51&times;</td><td>T_block 1 (extreme)</td></tr>
+      <tr><td>Lorenz</td><td>chaotic</td><td class="win">categorical</td><td>short</td></tr>
+      <tr><td>Van der Pol (&mu;=4)</td><td>stiff</td><td class="bad">1.5&times; &mdash; all poor</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+  <p>Wherever the surrogate integrator is adequate, short blocks beat the
+  single long shoot &mdash; and on the most strongly nonlinear
+  non-stiff system, Duffing, by the largest margin of all,
+  <strong>51&times;</strong>. The cut travels. Now the edges.</p>
+
+  <h2><span class="n">02</span>Edge one &mdash; there is no universal block length</h2>
+  <figure>
+    <svg viewBox="0 0 640 260" role="img"
+      aria-label="Free-run rollout versus block length for Van der Pol and Duffing, log axes. Both fall as blocks shorten from right (single shoot) to left. Duffing descends monotonically to its shortest block. Van der Pol bottoms out in the middle and rises again at the extreme, and shows a bump above the single-shoot level at a coarse four-segment split.">
+      <line class="ax" x1="72" y1="24" x2="72" y2="216"/>
+      <line class="ax" x1="72" y1="216" x2="620" y2="216"/>
+      <text class="mono sF" x="60" y="40" text-anchor="end" font-size="9">worse</text>
+      <text class="mono sF" x="60" y="212" text-anchor="end" font-size="9">better</text>
+      <!-- VdP single-shoot reference line (y=83.3) -->
+      <line x1="72" y1="83.3" x2="620" y2="83.3" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>
+      <text class="mono sM" x="78" y="79" font-size="8">VdP single-shoot level</text>
+      <!-- Van der Pol curve (Tb 1..512 -> x 90..600) -->
+      <polyline class="cV" points="90,138.6 146.7,167.5 203.3,172.7 260,149.8 373.3,102.8 486.7,36.1 600,83.3"/>
+      <!-- Duffing curve -->
+      <polyline class="cD" points="90,203.8 146.7,170.6 203.3,171.7 260,167 373.3,156 486.7,53.8 600,49.9"/>
+      <!-- markers -->
+      <g>
+        <circle class="dV" cx="203.3" cy="172.7" r="4"/>
+        <circle class="dD" cx="90" cy="203.8" r="4"/>
+        <circle class="sD" cx="486.7" cy="36.1" r="4"/>
+      </g>
+      <text class="mono sT" x="203.3" y="188" text-anchor="middle" font-size="9">VdP best (interior)</text>
+      <text class="mono sT" x="96" y="219" text-anchor="start" font-size="9">Duffing best (extreme)</text>
+      <text class="mono sD" x="486.7" y="30" text-anchor="middle" font-size="9">coarse valley &mdash; worse than single</text>
+      <!-- x ticks: Tb 1,2,4,8,32,128,512 -->
+      <g class="mono sF" font-size="9" text-anchor="middle">
+        <text x="90" y="230">1</text><text x="146.7" y="230">2</text>
+        <text x="203.3" y="230">4</text><text x="260" y="230">8</text>
+        <text x="373.3" y="230">32</text><text x="486.7" y="230">128</text>
+        <text x="600" y="230">512</text>
+      </g>
+      <text class="mono sF" x="110" y="250" text-anchor="start" font-size="9">&larr; more decomposition</text>
+      <text class="mono sF" x="600" y="250" text-anchor="end" font-size="9">single long shoot &rarr;</text>
+      <text class="mono sF" x="346" y="250" text-anchor="middle" font-size="9">block length (steps, log)</text>
+    </svg>
+    <div class="leg">
+      <span><i class="sw" style="background:var(--accent)"></i>Van der Pol (&mu;=1), 3-seed mean</span>
+      <span><i class="sw" style="background:var(--accent2)"></i>Duffing (seed 0)</span>
+    </div>
+    <figcaption>Free-run rollout vs block length, log&ndash;log. Both
+    systems improve dramatically as blocks shorten, but the optimum sits
+    in different places: Van der Pol bottoms out at an interior block
+    length (T_block=4) and gets slightly worse at the one-step extreme;
+    Duffing falls monotonically to its shortest block. "T_block=4 is
+    best" was always a per-system fact, never a law.</figcaption>
+  </figure>
+  <p>On the pendulum and Van der Pol the best block is in the middle
+  &mdash; short enough for a well-conditioned gradient, long enough to
+  still compose dynamics (the two-jobs tension of Part VI). On Duffing,
+  shorter is simply better all the way down. Same cut, different sweet
+  spot.</p>
+
+  <h2><span class="n">03</span>Edge two &mdash; a coarse cut can be worse than none</h2>
+  <p>Look again at the Van der Pol curve where it pokes <em>above</em> its
+  own single-shoot line. Splitting into just four long segments
+  (T_block=128) trains <strong>worse</strong> than not splitting at all
+  &mdash; and this reproduces in every one of three seeds (mean 0.606 vs
+  0.181 for the single shoot). A few still-long blocks, loosely stitched
+  by a fixed continuity penalty, settle into an inconsistent solution
+  that the fully-coupled single shoot avoids.</p>
+  <p class="callout warn">Decomposition is not monotone. Below some block
+  length it wins big; just above it, a coarse split can be worse than the
+  monolith it replaced. You have to cut <em>past</em> the coarse regime,
+  not merely into it.</p>
+  <p>This is not a failure of the idea &mdash; the win at T_block=4 is
+  ten-fold and robust &mdash; but it kills any naive "more splitting is
+  always safer" reading. The likely lever is the coupling strength: a
+  stronger or adaptive continuity weight for coarse splits should erase
+  the valley, and that is its own testable claim.</p>
+
+  <h2><span class="n">04</span>Edge three &mdash; stiffness is a different axis</h2>
+  <p>Turn Van der Pol up to &mu;=4 and the clean story collapses: every
+  block length is poor, the best beats the single shoot by only
+  1.5&times;, and the gradient-survival signature inverts. But this is not
+  the decomposition failing. It is the <strong>integrator</strong>
+  failing: a stiff relaxation oscillator is exactly where an explicit
+  Euler surrogate is unstable, so no factorization of a broken integrator
+  can help. Stiffness is orthogonal to the credit-path question &mdash; a
+  separate axis that wants an implicit or adaptive solver, not a
+  different cut.</p>
+  <p>Duffing is the control that proves this reading: it is <em>more</em>
+  strongly nonlinear than mild Van der Pol, yet non-stiff &mdash; and it
+  gives the largest win in the whole suite. Nonlinearity is not the
+  problem; stiffness of the chosen integrator is.</p>
+
+  <h2><span class="n">05</span>The claim, properly bounded</h2>
+  <p class="callout big">Short-block multiple shooting robustly beats the
+  single long shoot across strongly nonlinear systems &mdash; provided the
+  surrogate integrator is stable on the system, and the blocks are short
+  enough to clear the coarse-decomposition regime. The optimal block
+  length is system-dependent, not a constant.</p>
+  <p>That is a smaller claim than "breaking trajectories always helps,"
+  and a truer one. The mechanism generalizes; the tuning does not come for
+  free. Both facts matter, and a note that reported only the first would
+  be the less useful one.</p>
+
+  <h2><span class="n">06</span>Honest edges</h2>
+  <p>Duffing and stiff Van der Pol are single-seed; mild Van der Pol is
+  three-seed and it is the one carrying the load-bearing "coarse valley"
+  claim. All use the same explicit-Euler surrogate as the rest of the
+  arc, which is precisely why the &mu;=4 result is read as an integrator
+  limit rather than a credit result. The per-arm gradient-survival numbers
+  are noisy (each is a property of a separately-trained field) and are not
+  leaned on; free-running rollout is the metric throughout.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Generalization
+  sweep extending the multiple-shooting arc (Parts VI&ndash;VIII). Van der
+  Pol x' = y, y' = &mu;(1&minus;x&sup2;)y &minus; x (&mu; = 1 and 4);
+  Duffing x' = y, y' = &minus;0.3y + x &minus; x&sup3; + 0.2cos(1.2t);
+  shared 2-layer vector field, explicit Euler surrogate, multiple shooting
+  with a continuity penalty; free-run rollout the scoring metric.</p>
+</div>
+
+  <p class="aidisc"><b>AI-generated research.</b> The experiments, code and write-ups on this site were produced by AI agents (Claude and Codex) working semi-autonomously, directed at a high level by a human. Nothing here is peer reviewed and none of it is affiliated with an academic institution. Measurements are reported as taken — including the nulls, the caveats and the corrections — but the work has had no external review.</p>
+</body>
+</html>
