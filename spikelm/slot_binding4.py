@@ -9,8 +9,14 @@ where a selective cache has to become an associative memory.
 
 BUDGET, fixed across all arms at the v2b sweet spot: K=4 slots, d_slot=16,
 q=8 -> 512 persistent bits for ~384 bits of candidate entropy (4 chunks x
-96 bits). Storing everything losslessly is impossible by a factor ~1.3
-with realistic coding; storing one chunk well means guessing 1-in-4.
+96 bits). NOTE THE DIRECTION OF THIS INEQUALITY (review correction): 512
+bits EXCEEDS the candidate entropy, so storing all four candidates
+losslessly is information-theoretically possible in principle. If the
+system fails to preserve all four, that is coding/optimisation
+inefficiency - a useful measurement - and NOT forced forgetting. The
+budget pressures the code (v2b showed ~52% token recall at 1.3x entropy
+for ONE chunk), but "the budget forces forgetting" would be an
+overclaim and is not the claim.
 
 CAUSALITY GUARD. The writer consumes ONLY the region before the cue
 (chunks + filler). Its GRU state at cue time could otherwise still carry
@@ -39,9 +45,10 @@ PRE-REGISTERED:
   4. INTEGRITY: the gated arm's write-gate ratio target/other-chunks ~ 1.
      The writer cannot know the target; a ratio >> 1 means the causality
      guard leaks, and the run is invalid.
-  5. Exact whole-chunk recall stays negligible (512 bits < ~384x1.3
-     realistically-codable bits for four chunks; and per v2b, exact
-     recall collapsed even at generous budgets).
+  5. Exact whole-chunk recall stays negligible - expected from v2b's
+     coding inefficiency (exact recall collapsed even at generous
+     budgets), NOT required by information theory: 512 > 384 bits, so a
+     perfect code could in principle keep all four candidates.
 
     python slot_binding4.py
 """
