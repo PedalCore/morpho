@@ -1162,3 +1162,62 @@ on the shared VM. GPU was 16% occupied by another agent's job; our run
 coexisted without contention.
 
 Code: `spikelm/slot_binding.py`. Result: `spikelm/slot-binding.json`.
+
+---
+
+## v22 — cache admission: learnable, visible, and two mechanisms compete
+
+**The frozen question** (external review): can the model learn WHAT
+deserves a slot, not merely where to write? Pre-cue names one of four
+statistically identical random chunks; all four appear at random
+positions in random order; every chunk ends >= 40 tokens (window 32)
+before RECALL. Nothing learnable in weights. Chance 1.6%.
+
+Writer = streaming GRU over the prefix (the cue precedes the chunks, so
+the writer needs memory - v1's per-token write could not know what was
+cued). Write = scalar gate x softmax address x value.
+
+**A control had to be fixed mid-experiment.** The original "forced" arm
+pinned the gate but left the ADDRESS learned - and the GRU knows the
+cue, so the address alone can route the cued chunk to one slot and junk
+to another. A forced-K2 seed hit 51.8% that way: the control contained
+an admission channel. Second time this campaign a control arm smuggled
+in the mechanism under test (SyncLM's "oracle" write was the first).
+Rule: controls need selective channels PINNED, not merely discouraged.
+Added funiform (gate=1 AND uniform address) as the true
+write-everything control.
+
+**Final table** (6000 steps, 4 seeds):
+
+```
+  arm       K   recall           gate tgt/other    per-seed
+  none      4    1.5%
+  funiform  4    5.4% ±0.00
+  forced    4   16.1% ±0.04                        (addr-only admission)
+  gated     4   79.9% ±0.07      0.251/0.003       ~84x admission ratio
+  funiform  2    5.4% ±0.00                        (= K4: mush is mush)
+  forced    2   59.0% ±0.05      .61 .51 .62 .62
+  gated     2   55.6% ±0.39      .94 .09 .25 .95   <- BIMODAL
+```
+
+1. **Admission is learnable and directly visible.** At K=4 the gate
+   opens at 0.251 on the cued chunk and 0.003 on identical distractors -
+   an ~84x ratio. Allocation you can watch, not a task that happened to
+   be solved. The K=4 ladder is a clean mechanism decomposition:
+   write-everything 5.4 -> address-only 16.1 -> gate+address 79.9.
+2. **Scarcity HELPED the address-only system** (16.1 -> 59.0 with fewer
+   slots, consistent across seeds). At K=2 the address has a natural
+   binary solution - cued chunk to one slot, everything else to the
+   other - and the tighter budget acts as a structural prior for
+   commitment. Fewer slots can be better when the task needs one thing.
+3. **The gate mechanism is higher-ceiling but optimisation-fragile
+   under scarcity.** Gated-K2 is bimodal: two seeds at 94/95% (the best
+   recall in the table, beating gated-K4) and two failed at 9/25%. The
+   mean (55.6%) describes no run; per the parity-bimodality lesson the
+   distribution is the result. Prediction 2's "gap widens as K shrinks"
+   is FALSE on means, true conditional on convergence.
+4. funiform identical at K=4 and K=2 (5.4/5.4): a uniform average is
+   mush regardless of bucket count - internal consistency check passed.
+
+Code: `spikelm/slot_binding2.py`. Results: `spikelm/slot-admission2.json`
+(the contaminated first run kept as `slot-admission.json`).
