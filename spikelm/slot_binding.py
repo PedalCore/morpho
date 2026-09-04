@@ -26,9 +26,11 @@ ARMS — each isolates one link in the chain:
   static   K learned constant slots.      Attention-sink control: always-
                                           visible KV entries help attention
                                           numerically even with no content.
-  oracle   slots written BY US from the true chunk (role-tagged sums, so
-           order is recoverable).         Is the READ path learnable when
-                                          the write is perfect?
+  oracle   HAND-DESIGNED WRITE BASELINE: slots written by us from the
+           true chunk (role-tagged sums, order recoverable in principle).
+           Tests the read path under one particular write. Result note:
+           the learned write beat this by 21 points, so it was never an
+           upper bound - just a baseline, and is named accordingly now.
   dynamic  slots written by a learned, streaming, causal write over the
            pre-cue prefix.                THE TEST: does the model learn
                                           to bind?
@@ -37,7 +39,7 @@ PRE-REGISTERED, before the first run:
   1. full  > 95%   (else the task is broken, and nothing else is readable)
   2. none  ~ 1.6%  (chance; if higher, the window leaks)
   3. static ~ none (if static helps materially, sinks confound everything)
-  4. oracle > 90%  (read path learnable from role-tagged sums)
+  4. oracle > 90%  (MISSED: 78.2%. The learned code beat the hand design.)
   5. THE TEST — dynamic lands near oracle: binding is learnable end to
      end. Dynamic near none with oracle high: the WRITE is the hard part,
      which is exactly where the SyncLM co-adaptation failure predicts
