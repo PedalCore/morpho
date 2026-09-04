@@ -1107,3 +1107,58 @@ greps, and all patterns use the bracket trick.
 
 Code: `spikelm/sync_lm.py`, `spikelm/tick_probe.py`.
 Artifacts: `spikelm/results-synclm/`.
+
+---
+
+## v21 — the ephemeral token dictionary: binding works, and the learned write beat the "oracle"
+
+**The idea** (user's): reserve a few mutable slots that mean nothing until
+the model, within a sequence, chooses to bind something to them — a
+per-sequence symbol table, aimed at KV-bandwidth compression and an extra
+internal axis of organisation.
+
+**The design constraint that makes it measurable:** full attention is
+already a pointer machine (induction heads), so every arm ties on loss
+unless the constraint bites. Sliding-window attention (W=32) with the
+16-token random chunk G=64 behind the recall site makes the chunk
+unreachable except through a slot. Chance 1/64. Chunks random per
+sequence, so weights cannot memorise them.
+
+```
+  arm                          recall     (2 seeds, 4000 steps)
+  full attention               100.0%     task learnable
+  windowed, no slots             1.5%     floor = chance; no leak
+  static slots (sink control)    1.5%     content, not extra positions
+  "oracle" write (role-tagged)  78.2%     hand-designed code, imperfect
+  DYNAMIC learned write         99.8%     binding learned end to end
+```
+
+1. **The mechanism works, decisively.** A streaming, causal, gated write
+   (address + gate + value from token/position features, cumulative sum
+   into 4 slots) learns end-to-end to store a random 16-token chunk and
+   recall it perfectly after it has left the window. 99.8% against a
+   1.5% floor, spread 0.001.
+2. **The learned code beat the hand-designed one by 21 points.** The
+   "oracle" (role-tagged strided sums, order recoverable in principle)
+   was supposed to upper-bound the write; it is actually just *a* write,
+   and the model found a better slot code — it can spread information
+   jointly across all 4×128 slot dimensions where the hand design
+   partitioned by stride. Renamed mentally from oracle to "hand-designed
+   write". Prediction 4 (>90%) missed in the humbling direction.
+3. Static slots at exactly chance kills the attention-sink explanation:
+   the benefit is slot *content*, not extra attendable positions.
+
+**What this does NOT yet show:** the chunk sits at a fixed position, so
+the write may be position-keyed rather than content-selective — this
+demonstrates binding mechanics, not the discovery of *what deserves
+caching*. And 4×128 floats for 96 bits of chunk is generous; the
+compression claim needs the slot budget squeezed until it hurts.
+v2: variable/multiple chunks, distractor content, a slot-budget sweep
+(the compression curve), and a memory price λ·C_mem.
+
+**Ops note:** L4 vs local CPU for this workload: 12 min vs ~95 min for
+the identical sweep — batched tiny-transformer arms iterate ~8x faster
+on the shared VM. GPU was 16% occupied by another agent's job; our run
+coexisted without contention.
+
+Code: `spikelm/slot_binding.py`. Result: `spikelm/slot-binding.json`.
