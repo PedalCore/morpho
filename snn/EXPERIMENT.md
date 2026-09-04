@@ -1278,3 +1278,60 @@ roles held.
 
 v2c (post-cue associative retrieval) launched on the same budget.
 Code: `spikelm/slot_binding3.py`. Results: `slot-capacity-p1/p2.json`.
+
+---
+
+## v24 — v2c post-cue associative retrieval: structure succeeds where
+## free-form allocation fails
+
+**The load-bearing question:** can the memory preserve multiple
+candidates BEFORE knowing which will matter? Cue after the four chunks;
+writer consumes only the pre-cue region; budget fixed at 512 bits
+(which EXCEEDS the 384-bit candidate entropy - failures are coding/
+optimisation inefficiency, never forced forgetting).
+
+```
+  arm        token med   conv    gate tgt/other      per-seed
+  none          1.5%     0/6         -               floor
+  funiform      3.9%     0/6     1.000/1.000         write-everything
+  gated         8.4%     0/6     0.844/0.844         free-form FAILS
+  kvaddr       46.7%     6/6     0.371/0.371         .50 .46 .47 .48 .46 .47
+```
+
+1. **The reviewer's "useful surprise" branch fired: kvaddr wins by 5.6x.**
+   Once pre-cue admission is impossible, structured identity-addressed
+   storage (chunk i -> slot i, pinned) preserves all four candidates at
+   46.7% median with 6/6 convergence and the tightest seed spread of the
+   whole campaign (.46-.50). Free-form learned allocation - the machinery
+   that scored 79.9% pre-cued - collapses to 8.4%, barely above the
+   write-everything control. Gradient descent did not discover the
+   partition-by-identity strategy on its own.
+2. **The causality guard held exactly.** Gate target/other = 0.844/0.844
+   and 0.371/0.371 - ratio 1.000 in both learned-gate arms. The writer
+   provably could not favour the target, and did not. v2a's 84x and
+   v2c's 1.0x are the same observable under deliberately different
+   causal structure, meaning opposite things - both pre-registered.
+3. **A quantitative consistency check we did not plan:** kvaddr gives
+   each chunk ~one slot = 128 bits ~ 1.3x per-chunk entropy, and v2b's
+   single-chunk recall at 128 bits was 52.4%. kvaddr's 46.7% sits just
+   under it - per-candidate storage at essentially the single-chunk
+   rate-distortion point, with the small gap plausibly read-side
+   interference. The memory tiles.
+4. **Echo of the v2a scarcity lesson, writ larger:** allocation POLICY is
+   hard to learn by gradient; addressing STRUCTURE is a strong inductive
+   bias. (K=2 forced-binary beat free allocation there; pinned identity
+   addressing beats it here.)
+
+**Boundary honestly drawn:** general associative memory with LEARNED
+allocation is not demonstrated - what is demonstrated is associative
+retrieval over structurally-addressed compressed candidates. This has a
+direct consequence for the nonce-LM step: language provides no oracle
+identity markers, so the language design must either give the writer
+key-derivation machinery (content-hash addressing) or accept that
+allocation is the open problem being tested.
+
+Chain status: binding -> selection -> finite-bit compression -> post-cue
+retrieval (structured) all hold. The nonce-LM is earned, with the
+allocation question now its sharpest sub-question.
+
+Code: `spikelm/slot_binding4.py`. Results: `spikelm/slot-postcue.json`.
