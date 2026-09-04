@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>Part VI &mdash; Break the trajectory, keep the dynamics</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --violet:#a98fd0; --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+      --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+      --accent2:#2f7d70;--danger:#a8442a;--violet:#6b4fa0;--rule:rgba(42,35,24,.13);}
+  }
+  :root[data-theme="dark"]{--bg:#14110d;--surface:#1e1a14;--surface2:#26211a;
+    --text:#ece4d6;--muted:#a89a84;--faint:#6f6353;--accent:#e8a33d;
+    --accent2:#6fb3a8;--danger:#cf6a4c;--violet:#a98fd0;--rule:rgba(236,228,214,.12);}
+  :root[data-theme="light"]{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+    --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+    --accent2:#2f7d70;--danger:#a8442a;--violet:#6b4fa0;--rule:rgba(42,35,24,.13);}
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.2vw,3.05rem);
+    line-height:1.08;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  .leg{display:flex;gap:1.3rem;flex-wrap:wrap;font-family:var(--mono);
+    font-size:.72rem;margin:.5rem 0 0}
+  .leg span{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .ax{stroke:var(--rule)} .opt{stroke-dasharray:3 3}
+  .cA{stroke:var(--accent);fill:none;stroke-width:2}
+  .cS{stroke:var(--faint);fill:none;stroke-width:1.8}
+  .cR{stroke:var(--accent2);fill:none;stroke-width:2.6}
+  .dA{fill:var(--accent)} .dS{fill:var(--faint)} .dR{fill:var(--accent2)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sF{fill:var(--faint)}
+  .sC{fill:var(--accent2)} .sA{fill:var(--accent)} .mono{font-family:var(--mono)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; Part VI</p>
+  <h1>Break the trajectory, <em>keep the dynamics</em></h1>
+  <p class="dek">The space&#8596;time principle leaves neural networks
+  behind. In a differentiable dynamical system it shows both failure
+  modes at once &mdash; and three different optima that don't line up.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>Part VI &middot; follows Parts III&ndash;V</span>
+  <span>Neural ODE &middot; multiple shooting</span></p>
+
+  <p class="lede">Parts III&ndash;V showed space&#8596;time factorization
+  helping neural sequence models &mdash; serialized pixels, then real
+  audio. Part VI asks whether the same principle survives when the
+  "sequence" is the evolution of a physical dynamical system itself.
+  It does, and it comes back sharper.</p>
+
+  <h2><span class="n">01</span>Multiple shooting</h2>
+  <p>Train a small shared vector field <span class="k">x&#775; =
+  f&theta;(x,u)</span> to reproduce a forced damped pendulum over 1024
+  steps. The baseline is one long differentiable integration &mdash; the
+  Neural-ODE analogue of the full-recurrence GRU. The alternative has an
+  exact numerical-analysis name, <strong>multiple shooting</strong>:
+  break the trajectory into many short segments, each integrating the
+  same field from its own <em>shooting state</em>, all in parallel, with
+  a continuity penalty tying the end of each segment to the start of the
+  next. The shooting states are free variables, not frozen teacher
+  points &mdash; otherwise it collapses to local derivative fitting.</p>
+  <p>The load-bearing test is the <strong>free-running rollout</strong>:
+  after training, integrate the learned field from x&#8320; for the whole
+  horizon with no shooting states, and compare to ground truth. Short
+  segments can fit fragments perfectly while learning a field that fails
+  to compose &mdash; the lesson M13 taught the hard way.</p>
+
+  <h2><span class="n">02</span>Three optima that don't line up</h2>
+  <figure>
+    <svg viewBox="0 0 640 260" role="img"
+      aria-label="Three normalized curves versus block length: gradient conditioning is best at the shortest block, training speed is best at about two steps, and free-running dynamics is best at about four steps.">
+      <line class="ax" x1="60" y1="34" x2="60" y2="212"/>
+      <line class="ax" x1="60" y1="212" x2="615" y2="212"/>
+      <!-- optimum markers -->
+      <line class="opt" x1="80"  y1="34" x2="80"  y2="218" stroke="var(--accent)"/>
+      <line class="opt" x1="145" y1="34" x2="145" y2="218" stroke="var(--faint)"/>
+      <line class="opt" x1="210" y1="34" x2="210" y2="218" stroke="var(--accent2)"/>
+      <!-- gradient conditioning rho_G (best at T=1, left) -->
+      <polyline class="cA" points="80,40 145,52 210,67 275,84 340,103 405,122 470,143 535,176 600,210"/>
+      <!-- time-to-target (best at T=2) -->
+      <polyline class="cS" points="80,46 145,40 210,107 275,112 340,123 405,146 470,171 535,210 600,210"/>
+      <!-- free-run rollout error (best at T=4) -->
+      <polyline class="cR" points="80,51 145,41 210,40 275,49 340,74 405,130 470,162 535,210 600,152"/>
+      <circle class="dA" cx="80" cy="40" r="4"/>
+      <circle class="dS" cx="145" cy="40" r="4"/>
+      <circle class="dR" cx="210" cy="40" r="4.5"/>
+      <text class="mono sA" x="80"  y="230" text-anchor="middle" font-size="9">best cond.</text>
+      <text class="mono sF" x="145" y="242" text-anchor="middle" font-size="9">fastest</text>
+      <text class="mono sC" x="210" y="230" text-anchor="middle" font-size="9">best dynamics</text>
+      <!-- x axis labels -->
+      <text class="mono sF" x="80"  y="256" text-anchor="middle" font-size="9">1</text>
+      <text class="mono sF" x="210" y="256" text-anchor="middle" font-size="9">4</text>
+      <text class="mono sF" x="340" y="256" text-anchor="middle" font-size="9">16</text>
+      <text class="mono sF" x="470" y="256" text-anchor="middle" font-size="9">64</text>
+      <text class="mono sF" x="600" y="256" text-anchor="middle" font-size="9">1024</text>
+      <text class="mono sF" x="338" y="24" text-anchor="middle" font-size="10">block length T&#8203;block  (log)  &mdash;  worse &darr;</text>
+    </svg>
+    <div class="leg">
+      <span><i class="sw" style="background:var(--accent)"></i>gradient conditioning &rho;<sub>G</sub></span>
+      <span><i class="sw" style="background:var(--faint)"></i>time-to-target</span>
+      <span><i class="sw" style="background:var(--accent2)"></i>free-run rollout error</span>
+    </div>
+    <figcaption>Each metric normalized to its own range (best at top).
+    The three optima are at different block lengths: gradient
+    conditioning is best at the shortest block (1 step), training reaches
+    target fastest at ~2 steps, but the free-running dynamics &mdash; the
+    thing we actually want &mdash; is best at ~4 steps and rebounds at
+    both extremes. The rollout minimum is interior in every one of three
+    seeds; the exact position (2&ndash;8) is not the point, the shape is.</figcaption>
+  </figure>
+
+  <p>The single long shoot is worst on every axis: badly conditioned
+  gradients (&rho;<sub>G</sub> &asymp; 320), slow to train (it never
+  reaches the target error in budget), and a worse free rollout. But the
+  fully-fragmented extreme is not the answer either &mdash; and that is
+  the new part.</p>
+
+  <h2><span class="n">03</span>Temporal depth has two jobs</h2>
+  <p class="callout big">Temporal depth provides the learning signal
+  <em>and</em> constrains composition. Long horizons wreck the first;
+  extremely short horizons wreck the second. The optimum keeps just
+  enough contiguous time to identify dynamics that compose correctly.</p>
+  <p>Gradient conditioning improves monotonically as the block shrinks
+  &mdash; so &rho;<sub>G</sub> explains why the long end is bad, but it
+  <strong>cannot</strong> explain the whole optimum. If conditioning
+  alone governed performance, the one-step block would win. It doesn't.
+  Something the gradient story misses turns the curve back up.</p>
+
+  <h2><span class="n">04</span>What one step reveals</h2>
+  <p>At a block of a single step the fragment loss is essentially
+  <strong>zero</strong> &mdash; the field fits every one-step transition
+  almost perfectly &mdash; yet the free-running rollout is worse than at
+  four steps. That is M13's lesson in its cleanest possible form:</p>
+  <p class="callout big">Local correctness is not global dynamical
+  correctness.</p>
+  <p>It is an almost absurdly explicit argument against judging a learned
+  dynamical system by one-step or derivative losses alone: here the
+  one-step error is near-perfect and the composed field is still not the
+  best. And the gradient pathology generalizes across the whole
+  programme. In the recurrent nets, long depth made gradients
+  <em>vanish</em> (&rho;<sub>G</sub> &rarr; 0). In the ODE, long depth
+  makes them <em>explode</em> (&rho;<sub>G</sub> &gg; 1). Opposite
+  failure, identical remedy: <strong>reduce unnecessary causal
+  depth.</strong></p>
+
+  <h2><span class="n">05</span>The rule</h2>
+  <p>The central sentence of the whole arc is now this:</p>
+  <p class="callout big">Shortening causal depth improved optimization
+  &mdash; until the temporal fragments became too short to constrain
+  globally composable dynamics.</p>
+  <p>Which turns space&#8596;time from a trick into a design rule that
+  has held across recurrent nets, raw audio, and now a differentiable
+  physical system:</p>
+  <p class="callout"><strong>Do not maximize temporal depth, and do not
+  eliminate it. Keep only the amount of time required to make the local
+  computation globally meaningful.</strong> Equivalently: factor a long
+  causal problem into the <em>shortest local temporal units that still
+  constrain the global solution.</em></p>
+  <p>The next questions follow naturally: whether cheap local or direct
+  credit between segments can replace exact backprop (the path to on-chip
+  and physical learning), and how the boundary moves for a chaotic system
+  &mdash; Lorenz &mdash; where shortening the gradient horizon should help
+  most, and where the right metrics are statistical rather than pointwise.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Part VI of a
+  series with M13.5 (I), M14 (II), and Parts III&ndash;V. Forced damped
+  pendulum, non-chaotic; shared 2-layer vector field; multiple shooting
+  with free shooting states and a continuity penalty; free-running
+  rollout as the load-bearing metric; corrected target alignment; the
+  interior-minimum shape confirmed across three seeds.</p>
+</div>
+</body>
+</html>

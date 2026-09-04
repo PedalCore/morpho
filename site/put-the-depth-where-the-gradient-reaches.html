@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>Part III &mdash; Put the depth where the gradient can reach it</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#f6f1e7; --surface:#fffdf8; --surface2:#f1ead9;
+      --text:#2a2318; --muted:#6b5f4a; --faint:#9a8d76;
+      --accent:#b9741a; --accent2:#2f7d70; --danger:#a8442a;
+      --rule:rgba(42,35,24,.13);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f1e7; --surface:#fffdf8; --surface2:#f1ead9;
+    --text:#2a2318; --muted:#6b5f4a; --faint:#9a8d76;
+    --accent:#b9741a; --accent2:#2f7d70; --danger:#a8442a;
+    --rule:rgba(42,35,24,.13);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.4vw,3.15rem);
+    line-height:1.07;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  a{color:var(--accent)}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  .hero{background:var(--surface);border:1px solid var(--rule);
+    border-radius:.6rem;padding:1.3rem 1.4rem;margin:1.8rem 0}
+  .hero .big{font-family:var(--serif);font-size:1.35rem;line-height:1.35;
+    text-wrap:pretty}
+  .hero .num{color:var(--accent);font-weight:700}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  .leg{display:flex;gap:1.3rem;flex-wrap:wrap;font-family:var(--mono);
+    font-size:.72rem;margin:.4rem 0 0}
+  .leg span{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .stage{display:flex;gap:1rem;padding:1rem 0;border-top:1px solid var(--rule)}
+  .stage .tag{flex:0 0 3.6rem;font-family:var(--mono);font-size:.82rem;
+    color:var(--accent);font-weight:600}
+  .stage .body{flex:1}
+  .stage .q{color:var(--muted);font-style:italic;font-family:var(--serif)}
+  .verd{font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;
+    text-transform:uppercase;padding:.1em .5em;border-radius:.3em;
+    border:1px solid currentColor;white-space:nowrap}
+  .no{color:var(--danger)} .yes{color:var(--accent2)}
+  .ladder{list-style:none;padding:0;margin:1.2rem 0;font-family:var(--mono);
+    font-size:.9rem}
+  .ladder li{padding:.5rem 0 .5rem 1.6rem;position:relative;
+    border-top:1px solid var(--rule)}
+  .ladder li::before{content:"\2192";position:absolute;left:0;
+    color:var(--accent)}
+  .ax{stroke:var(--rule)} .gd{stroke:var(--rule);stroke-dasharray:2 4}
+  .tacc{stroke:var(--accent2);fill:none;stroke-width:2.5}
+  .trho{stroke:var(--accent);fill:none;stroke-width:2}
+  .tstate{stroke:var(--danger);fill:none;stroke-width:2;stroke-dasharray:5 4}
+  .dotC{fill:var(--accent2)} .dotA{fill:var(--accent)} .dotD{fill:var(--danger)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sF{fill:var(--faint)}
+  .sAcc{fill:var(--accent2)} .knee{stroke:var(--accent);stroke-dasharray:3 3}
+  .mono{font-family:var(--mono)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; Part III</p>
+  <h1>Put the depth where the <em>gradient</em> can reach it</h1>
+  <p class="dek">Two arcs asked whether a richer substrate helps, and
+  found it doesn't. The intervention that finally worked wasn't a new
+  neuron at all &mdash; it was moving where the sequential depth lives.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>Part III &middot; follows M13.5 and M14</span>
+  <span>preregistered</span></p>
+
+  <p class="lede">M13.5 showed a faithfully compressed neuron bought no
+  accessible computation. M14 showed relational structure between units
+  didn't rescue it under a real event interface. Both are substrate
+  hypotheses, and both failed. Part III changes the axis of the
+  question: not <em>what</em> the units are, but <strong>where the
+  computational depth physically resides</strong> &mdash; in time, or in
+  space.</p>
+
+  <h2><span class="n">01</span>The transpose (and what it is not)</h2>
+  <p>Take one serialized 64-pixel digit and factor it as
+  <span class="k">S &times; T = 64</span>: <em>S</em> parallel lanes, each
+  a copy of the <em>same</em> tiny shared recurrent cell, each running
+  <em>T</em> ticks. At <span class="k">1&times;64</span> the computation
+  is almost all time &mdash; one cell, 64 recurrent updates, a
+  back-propagation horizon of 64. At <span class="k">64&times;1</span>
+  it is almost all space &mdash; 64 cells, one update each, no temporal
+  credit path. A fixed random permutation is applied first, so any sweet
+  spot is about the space&ndash;time split, not rediscovered image
+  topology. Only <em>S/T</em> changes; cell law, width, initialization,
+  optimizer, data and update count are held identical.</p>
+  <p class="callout">Careful with the name: what this measures is the
+  <strong>space&#8596;time transpose</strong> &mdash; spatializing what
+  would have been recurrent depth, and thereby shortening the BPTT
+  horizon. It is not yet backprop-through-space itself: there is no deep
+  spatial <em>causal chain</em> carrying credit. That experiment comes
+  last.</p>
+
+  <h2><span class="n">02</span>The result</h2>
+
+  <figure>
+    <svg viewBox="0 0 640 300" role="img"
+      aria-label="Across factorizations 1x64 to 64x1, accuracy rises steeply and saturates by 8x8; gradient survival rho_G rises monotonically; simultaneous state keeps climbing with no accuracy payoff past the knee.">
+      <line class="ax" x1="80" y1="248" x2="600" y2="248"/>
+      <line class="ax" x1="80" y1="40" x2="80" y2="248"/>
+      <line class="knee" x1="340" y1="40" x2="340" y2="256"/>
+      <text class="mono sAcc" x="344" y="52" font-size="11">knee</text>
+      <!-- simultaneous state (cost) -->
+      <polyline class="tstate" points="80,240 167,207 253,173 340,140 427,107 513,73 600,40"/>
+      <!-- gradient survival rho_G -->
+      <polyline class="trho" points="80,240 167,145 253,98 340,72 427,58 513,46 600,40"/>
+      <!-- accuracy (hero) -->
+      <polyline class="tacc" points="80,220 167,136 253,90 340,58 427,60 513,60 600,51"/>
+      <circle class="dotC" cx="80" cy="220" r="3.5"/><circle class="dotC" cx="167" cy="136" r="3.5"/>
+      <circle class="dotC" cx="253" cy="90" r="3.5"/><circle class="dotC" cx="340" cy="58" r="4.5"/>
+      <circle class="dotC" cx="427" cy="60" r="3.5"/><circle class="dotC" cx="513" cy="60" r="3.5"/>
+      <circle class="dotC" cx="600" cy="51" r="3.5"/>
+      <text class="mono sT" x="80" y="212" text-anchor="middle" font-size="10.5">.60</text>
+      <text class="mono sAcc" x="340" y="48" text-anchor="middle" font-size="11">.96</text>
+      <text class="mono sT" x="600" y="44" text-anchor="middle" font-size="10.5">.98</text>
+      <!-- x labels -->
+      <text class="mono sM" x="80" y="264" text-anchor="middle" font-size="10">1&#215;64</text>
+      <text class="mono sM" x="167" y="264" text-anchor="middle" font-size="10">2&#215;32</text>
+      <text class="mono sM" x="253" y="264" text-anchor="middle" font-size="10">4&#215;16</text>
+      <text class="mono sT" x="340" y="264" text-anchor="middle" font-size="10">8&#215;8</text>
+      <text class="mono sM" x="427" y="264" text-anchor="middle" font-size="10">16&#215;4</text>
+      <text class="mono sM" x="513" y="264" text-anchor="middle" font-size="10">32&#215;2</text>
+      <text class="mono sM" x="600" y="264" text-anchor="middle" font-size="10">64&#215;1</text>
+      <text class="mono sF" x="80" y="284" text-anchor="middle" font-size="9.5">all time</text>
+      <text class="mono sF" x="600" y="284" text-anchor="middle" font-size="9.5">all space</text>
+      <text class="mono sF" x="340" y="284" text-anchor="middle" font-size="9.5">BPTT horizon T &#8594; shorter</text>
+    </svg>
+    <div class="leg">
+      <span><i class="sw" style="background:var(--accent2)"></i>accuracy</span>
+      <span><i class="sw" style="background:var(--accent)"></i>gradient survival &#961;<sub>G</sub> (log)</span>
+      <span><i class="sw" style="background:var(--danger)"></i>simultaneous state (cost)</span>
+    </div>
+    <figcaption>pSeqDigits-64, shared tanh cell, d=16, 3 seeds. Accuracy
+    (teal) rises steeply and saturates by 8&times;8. Gradient survival
+    (amber) climbs monotonically as the BPTT horizon shortens. State
+    (rust, the hardware cost) keeps climbing to the right &mdash; buying
+    almost no accuracy past the knee.</figcaption>
+  </figure>
+
+  <p>The narrow, defensible statement:</p>
+  <p class="callout big">On pSeqDigits-64 with the tested shared tanh
+  cell, reducing temporal depth by a modest spatial replication removed
+  most of the optimization deficit.</p>
+
+  <div class="hero"><p class="big" style="margin:0">
+    <span class="num">8&times;8</span> reaches <span class="num">&asymp;98%</span>
+    of the fully-spatial <span class="k">64&times;1</span> accuracy
+    &mdash; using <span class="num">one-eighth</span> of its simultaneous
+    recurrent state, and cutting the back-propagation horizon from
+    <span class="k">64</span> to <span class="k">8</span>.</p></div>
+
+  <p>The extremes bound it: pure time
+  (<span class="k">T=64</span>, &#961;<sub>G</sub>&asymp;10<sup>&minus;8</sup>,
+  accuracy 0.60&plusmn;0.03) is credit-starved; the plateau from 8&times;8
+  onward sits at 0.95&ndash;0.98. Crucially, the plateau is
+  <em>non-monotonic in hardware</em>: 8&times;8 (128 state) matches
+  16&times;4 (256) and 32&times;2 (512). Doubling the state buys nothing.</p>
+
+  <h2><span class="n">03</span>Mechanism, stated carefully</h2>
+  <p>Accuracy tracks <strong>gradient survival</strong>
+  <span class="k">&#961;_G</span> &mdash; the fraction of the loss
+  gradient still reaching the earliest state &mdash; and &#961;<sub>G</sub>
+  is governed by the BPTT horizon <em>T</em>, not by state count. Once
+  spatialization shortens the horizon enough to lift &#961;<sub>G</sub>
+  out of the dead zone, accuracy saturates.</p>
+  <p>What we will <em>not</em> claim is that this proves temporal credit
+  alone governs accuracy. Changing <em>S</em> alters several things at
+  once &mdash; simultaneous state, classifier input width, and the
+  temporal horizon together. The non-monotonic plateau is strong
+  evidence against a simple "more spatial capacity is better" story, and
+  &#961;<sub>G</sub> is a compelling mechanistic correlate, but it is not
+  a formal isolation of gradient survival from every other consequence of
+  factorization. The honest form:</p>
+  <p class="callout">The results identify <strong>temporal credit
+  depth</strong> as the dominant constraint in this tested regime.</p>
+
+  <h2><span class="n">04</span>The programme, in one line each</h2>
+  <div class="stage"><div class="tag">M13</div><div class="body">
+    <span class="q">can we put more useful dynamics inside the cell?</span>
+    &nbsp;<span class="verd yes">yes, faithfully</span></div></div>
+  <div class="stage"><div class="tag">M13.5</div><div class="body">
+    <span class="q">does richer cell dynamics buy accessible computation?</span>
+    &nbsp;<span class="verd no">no</span></div></div>
+  <div class="stage"><div class="tag">M14</div><div class="body">
+    <span class="q">does moving it into relationships between cells?</span>
+    &nbsp;<span class="verd no">not under the event interface</span></div></div>
+  <div class="stage"><div class="tag">III</div><div class="body">
+    <span class="q">what if it isn't the representation, but the credit
+    path?</span> &nbsp;<span class="verd yes">leverage</span></div></div>
+  <p class="callout big">The successful intervention was architectural:
+  shorten the temporal credit path by spending a modest amount of space.
+  Not a more exotic substrate, not more hidden state, not phase relations
+  &mdash; simply changing where sequential depth lives.</p>
+
+  <h2><span class="n">05</span>Where BPTS actually begins</h2>
+  <p>Spatialization shortened the temporal credit path and exposed a
+  favourable space&ndash;time operating point. The remaining question is
+  whether the resulting <em>spatial</em> credit path can itself be
+  implemented cheaply &mdash; because that is the real
+  backprop-through-space test, and the real hardware prize.</p>
+  <p>The architecture that follows the knee is blocks: a short, exact
+  local recurrence inside each block, composed spatially between blocks.</p>
+  <p class="callout"><span class="k">8 ticks of exact BPTT inside each
+  block &nbsp;+&nbsp; spatial credit between blocks</span></p>
+  <p>with a credit ladder to climb:</p>
+  <ul class="ladder">
+    <li>exact spatial backprop between blocks (the baseline)</li>
+    <li>direct feedback / feedback alignment (approximate, cheaper)</li>
+    <li>local / GLE-style credit (toward physical learning)</li>
+  </ul>
+  <p>And a genuinely parallel escape hatch for the right primitives: an
+  <em>associative</em> recurrence &mdash; like a selective state-space
+  cell <span class="k">c&#8321;=a&#8339;c+b&#8339;</span> &mdash; admits a
+  parallel scan in <span class="k">O(log T)</span> depth. That reframes
+  the substrate question in a new and possibly more consequential way:
+  which dynamical primitives are expressive enough for the task
+  <em>and</em> compose associatively &mdash; a property that may matter
+  more for hardware than whether the neuron is biologically rich.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Part III of a
+  series with "When faithful isn't useful" (M13.5) and "The interface can
+  dominate the substrate" (M14). Preregistered; the harness was validated
+  by a delayed-copy wiring test in which gradient survival tracked the
+  back-propagation horizon across eight orders of magnitude before any
+  digit was classified.</p>
+</div>
+</body>
+</html>

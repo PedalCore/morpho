@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>M14 &mdash; The interface can dominate the substrate</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#f6f1e7; --surface:#fffdf8; --surface2:#f1ead9;
+      --text:#2a2318; --muted:#6b5f4a; --faint:#9a8d76;
+      --accent:#b9741a; --accent2:#2f7d70; --danger:#a8442a;
+      --rule:rgba(42,35,24,.13);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f1e7; --surface:#fffdf8; --surface2:#f1ead9;
+    --text:#2a2318; --muted:#6b5f4a; --faint:#9a8d76;
+    --accent:#b9741a; --accent2:#2f7d70; --danger:#a8442a;
+    --rule:rgba(42,35,24,.13);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.6vw,3.25rem);
+    line-height:1.06;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  a{color:var(--accent)}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  .stage{display:flex;gap:1rem;padding:1.1rem 0;border-top:1px solid var(--rule)}
+  .stage .tag{flex:0 0 4.4rem;font-family:var(--mono);font-size:.82rem;
+    color:var(--accent);font-weight:600}
+  .stage .body{flex:1}
+  .stage .q{color:var(--muted);font-style:italic;font-family:var(--serif)}
+  .stage .a{margin-top:.2rem}
+  .verd{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;
+    text-transform:uppercase;padding:.12em .5em;border-radius:.3em;
+    border:1px solid currentColor;white-space:nowrap}
+  .no{color:var(--danger)} .yes{color:var(--accent2)}
+  .ax{stroke:var(--rule)} .barC{fill:var(--accent2)} .barM{fill:var(--danger)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sC{fill:var(--accent2)}
+  .sD{fill:var(--danger)} .sF{fill:var(--faint)}
+  .mono{font-family:var(--mono)} .sans{font-family:var(--sans)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; companion to M13.5</p>
+  <h1>The interface can dominate the substrate</h1>
+  <p class="dek">If richer individual neurons don't buy accessible
+  computation, perhaps it lives in the <em>relationships</em> between
+  dynamical units. A preregistered arc of increasingly realistic
+  tests &mdash; and where the optimism went.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>Part II &middot; follows "When faithful isn't useful"</span>
+  <span>all stages preregistered</span></p>
+
+  <p class="lede">M13.5 closed on a specific negative: a faithfully
+  compressed neuron, frozen and used as a reservoir element, exposed
+  <em>less</em> useful stable computation than a leaky integrator. Its
+  parting thought was that the fragile thing had been the individual
+  event, <span class="k">t_spike</span>, while the stable, useful
+  quantities looked relational. M14 took that seriously.</p>
+
+  <h2><span class="n">01</span>The relational bet</h2>
+  <p>The opening result was encouraging. In a coupled oscillator
+  network under constant drive, halving the integration step scrambled
+  the absolute spike times &mdash; drift accumulating from 0.03 to 0.10
+  ms across a run &mdash; yet the <strong>relational</strong> structure
+  barely moved: pairwise phase differences and the synchronization
+  order parameter agreed to &asymp;0.0005, correlation 0.997. A global
+  timing shift cancels in a difference. It looked like exactly the
+  robust coordinate M13.5 was missing.</p>
+  <p class="callout">The bet: computation that lives in
+  <em>relationships between units</em> &mdash; relative phase,
+  synchronization, cluster membership &mdash; is both useful and
+  numerically robust where absolute timing is not.</p>
+
+  <h2><span class="n">02</span>Where the optimism went</h2>
+  <p>Each more realistic test removed a little more of it. Every stage
+  was preregistered, with a convergence gate that had to pass
+  <em>before</em> any performance number was read.</p>
+
+  <div class="stage"><div class="tag">SeqDigits<br>64</div>
+    <div class="body"><span class="q">does temporal geometry beat raw
+    state count?</span>
+    <div class="a">No resonance &mdash; every arm peaked at the fastest
+    presentation. But coupling did lift a near-trivial one-state
+    oscillator from 0.14 to 0.41 accuracy. An early point for the
+    relational direction.</div></div></div>
+
+  <div class="stage"><div class="tag">sMNIST<br>784</div>
+    <div class="body"><span class="q">does that survive a real memory
+    horizon?</span>
+    <div class="a">The coupling gain <strong>vanished</strong> at 784
+    steps (the coupled oscillator collapsed to chance); the leaky trace
+    collapsed too (it cannot hold 784 steps), while LIF and the
+    accumulated-phase oscillator stayed length-robust. The lift was an
+    artifact of the short horizon.</div></div></div>
+
+  <div class="stage"><div class="tag">N&#8209;MNIST</div>
+    <div class="body"><span class="q">does relational timing expose the
+    class on real event data?</span>
+    <div class="a">Every phase-dynamics coordinate &mdash; absolute or
+    relational, final-state or time-averaged, weakly coupled or a
+    genuinely phase-locked regime &mdash; <strong>failed the
+    convergence gate</strong>: halving the step kept changing the
+    answer. The only stable, dominant readout was a static spatial
+    event-rate histogram.</div></div></div>
+
+  <figure>
+    <svg viewBox="0 0 640 250" role="img"
+      aria-label="On N-MNIST the static spatial event-rate view scores 0.71 and is step-halving stable, while every phase-dynamics view (absolute, relational, time-averaged locking) is dt-unstable at lower accuracy.">
+      <line class="ax" x1="150" y1="20" x2="150" y2="210"/>
+      <!-- bars: x0=150, scale acc*620 -->
+      <rect class="barC" x="150" y="30" width="440" height="26" rx="3"/>
+      <text class="mono sT" x="596" y="48" font-size="13">0.71 &#10003;</text>
+      <text class="sans sC" x="142" y="48" text-anchor="end" font-size="12.5">static event-rate</text>
+      <rect class="barM" x="150" y="76" width="217" height="26" rx="3" opacity=".8"/>
+      <text class="mono sD" x="373" y="94" font-size="13">~0.35 &#10007;</text>
+      <text class="sans sM" x="142" y="94" text-anchor="end" font-size="12.5">phase state (final)</text>
+      <rect class="barM" x="150" y="122" width="198" height="26" rx="3" opacity=".8"/>
+      <text class="mono sD" x="354" y="140" font-size="13">~0.32 &#10007;</text>
+      <text class="sans sM" x="142" y="140" text-anchor="end" font-size="12.5">phase rel. (final)</text>
+      <rect class="barM" x="150" y="168" width="254" height="26" rx="3" opacity=".8"/>
+      <text class="mono sD" x="410" y="186" font-size="13">~0.41 &#10007;</text>
+      <text class="sans sM" x="142" y="186" text-anchor="end" font-size="12.5">phase rel. (time-avg)</text>
+      <text class="mono sF" x="150" y="228" font-size="11">accuracy &#8594; &nbsp; &#10003; step-halving stable &nbsp; &#10007; dt-fragile (accuracy climbs as dt&#8594;0)</text>
+    </svg>
+    <figcaption>N-MNIST, N=16 receptive fields. The one view with no
+    dynamics &mdash; a static event-count histogram &mdash; is stable
+    and wins. Every dynamical phase view, however read, is not
+    step-halving stable: finer integration keeps raising the accuracy,
+    so no number can be trusted or ranked.</figcaption>
+  </figure>
+
+  <h2><span class="n">03</span>What this does and does not show</h2>
+  <p>It is tempting to conclude that temporal dynamical computation is
+  inherently discretization-fragile. That is broader than the
+  experiments support. The defensible statement is narrower, and
+  better:</p>
+  <p class="callout big">Under the tested discretized interfaces,
+  computations whose useful representation stayed tied to event timing
+  did not yield a stable advantage &mdash; and neither richer local
+  dynamics nor a relational transformation removed that sensitivity.</p>
+  <p>The two negatives even fail in slightly different places. In
+  M13.5, a continuous spiking substrate &rarr; threshold/event
+  assignment &rarr; unstable observable and task skill. In M14, an
+  event stream &rarr; a continuously perturbed oscillator trajectory
+  &rarr; unstable phase and relational representation. Exp-2b showed
+  that locking <em>and</em> averaging are together insufficient under
+  event drive, which strongly implicates continuous input
+  perturbation. But we did not run the isolating control &mdash; the
+  same event sequence under analytically exact versus timestep-assigned
+  integration &mdash; so the input interface is the
+  <em>best-supported</em> cause, not a proven one.</p>
+
+  <h2><span class="n">04</span>The programme, read together</h2>
+  <div class="stage"><div class="tag">M13</div>
+    <div class="body"><div class="a">Rich Hodgkin&ndash;Huxley dynamics
+    <strong>can be compressed faithfully</strong> &mdash; a learned
+    field plus a one-scalar correction reproduces the spike trains.</div></div></div>
+  <div class="stage"><div class="tag">M13.5</div>
+    <div class="body"><div class="a">But fidelity
+    <span class="verd no">does not imply</span> generic computational
+    utility: frozen, the rich cell was <em>less</em> useful than
+    trace or LIF.</div></div></div>
+  <div class="stage"><div class="tag">M14</div>
+    <div class="body"><div class="a">And autonomous relational
+    invariance <span class="verd no">does not imply</span> input-driven
+    relational computation: what was stable under constant drive was
+    fragile once real events drove it.</div></div></div>
+
+  <p>Which leaves a conclusion much sharper than "neural sensors didn't
+  work":</p>
+  <p class="callout big">Dynamical richness is useful only if it creates
+  coordinates that are both task-accessible <em>and</em> robust at the
+  system interface. You can spend gates on ionic state, learned fields,
+  oscillators and synchronization &mdash; but if the useful coordinate
+  is mediated through a timing-sensitive interface, downstream
+  cleverness need not recover the expected advantage.</p>
+  <p style="text-align:center;font-family:var(--serif);font-size:1.3rem;
+    font-style:italic;color:var(--accent);margin:1.6rem 0">
+    The interface can dominate the substrate.</p>
+  <p style="font-size:.92rem;color:var(--muted)">That is a worthwhile
+  warning for anyone proposing analog, neuromorphic or physical
+  dynamical computing &mdash; and it was reached by preregistering
+  every step and publishing the failures rather than the hopes.</p>
+
+  <h2><span class="n">05</span>The open discriminator</h2>
+  <p>One question is deliberately left unresolved rather than rescued.
+  Is the failure characteristic of temporal dynamical computation
+  <em>itself</em>, or specifically of <strong>event-mediated
+  interfaces</strong>? A frame-defined predictive task &mdash; moving
+  digits under clean fixed update boundaries, where temporal evolution
+  is still essential (the system must represent velocity) but
+  event-assignment ambiguity is removed &mdash; is the natural test
+  that would separate them.</p>
+  <p>And the programme's founding intuition &mdash; that one physical
+  state through many times is dual to many physical states at one
+  instant &mdash; has a crisp next form. Backpropagation is just
+  reverse-mode differentiation through an unrolled graph; time is only
+  one axis to unroll. So the sharp question is not "can we
+  backpropagate through space" (we can) but whether a temporal
+  computation can be <em>transposed</em> into a spatial, relational
+  representation &mdash; measured as an accuracy curve over the
+  factorizations <span class="k">1&times;64 &hellip; 8&times;8 &hellip;
+  64&times;1</span> at fixed effective state. That would turn "how much
+  computation should live in space versus time?" into an engineering
+  curve.</p>
+  <p>Both are filed as new questions, not continuations. This arc
+  closes with a falsified hypothesis and a sharper one to ask next
+  &mdash; which is the better place to stop.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Companion to
+  "When faithful isn't useful" (M13.5). Every stage of M14 was
+  preregistered before running, with a convergence gate ahead of every
+  performance number; the N-MNIST relational bridge was closed by its
+  own pre-committed stop rule after two attempts, with no further
+  rescue.</p>
+</div>
+</body>
+</html>

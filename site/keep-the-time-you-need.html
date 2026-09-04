@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>Part V &mdash; Keep the time you need</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+      --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+      --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  }
+  :root[data-theme="dark"]{--bg:#14110d;--surface:#1e1a14;--surface2:#26211a;
+    --text:#ece4d6;--muted:#a89a84;--faint:#6f6353;--accent:#e8a33d;
+    --accent2:#6fb3a8;--danger:#cf6a4c;--rule:rgba(236,228,214,.12);}
+  :root[data-theme="light"]{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+    --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+    --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.2vw,3.05rem);
+    line-height:1.08;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  .three{display:flex;gap:1rem;margin:1.6rem 0;flex-wrap:wrap}
+  .three .c{flex:1;min-width:9rem;background:var(--surface);
+    border:1px solid var(--rule);border-radius:.5rem;padding:.9rem 1rem}
+  .three .c .lab{font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .three .c .v{font-family:var(--serif);font-size:1.6rem;margin:.2rem 0}
+  .three .c.win .v{color:var(--accent2)} .three .c.lose .v{color:var(--danger)}
+  .three .c .s{font-size:.82rem;color:var(--muted)}
+  .band{fill:var(--accent2);opacity:.10}
+  .ax{stroke:var(--rule)} .chance{stroke:var(--faint);stroke-dasharray:3 4}
+  .curve{fill:none;stroke:var(--accent2);stroke-width:2}
+  .dot{fill:var(--accent2)} .dotP{fill:var(--accent)} .dotB{fill:var(--danger)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sF{fill:var(--faint)}
+  .sC{fill:var(--accent2)} .sD{fill:var(--danger)} .sA{fill:var(--accent)}
+  .mono{font-family:var(--mono)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; Part V</p>
+  <h1>Keep the <em>time</em> you need</h1>
+  <p class="dek">On raw audio, the space&#8596;time transpose recovers
+  full-recurrence accuracy at a fraction of the cost &mdash; and reveals
+  a minimum useful local temporal horizon, below which recurrence still
+  clearly matters.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>Part V &middot; follows Part IV</span>
+  <span>NVIDIA L4 &middot; raw 8&#8202;kHz waveform</span></p>
+
+  <p class="lede">Part IV showed the transpose winning on sequential
+  MNIST, but a fair critic could still call that a quirk of pixels
+  serialized into time. So we took the winning primitive unchanged
+  &mdash; short shared-GRU blocks run in parallel, their states
+  concatenated for a cheap readout &mdash; to a signal that is
+  <em>genuinely</em> temporal.</p>
+
+  <h2><span class="n">01</span>Two audio tests</h2>
+  <p>First, spoken digits as log-mel frames. There the story was clean
+  but incomplete: the transpose gave the same accuracy ~30&times; faster
+  with ~28&times; lower latency, and the spatial tree lost a third time
+  &mdash; but the task was too easy to test the <em>accuracy</em> side,
+  because even full recurrence already reached 0.99.</p>
+  <p>So the real test is <strong>raw waveform</strong>: feed the 8&#8202;kHz
+  samples one at a time. Now a single sample carries almost no class
+  information, and the model must build features from local temporal
+  structure &mdash; periodicity, formants, transients. We split each
+  0.5&#8202;s utterance into contiguous blocks and swept the block length
+  from the whole utterance down to a single sample.</p>
+
+  <h2><span class="n">02</span>The knee</h2>
+  <figure>
+    <svg viewBox="0 0 640 250" role="img"
+      aria-label="Accuracy versus block length on raw waveform. A single sample per lane is near chance; accuracy rises to a peak at a 32 ms block, then full recurrence is no better and vastly slower.">
+      <!-- speech-timescale band 16-64 ms -->
+      <rect class="band" x="383" y="30" width="87" height="185"/>
+      <text class="mono sC" x="426" y="26" text-anchor="middle" font-size="10">16&ndash;64&#8202;ms</text>
+      <line class="ax" x1="60" y1="30" x2="60" y2="215"/>
+      <line class="ax" x1="60" y1="215" x2="615" y2="215"/>
+      <line class="chance" x1="60" y1="210" x2="615" y2="210"/>
+      <text class="mono sF" x="64" y="207" font-size="9.5">chance 0.10</text>
+      <!-- curve through points (block size increasing to the right) -->
+      <polyline class="curve" points="80,190 253,97 296,87 339,84 383,63 427,48 470,49 514,128 600,50"/>
+      <circle class="dotB" cx="80"  cy="190" r="4.5"/>
+      <circle class="dot"  cx="253" cy="97"  r="3.5"/>
+      <circle class="dot"  cx="296" cy="87"  r="3.5"/>
+      <circle class="dot"  cx="339" cy="84"  r="3.5"/>
+      <circle class="dot"  cx="383" cy="63"  r="3.5"/>
+      <circle class="dotP" cx="427" cy="48"  r="5.5"/>
+      <circle class="dot"  cx="470" cy="49"  r="3.5"/>
+      <circle class="dotB" cx="514" cy="128" r="3.5"/>
+      <circle class="dot"  cx="600" cy="50"  r="4.5"/>
+      <text class="mono sA" x="427" y="40" text-anchor="middle" font-size="11">0.815</text>
+      <text class="mono sD" x="80"  y="182" text-anchor="middle" font-size="10">0.19</text>
+      <text class="mono sM" x="600" y="42" text-anchor="middle" font-size="10">0.808</text>
+      <text class="mono sD" x="514" y="142" text-anchor="middle" font-size="9">anomaly</text>
+      <!-- x labels -->
+      <text class="mono sF" x="80"  y="230" text-anchor="middle" font-size="9.5">1 sample</text>
+      <text class="mono sF" x="339" y="230" text-anchor="middle" font-size="9.5">8&#8202;ms</text>
+      <text class="mono sF" x="427" y="230" text-anchor="middle" font-size="9.5">32&#8202;ms</text>
+      <text class="mono sF" x="600" y="230" text-anchor="middle" font-size="9.5">512&#8202;ms (full)</text>
+      <text class="mono sF" x="80"  y="244" text-anchor="start" font-size="9">fully spatial</text>
+      <text class="mono sF" x="600" y="244" text-anchor="end" font-size="9">full recurrence</text>
+    </svg>
+    <figcaption>Test accuracy versus the local temporal window each lane
+    sees, raw 8&#8202;kHz waveform, shared GRU. Both extremes fail: one
+    sample per lane is near chance (no local information), and full
+    recurrence is no more accurate than the hybrid while training ~22&times;
+    slower and starting gradient-starved. The peak sits at a 32&#8202;ms
+    block. (The 128&#8202;ms point is an under-converged outlier, shown, not
+    smoothed.)</figcaption>
+  </figure>
+
+  <div class="three">
+    <div class="c lose"><div class="lab">full recurrence</div>
+      <div class="v">0.808</div><div class="s">512&#8202;ms &middot; but 1384&#8202;s to
+      80% &middot; &rho;<sub>G</sub>=0</div></div>
+    <div class="c win"><div class="lab">hybrid peak</div>
+      <div class="v">0.815</div><div class="s">32&#8202;ms block &middot; 63&#8202;s to
+      80% &middot; 28&#8202;ms latency</div></div>
+    <div class="c lose"><div class="lab">one sample / lane</div>
+      <div class="v">0.19</div><div class="s">&asymp; chance &middot; no local
+      temporal structure</div></div>
+  </div>
+
+  <h2><span class="n">03</span>What the extremes prove</h2>
+  <p>The shape is the result, and it is the sharpest one the programme
+  has produced: <span class="k">full temporal &darr;, hybrid &uarr;,
+  fully spatial &darr;</span>.</p>
+  <p class="callout big">Local temporal computation is
+  <em>necessary</em> &mdash; the fully-spatial extreme collapses to
+  chance. Global temporal recurrence is <em>unnecessary</em> &mdash; a
+  hybrid matches full recurrence at a fraction of the training time and
+  latency.</p>
+  <p>The failing extreme is also a clean control. If the wide readout had
+  been quietly exploiting <em>where</em> in the waveform things happened
+  rather than genuine temporal processing, the one-sample-per-lane arm
+  &mdash; which hands the readout all the positions and no dynamics
+  &mdash; would have scored well. It scored at chance. So the accuracy in
+  the middle is real temporal computation, done locally.</p>
+
+  <h2><span class="n">04</span>A minimum useful temporal horizon</h2>
+  <p>The knee did not land at an arbitrary computational sweet spot but
+  at a physically interpretable short-time acoustic scale.
+  <strong>Tens of milliseconds were enough</strong> for the local
+  recurrent blocks to extract useful waveform structure; shrinking the
+  block to only a few milliseconds progressively destroyed
+  classification. So the rule the whole arc has been circling is now
+  concrete:</p>
+  <p class="callout big">Use recurrence at the timescale where local
+  structure exists; spatialize beyond it.</p>
+  <p>That single sweep rules out both trivial readings. It is not "just
+  parallelize everything" &mdash; as the block shrinks toward one sample,
+  accuracy collapses to chance. And it is not "the whole signal needs one
+  continuous recurrent state" &mdash; a ~32&ndash;64&#8202;ms block already
+  carries essentially all the useful accuracy, and carrying recurrence
+  across the entire utterance buys nothing over it except a
+  20&ndash;30&times; slower, gradient-starved training path. There is a
+  <em>minimum useful local temporal horizon</em>, and once you preserve
+  it, long-range recurrent depth is optional.</p>
+
+  <h2><span class="n">05</span>Scope, and where the programme stands</h2>
+  <p>The honest boundary: this establishes that the transpose
+  <em>generalizes</em> to a real temporal signal at an interpretable
+  timescale. It does <strong>not</strong> claim STT is a better speech
+  architecture than convolutional, state-space or conformer models
+  &mdash; those are the next baselines if this direction is pursued.
+  Accuracies here are modest (~0.8) because the primitive is a plain GRU
+  on raw samples with no learned frontend; the finding is the
+  <em>shape</em>, not the state of the art. These curves are single-seed;
+  a three-seed confirmation of the knee points (16 / 32 / 64&#8202;ms) is
+  pending &mdash; the stronger claim being not that 32&#8202;ms
+  <em>wins</em> but that 32&ndash;64&#8202;ms forms a stable plateau while
+  16&#8202;ms drops, i.e. a robust timescale boundary rather than a lucky
+  hyperparameter.</p>
+  <p>But the whole line is now clear, and it inverts the programme's
+  starting assumption:</p>
+  <p class="callout big">Richer cell &mdash; no payoff. Richer relationships
+  &mdash; no payoff. Deep spatial credit &mdash; no payoff. But
+  <strong>short nonlinear temporal computation, replicated in parallel
+  and composed cheaply &mdash; yes, clearly, and it generalizes from
+  pixels to a raw acoustic waveform.</strong></p>
+  <p>The remaining questions are the ones worth building toward: whether
+  cheap local or direct credit between blocks can replace exact backprop
+  (the path to on-chip learning), and which recurrences are expressive
+  enough for the task while composing associatively, so even the
+  within-block steps admit a parallel scan.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Part V of a
+  series with M13.5 (I), M14 (II), Part III, and Part IV. Free Spoken
+  Digit Dataset, 8&#8202;kHz mono, peak-normalized, 0.5&#8202;s crop/pad; shared
+  GRU, contiguous blocks, transpose readout; per-arm learning-rate
+  calibration; wall-clock as the reported budget. The horizon comes from
+  real audio, not padding.</p>
+</div>
+</body>
+</html>

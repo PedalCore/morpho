@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>Part IV &mdash; How much accuracy per second?</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+      --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+      --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  }
+  :root[data-theme="dark"]{--bg:#14110d;--surface:#1e1a14;--surface2:#26211a;
+    --text:#ece4d6;--muted:#a89a84;--faint:#6f6353;--accent:#e8a33d;
+    --accent2:#6fb3a8;--danger:#cf6a4c;--rule:rgba(236,228,214,.12);}
+  :root[data-theme="light"]{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+    --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+    --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.4vw,3.15rem);
+    line-height:1.07;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  .hero{background:var(--surface);border:1px solid var(--rule);
+    border-radius:.6rem;padding:1.2rem 1.4rem;margin:1.8rem 0}
+  .hero .big{font-family:var(--serif);font-size:1.3rem;line-height:1.35}
+  .hero .num{color:var(--accent);font-weight:700}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  table.d{width:100%;border-collapse:collapse;margin:1.4rem 0;
+    font-family:var(--mono);font-size:.8rem}
+  table.d th{text-align:right;color:var(--muted);font-weight:500;
+    padding:.4rem .5rem;border-bottom:1px solid var(--rule);font-size:.72rem}
+  table.d th:first-child,table.d td:first-child{text-align:left}
+  table.d td{text-align:right;padding:.4rem .5rem;
+    border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+  table.d tr.hi td{color:var(--accent2)} table.d tr.lo td{color:var(--danger)}
+  .wide{overflow-x:auto}
+  .leg{display:flex;gap:1.3rem;flex-wrap:wrap;font-family:var(--mono);
+    font-size:.72rem;margin:.4rem 0 0}
+  .leg span{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .ax{stroke:var(--rule)} .gd{stroke:var(--rule);stroke-dasharray:2 4}
+  .fit{stroke:var(--accent);fill:none;stroke-width:1.5;stroke-dasharray:5 4}
+  .dot{fill:var(--accent2)} .dotB{fill:var(--danger)}
+  .barC{fill:var(--accent2)} .barA{fill:var(--accent)} .barM{fill:var(--danger)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sF{fill:var(--faint)}
+  .sC{fill:var(--accent2)} .sD{fill:var(--danger)} .mono{font-family:var(--mono)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; Part IV</p>
+  <h1>How much accuracy <em>per second?</em></h1>
+  <p class="dek">A fair hardware benchmark of the space&#8596;time
+  transpose against a competent, tuned GRU at a 784-step horizon. The
+  transpose wins decisively and predictably &mdash; and the fancy part
+  turns out to be unnecessary.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>Part IV &middot; follows Part III</span>
+  <span>NVIDIA L4 &middot; GRU d=32</span></p>
+
+  <p class="lede">Part III found a knee on a toy 64-step task with a
+  tiny tanh cell: shortening the recurrent horizon by spatial
+  replication recovered nearly all the accuracy at a fraction of the
+  cost. The obvious objection was that the baseline was a
+  vanishing-gradient straw man. So we scaled up &mdash; a real GRU,
+  sequential MNIST (784 pixels, one per tick, fixed permutation), and
+  the fairest test we could design.</p>
+
+  <h2><span class="n">01</span>The fair test</h2>
+  <p>Every architecture factors the same 784-step sequence as
+  <span class="k">S &times; T = 784</span> &mdash; S parallel GRU lanes of
+  horizon T &mdash; and is judged on the metric that actually matters for
+  hardware: <strong>accuracy versus elapsed training seconds</strong>,
+  not accuracy after a fixed epoch count that would silently favour the
+  cheaper models. Crucially, <em>every arm gets the same
+  learning-rate calibration budget</em>, so the long-horizon baseline
+  cannot be dismissed as poorly tuned. Same GRU width, optimizer, data,
+  initialization family throughout.</p>
+
+  <div class="wide"><table class="d">
+    <tr><th>arm (S&times;T)</th><th>acc</th><th>acc @30s</th>
+      <th>hits 90%</th><th>crit-depth</th><th>latency</th></tr>
+    <tr class="lo"><td>full BPTT 1&times;784</td><td>0.706</td><td>0.208</td>
+      <td>never</td><td>784</td><td>75.7 ms</td></tr>
+    <tr><td>tree 7&times;112</td><td>0.850</td><td>0.856</td><td>never</td>
+      <td>115</td><td>11.6 ms</td></tr>
+    <tr><td>tree 14&times;56</td><td>0.858</td><td>0.870</td><td>never</td>
+      <td>60</td><td>6.2 ms</td></tr>
+    <tr><td>tree 28&times;28</td><td>0.867</td><td>0.880</td><td>never</td>
+      <td>33</td><td>3.7 ms</td></tr>
+    <tr><td>tree 49&times;16</td><td>0.883</td><td>0.889</td><td>never</td>
+      <td>22</td><td>2.5 ms</td></tr>
+    <tr class="hi"><td>transpose 49&times;16</td><td>0.917</td><td>0.920</td>
+      <td>2.2 s</td><td>16</td><td>1.83 ms</td></tr>
+    <tr><td>tree 98&times;8</td><td>0.874</td><td>0.884</td><td>never</td>
+      <td>15</td><td>1.79 ms</td></tr>
+  </table></div>
+
+  <h2><span class="n">02</span>Accuracy per second</h2>
+  <figure>
+    <svg viewBox="0 0 640 250" role="img"
+      aria-label="Accuracy reached within 30 seconds of training: full BPTT 0.208; every hybrid 0.85 to 0.92.">
+      <line class="ax" x1="150" y1="16" x2="150" y2="222"/>
+      <line class="gd" x1="437" y1="16" x2="437" y2="222"/>
+      <text class="mono sF" x="437" y="238" text-anchor="middle" font-size="10">0.90</text>
+      <!-- bars: x0=150 scale acc*520 -->
+      <rect class="barM" x="150" y="24" width="108" height="20" rx="3"/>
+      <text class="mono sD" x="264" y="39" font-size="12">0.208</text>
+      <text class="mono sD" x="142" y="39" text-anchor="end" font-size="11">full BPTT 1&#215;784</text>
+      <rect class="barC" x="150" y="52" width="445" height="20" rx="3"/>
+      <text class="mono sM" x="142" y="67" text-anchor="end" font-size="11">7&#215;112</text>
+      <rect class="barC" x="150" y="80" width="452" height="20" rx="3"/>
+      <text class="mono sM" x="142" y="95" text-anchor="end" font-size="11">14&#215;56</text>
+      <rect class="barC" x="150" y="108" width="458" height="20" rx="3"/>
+      <text class="mono sM" x="142" y="123" text-anchor="end" font-size="11">28&#215;28</text>
+      <rect class="barC" x="150" y="136" width="462" height="20" rx="3"/>
+      <text class="mono sM" x="142" y="151" text-anchor="end" font-size="11">49&#215;16</text>
+      <rect class="barA" x="150" y="164" width="478" height="20" rx="3"/>
+      <text class="mono sC" x="632" y="179" text-anchor="end" font-size="12">0.920</text>
+      <text class="mono sT" x="142" y="179" text-anchor="end" font-size="11">transpose 49&#215;16</text>
+      <rect class="barC" x="150" y="192" width="460" height="20" rx="3"/>
+      <text class="mono sM" x="142" y="207" text-anchor="end" font-size="11">98&#215;8</text>
+      <text class="mono sF" x="150" y="238" font-size="10">accuracy reached in the first 30 s of training &#8594;</text>
+    </svg>
+    <figcaption>In half a minute of training the hybrids are already at
+    0.85&ndash;0.92; the 784-step baseline is at 0.21 (0.41 by 60 s). It
+    is both ~40&times; slower per step and, at initialization, gradient-
+    starved &mdash; &rho;<sub>G</sub> is numerically zero to the earliest of
+    784 steps even for a GRU built to preserve gradients.</figcaption>
+  </figure>
+
+  <p>Honest framing: this is a <strong>Pareto</strong> result, not a
+  knockout. The full-BPTT GRU reached only 0.706 in the budget and would
+  very likely keep climbing with far more time. What it cannot do is
+  compete <em>per second</em>: it is ~40&times; slower per update and
+  starts credit-starved.</p>
+
+  <h2><span class="n">03</span>A latency you can predict</h2>
+  <p>The most useful result is not any single number &mdash; it is that a
+  crude model predicts the hardware. The critical path of an
+  <span class="k">S&times;T</span> factorization is about
+  <span class="k">T + &#8968;log&#8322;S&#8969;</span>. Plot measured GPU
+  latency against it:</p>
+  <figure>
+    <svg viewBox="0 0 640 260" role="img"
+      aria-label="Log-log plot of measured latency versus critical-path depth; the seven points fall on a straight line of slope one across a 50x range.">
+      <line class="ax" x1="70" y1="30" x2="70" y2="215"/>
+      <line class="ax" x1="70" y1="215" x2="610" y2="215"/>
+      <!-- fit line through endpoints -->
+      <line class="fit" x1="90" y1="210" x2="600" y2="40"/>
+      <!-- points (log-log) -->
+      <circle class="dot" cx="90"  cy="210" r="4"/>
+      <circle class="dot" cx="139" cy="194" r="4"/>
+      <circle class="dot" cx="192" cy="177" r="4"/>
+      <circle class="dot" cx="269" cy="154" r="4"/>
+      <circle class="dot" cx="353" cy="125" r="4"/>
+      <circle class="dotB" cx="600" cy="40" r="5"/>
+      <text class="mono sF" x="90"  y="228" text-anchor="middle" font-size="9.5">15</text>
+      <text class="mono sF" x="192" y="228" text-anchor="middle" font-size="9.5">33</text>
+      <text class="mono sF" x="353" y="228" text-anchor="middle" font-size="9.5">115</text>
+      <text class="mono sF" x="600" y="228" text-anchor="middle" font-size="9.5">784</text>
+      <text class="mono sF" x="330" y="248" text-anchor="middle" font-size="10">critical-path depth  T + &#8968;log&#8322;S&#8969;  (log)</text>
+      <text class="mono sD" x="588" y="34" text-anchor="end" font-size="11">75.7 ms</text>
+      <text class="mono sC" x="96" y="205" font-size="11">1.79 ms</text>
+      <text class="mono sM" x="70" y="24" font-size="10">latency (log)</text>
+    </svg>
+    <figcaption>Measured batch-1 inference latency versus predicted
+    critical-path depth, log&ndash;log, across the whole ladder. A
+    straight line of slope one: latency &asymp; 0.10 &micro;s &times;
+    critical-depth, holding from depth 15 to 784 &mdash; a 50&times;
+    range. The back-of-envelope model is an architectural scaling law.</figcaption>
+  </figure>
+
+  <div class="hero"><p class="big" style="margin:0">The optimum is a
+  <span class="num">hybrid</span>. Accuracy climbs to ~49&times;16 and
+  then saturates; latency keeps falling. Neither the pure-temporal
+  extreme (slow <em>and</em> credit-starved) nor the maximally-spatial
+  one is best &mdash; exactly the knee Part III predicted, now at 12&times;
+  the horizon.</p></div>
+
+  <h2><span class="n">04</span>The transpose pays; the tree doesn't</h2>
+  <p>Here is the finding that sharpens the whole idea. At the knee we ran
+  two arms with the <em>same</em> short horizon: <span class="k">bpts_tree</span>,
+  which recursively composes the block states through a trainable spatial
+  tree (the "real" backprop-through-space), and
+  <span class="k">transpose_lin</span>, which simply concatenates the
+  block states and reads them with one linear layer. The simple one won:</p>
+  <p class="callout big">transpose + linear: <strong>0.917</strong>
+  &nbsp;&nbsp;vs&nbsp;&nbsp; spatial tree: 0.883.</p>
+  <p>The recursive tree compresses S block states down to a single vector
+  through lossy combiners &mdash; a bottleneck &mdash; while the linear
+  readout sees them all. So the deep spatial-credit machinery adds no
+  representational value here. <strong>The leverage is the
+  space&#8596;time transpose itself</strong> &mdash; shortening the
+  recurrent horizon and running the lanes in parallel &mdash; not credit
+  assignment through a spatial hierarchy. What we have demonstrated is
+  the transpose; the "real BPTS" step did not earn its keep on this task.</p>
+  <p>So the honest name is not backprop-through-space but the
+  <strong>space&#8596;time transpose (STT)</strong>: a long sequence split
+  into many short, shared-recurrent blocks run in parallel, their final
+  states simply concatenated for a cheap wide readout.</p>
+  <p class="callout big">Use recurrence <em>locally</em>; use a parallel
+  spatial representation <em>globally</em>.</p>
+  <p>The trade is explicit in the ledger: STT exchanges long recurrence
+  for more parallel blocks and a wider readout &mdash; 49&times;32 = 1568
+  features, more simultaneous state. But it is not merely buying accuracy
+  with width. <strong>98&times;8 carries <em>more</em> simultaneous state
+  than 49&times;16 and scores <em>lower</em></strong> &mdash; so the sweet
+  spot is a genuine temporal/parallel balance, not the biggest model.</p>
+
+  <h2><span class="n">05</span>Where it sits, and what's next</h2>
+  <p>Set against the two earlier negatives, the shape of the whole
+  programme is now clear: a richer <em>substrate</em> (M13.5) and richer
+  <em>relationships</em> (M14) did not buy accessible robust computation,
+  but a change to <em>where sequential depth lives</em> did &mdash; and on
+  real hardware it buys a large, <em>predictable</em> latency and
+  accuracy-per-second advantage.</p>
+  <p class="callout">Long temporal chains are expensive to both learn and
+  run. A modest amount of spatial parallelism keeps the learning path
+  short and the latency low &mdash; and the cost is predicted, almost
+  exactly, by one number: the critical-path depth.</p>
+  <p>Two questions remain genuinely open. First, since the spatial tree
+  added nothing, the real BPTS test is whether cheap <em>local or direct
+  credit</em> between blocks can match exact backprop &mdash; the path
+  toward physical, on-chip learning. Second, the primitive question:
+  which recurrences are expressive enough for the task <em>and</em>
+  compose associatively, so that even the within-block temporal steps
+  admit a parallel scan. Those are where the architecture goes from a
+  measured win to a design.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Part IV of a
+  series with M13.5 (Part I), M14 (Part II), and Part III. Benchmarked on
+  an NVIDIA L4; GRU d=32; sequential permuted MNIST; wall-clock as the
+  independent variable; every arm given the same learning-rate
+  calibration budget so the long-horizon baseline is tuned, not a straw
+  man.</p>
+</div>
+</body>
+</html>

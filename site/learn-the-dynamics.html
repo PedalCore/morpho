@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23e2a13f%22/></svg>" />
+<title>Part VII &mdash; Learn the dynamics, or don't</title>
+<style>
+  :root{
+    --bg:#14110d; --surface:#1e1a14; --surface2:#26211a;
+    --text:#ece4d6; --muted:#a89a84; --faint:#6f6353;
+    --accent:#e8a33d; --accent2:#6fb3a8; --danger:#cf6a4c;
+    --rule:rgba(236,228,214,.12);
+    --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+      --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+      --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  }
+  :root[data-theme="dark"]{--bg:#14110d;--surface:#1e1a14;--surface2:#26211a;
+    --text:#ece4d6;--muted:#a89a84;--faint:#6f6353;--accent:#e8a33d;
+    --accent2:#6fb3a8;--danger:#cf6a4c;--rule:rgba(236,228,214,.12);}
+  :root[data-theme="light"]{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#f1ead9;
+    --text:#2a2318;--muted:#6b5f4a;--faint:#9a8d76;--accent:#b9741a;
+    --accent2:#2f7d70;--danger:#a8442a;--rule:rgba(42,35,24,.13);}
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:44rem;margin:0 auto;padding:5.5rem 1.5rem 6rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 1.4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5.2vw,3.05rem);
+    line-height:1.08;letter-spacing:-.01em;margin:0 0 1rem;text-wrap:balance}
+  h1 em{font-style:italic;color:var(--accent)}
+  .dek{font-family:var(--serif);font-size:clamp(1.08rem,2.3vw,1.32rem);
+    color:var(--muted);line-height:1.5;margin:0 0 2.2rem;text-wrap:pretty;
+    font-style:italic}
+  .meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);
+    letter-spacing:.03em;border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:.75rem 0;margin:0 0 3rem;
+    display:flex;gap:1.2rem;flex-wrap:wrap}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;
+    letter-spacing:-.005em;margin:3.4rem 0 .3rem;text-wrap:balance}
+  h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent);
+    font-weight:400;margin-right:.6rem;vertical-align:.15em}
+  p{margin:.9rem 0}
+  strong{color:var(--text);font-weight:650}
+  .lede{font-size:1.06rem}
+  .k{font-family:var(--mono);font-size:.85em;color:var(--accent2);
+    background:var(--surface2);padding:.05em .35em;border-radius:.25em}
+  .callout{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:.5rem;
+    padding:1.15rem 1.3rem;margin:1.8rem 0;font-family:var(--serif);
+    font-size:1.12rem;line-height:1.5}
+  .callout.big{font-size:1.24rem;text-wrap:pretty}
+  figure{margin:2.4rem 0;padding:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-family:var(--mono);font-size:.73rem;color:var(--muted);
+    line-height:1.5;margin-top:.8rem;letter-spacing:.02em}
+  .leg{display:flex;gap:1.3rem;flex-wrap:wrap;font-family:var(--mono);
+    font-size:.72rem;margin:.5rem 0 0}
+  .leg span{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .two{display:flex;gap:1rem;margin:1.6rem 0;flex-wrap:wrap}
+  .two .c{flex:1;min-width:12rem;background:var(--surface);
+    border:1px solid var(--rule);border-radius:.5rem;padding:.95rem 1.1rem}
+  .two .c .lab{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted)}
+  .two .c.lose{border-left:3px solid var(--danger)}
+  .two .c.win{border-left:3px solid var(--accent2)}
+  .two .c .v{font-family:var(--serif);font-size:1.15rem;margin:.35rem 0 0;
+    line-height:1.4}
+  .ax{stroke:var(--rule)} .cliff{fill:var(--danger);opacity:.08}
+  .cV{stroke:var(--accent);fill:none;stroke-width:2.4}
+  .cA{stroke:var(--accent2);fill:none;stroke-width:2.4}
+  .dV{fill:var(--accent)} .dA{fill:var(--accent2)}
+  .sT{fill:var(--text)} .sM{fill:var(--muted)} .sF{fill:var(--faint)}
+  .sD{fill:var(--danger)} .mono{font-family:var(--mono)}
+  hr.end{border:0;border-top:1px solid var(--rule);margin:3.5rem 0 1.5rem}
+  .foot{font-family:var(--mono);font-size:.74rem;color:var(--faint);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">State-compression ladder &middot; Note M14 &middot; Part VII &middot; stress test</p>
+  <h1>Learn the dynamics, <em>or don't</em></h1>
+  <p class="dek">A chaotic system is where long-horizon differentiable
+  training is worst &mdash; so it is the sharpest test of the
+  space&#8596;time idea. Here the factorization is not a speedup. It is
+  the line between learning the flow and learning nothing.</p>
+  <p class="meta"><span>2026 &middot; whitebox program</span>
+  <span>isolated stress test</span>
+  <span>Lorenz &middot; multiple shooting</span></p>
+
+  <p class="lede">Part VI found the multiple-shooting knee on a tame
+  forced pendulum. The obvious objection: a non-chaotic system is easy,
+  and long integration only <em>mildly</em> hurts. So we ran the
+  opposite extreme &mdash; the Lorenz attractor, where nearby
+  trajectories separate exponentially and one long differentiable shoot
+  should be maximally ill-behaved.</p>
+
+  <h2><span class="n">01</span>Scoring chaos honestly</h2>
+  <p>Under chaos, pointwise trajectory error explodes even for a
+  <em>perfect</em> field &mdash; two identical flows started a
+  hair apart diverge regardless. So long-horizon MSE is the wrong
+  scorecard, and we froze two chaos-appropriate metrics before running:
+  the <strong>vector-field error</strong> (did we learn the flow itself,
+  measured on attractor samples &mdash; immune to trajectory divergence),
+  and the <strong>attractor statistics</strong> (free-run the learned
+  field for a long time and check it reproduces the invariant measure,
+  not any particular path).</p>
+
+  <h2><span class="n">02</span>A cliff, not a slope</h2>
+  <figure>
+    <svg viewBox="0 0 640 250" role="img"
+      aria-label="Vector-field error and attractor error versus block length on Lorenz. Both are low for short blocks and jump up catastrophically for long blocks, with a cliff between 16 and 64 steps.">
+      <rect class="cliff" x="340" y="30" width="120" height="182"/>
+      <text class="mono sD" x="400" y="26" text-anchor="middle" font-size="10">threshold</text>
+      <line class="ax" x1="60" y1="30" x2="60" y2="212"/>
+      <line class="ax" x1="60" y1="212" x2="615" y2="212"/>
+      <!-- vector-field error: T1..T512 x=100,220,340,460,580 -->
+      <polyline class="cV" points="100,198 220,194 340,189 460,64 580,43"/>
+      <!-- attractor error -->
+      <polyline class="cA" points="100,208 220,208 340,209 460,153 580,88"/>
+      <circle class="dV" cx="100" cy="198" r="3.5"/><circle class="dV" cx="220" cy="194" r="3.5"/>
+      <circle class="dV" cx="340" cy="189" r="3.5"/><circle class="dV" cx="460" cy="64" r="4"/>
+      <circle class="dV" cx="580" cy="43" r="4.5"/>
+      <circle class="dA" cx="100" cy="208" r="3.5"/><circle class="dA" cx="220" cy="208" r="3.5"/>
+      <circle class="dA" cx="340" cy="209" r="3.5"/><circle class="dA" cx="460" cy="153" r="4"/>
+      <circle class="dA" cx="580" cy="88" r="4.5"/>
+      <text class="mono sT" x="580" y="36" text-anchor="middle" font-size="11">field not learned</text>
+      <text class="mono sF" x="100" y="228" text-anchor="middle" font-size="9">1</text>
+      <text class="mono sF" x="220" y="228" text-anchor="middle" font-size="9">8</text>
+      <text class="mono sF" x="340" y="228" text-anchor="middle" font-size="9">16</text>
+      <text class="mono sF" x="460" y="228" text-anchor="middle" font-size="9">64</text>
+      <text class="mono sF" x="580" y="228" text-anchor="middle" font-size="9">512</text>
+      <text class="mono sF" x="120" y="243" text-anchor="start" font-size="9">short blocks &mdash; field learned</text>
+      <text class="mono sF" x="580" y="243" text-anchor="end" font-size="9">one long shoot</text>
+      <text class="mono sF" x="338" y="22" text-anchor="middle" font-size="10">block length (steps, log)  &mdash;  error &darr;</text>
+    </svg>
+    <div class="leg">
+      <span><i class="sw" style="background:var(--accent)"></i>vector-field error (learned the flow?)</span>
+      <span><i class="sw" style="background:var(--accent2)"></i>attractor error (reproduces the measure?)</span>
+    </div>
+    <figcaption>Lorenz, shared MLP field, multiple shooting. Both metrics
+    are near zero for short blocks and jump catastrophically for long
+    ones, with a threshold between ~16 and ~64 steps. The single long
+    shoot has a vector-field error of 1.18 &mdash; essentially random,
+    the field is not learned &mdash; and an attractor error of 0.86. Cut
+    the block to 16 steps and they fall to 0.15 and 0.009.</figcaption>
+  </figure>
+
+  <div class="two">
+    <div class="c lose"><div class="lab">one long shoot (512 steps)</div>
+      <div class="v">vector-field err <strong>1.18</strong><br>
+      attractor err 0.86 &middot; &rho;<sub>G</sub> 370<br>
+      <span style="color:var(--danger)">the flow is not learned at all</span></div></div>
+    <div class="c win"><div class="lab">short shoots (1&ndash;16 steps)</div>
+      <div class="v">vector-field err <strong>0.08&ndash;0.15</strong><br>
+      attractor err &lt;0.015 &middot; &rho;<sub>G</sub> 1&ndash;9<br>
+      <span style="color:var(--accent2)">flow learned, attractor reproduced</span></div></div>
+  </div>
+
+  <h2><span class="n">03</span>Why chaos is the extreme case</h2>
+  <p>On the tame pendulum, one long shoot was merely slower and slightly
+  worse. On Lorenz it <strong>fails outright</strong>. The reason is the
+  same mechanism the whole arc has been tracking, taken to its limit:
+  exponential sensitivity makes the gradient through a long chaotic
+  integration catastrophically ill-conditioned, and no usable field
+  comes out the other end. Short shoots stay inside the horizon over
+  which the flow is still predictable, so each segment poses a
+  well-conditioned learning problem.</p>
+  <p class="callout big">On a chaotic system the space&#8596;time
+  factorization is not a speedup &mdash; it is the difference between
+  learning the dynamics and not learning them.</p>
+
+  <h2><span class="n">04</span>The attractor is the tell</h2>
+  <p>The most satisfying part is the second metric. A free run of the
+  short-shoot field does not follow any particular ground-truth
+  trajectory &mdash; it can't, chaos forbids it &mdash; yet it lands on
+  the same butterfly and spends the right fraction of time in each wing:
+  attractor error under 0.015. It learned the <em>invariant measure</em>,
+  which is the correct notion of "got the dynamics right" for a chaotic
+  system. The long shoot did not even do that (0.86).</p>
+  <p>So the same principle that started as "parallelize an RNN" now reads,
+  at the hard end of dynamical learning:</p>
+  <p class="callout"><strong>Keep only the amount of contiguous time
+  over which the system is actually predictable; spatialize the rest.</strong>
+  Beyond that horizon, more sequential depth doesn't add information &mdash;
+  under chaos it actively destroys the gradient.</p>
+
+  <h2><span class="n">05</span>Honest edges</h2>
+  <p>Single-seed, one chaotic system, one integrator. The chaos-metric
+  choices (vector-field error and attractor statistics) were frozen
+  before results, and long-horizon pointwise MSE was deliberately
+  excluded because it measures chaos, not the model. There is a faint
+  hint of an interior optimum in the attractor metric &mdash; its minimum
+  is at a 16-step block, with the one-step extreme slightly worse
+  &mdash; which would echo Part VI's composition boundary, but it is too
+  shallow at one seed to lean on. The categorical result &mdash; long
+  shoot fails, short shoots succeed &mdash; is not shallow at all.</p>
+
+  <hr class="end">
+  <p class="foot">Part of the whitebox / MorphoHDL program. Isolated
+  stress test extending the multiple-shooting arc (Part VI). Lorenz
+  &sigma;=10, &rho;=28, &beta;=8/3; shared 2-layer vector field; RK4
+  ground truth, Euler-integrated learned field; multiple shooting with a
+  continuity penalty; metrics chosen for chaos (vector-field error and
+  attractor statistics), frozen before the run.</p>
+</div>
+</body>
+</html>
