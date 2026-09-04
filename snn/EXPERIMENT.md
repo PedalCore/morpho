@@ -1221,3 +1221,60 @@ write-everything control.
 
 Code: `spikelm/slot_binding2.py`. Results: `spikelm/slot-admission2.json`
 (the contaminated first run kept as `slot-admission.json`).
+
+---
+
+## v23 — v2b closed: the cache is dimensionally compressible AND robust to
+## coarse finite-precision storage. Not near-entropy coding.
+
+**The frozen claim** (wording per external review): dynamic selection +
+binding survives severe, explicitly counted memory compression. The
+model was NOT relying on float32 analog precision. The stronger claim -
+near-optimal entropy coding - is not demonstrated: at budgets near the
+source entropy the system retains about half the tokens, which is
+substantial coding inefficiency, honestly stated.
+
+**The bits-vs-recall curve** (K=4, persistent state = K x d_slot x q
+exactly, fixed-grid quantisation of tanh-bounded slots, 6 seeds,
+medians; chunk entropy ~96 bits):
+
+```
+  d_slot  q   budget   token med   conv    note
+    16    8    512b      76.0%     5/6     = float32 (70.4%): 8-bit free
+    16    4    256b      60.3%     6/6
+    16    2    128b      52.4%     6/6     1.3x entropy: half the tokens
+    16    1     64b      27.5%     5/6     BELOW entropy: theorem bites
+     8   16..4 512..128b ~35%      flat    width-bottlenecked: bits can't
+                                           buy what dimensions don't have
+     8    1     32b      12.0%     0/6     a third of entropy, still 7x chance
+```
+
+1. **No analog-precision cheat.** 8-bit persistent state matches float32
+   (76.0 vs 70.4 median - "costs nothing", NOT "improves": seed noise
+   and differing seed counts forbid the stronger reading). 4-bit holds
+   60%. The phase-1 dimensional result was real, not mantissa-hiding.
+2. **The two capacities factor cleanly.** The d=8 row is flat across
+   q=16 -> 4 (35.6/35.9/34.9): once dimensions are the bottleneck,
+   precision buys nothing. At d=16 precision trades smoothly. Phase 1
+   measured dimensional capacity, phase 2 precision capacity, and they
+   are separate axes as designed.
+3. **The information-theoretic ending, correctly framed this time.** A
+   review corrected our earlier claim: 0% exact recall at 128-512 bits
+   is NOT required by information theory (those budgets exceed the
+   source entropy; a perfect code is possible there) - it is coding
+   inefficiency. The theorem only constrains below 96 bits, and there
+   the curve behaves: 64 bits -> 27.5% token recall (down from 52.4%),
+   32 bits -> 12.0%, and exact whole-chunk recall is 0.0% everywhere -
+   at 64 bits the idealised bound on exact reconstruction is ~2^-32, so
+   any appreciable exact recall would have been a side-channel alarm.
+   None fired.
+4. Non-monotonicity flagged: d16/q16 (54.0%) < d16/q8 (76.0%) with wild
+   seed spread (.08-.94) - basin noise on the q-axis at high precision,
+   not a real effect; medians there differ within seed noise.
+
+Token recall is the rate-distortion-like curve (the memory may keep some
+tokens and sacrifice others); exact recall is the integrity check. Both
+roles held.
+
+v2c (post-cue associative retrieval) launched on the same budget.
+Code: `spikelm/slot_binding3.py`. Results: `slot-capacity-p1/p2.json`.
