@@ -139,9 +139,15 @@ class SlotLM2(nn.Module):
         e = self.emb(x[:, :PRE]) + self.pos[:PRE]
         h, _ = self.writer(e)                            # (B, PRE, gru)
         g = torch.sigmoid(self.w_gate(h)).squeeze(-1)    # (B, PRE)
-        if self.mode == "forced":
+        if self.mode in ("forced", "funiform"):
             g = torch.ones_like(g)
         a = torch.softmax(self.w_addr(h), dim=-1)        # (B, PRE, K)
+        if self.mode == "funiform":
+            # the TRUE write-everything control: the learned address gave
+            # "forced" an admission channel (route cued chunk to one slot,
+            # junk to another) - a forced-K2 seed reached 51.8% that way.
+            # Uniform address removes every selective channel.
+            a = torch.full_like(a, 1.0 / self.K)
         v = self.w_val(h)                                # (B, PRE, d)
         w = g.unsqueeze(-1) * a                          # (B, PRE, K)
         num = torch.einsum("btk,btd->bkd", w, v)
@@ -231,7 +237,7 @@ def main():
     print("  " + "-" * 60)
     res = {}
     for K in a.slots:
-        for mode in ("none", "forced", "gated"):
+        for mode in ("none", "funiform", "forced", "gated"):
             if mode == "none" and K != a.slots[0]:
                 continue                       # floor doesn't depend on K
             accs, gates = [], []
