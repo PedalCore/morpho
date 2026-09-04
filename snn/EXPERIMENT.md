@@ -1383,3 +1383,57 @@ N=4:                 fact med  conv  collide  readT/readO   per-seed
    now permanent (gap > L*(W-1), asserted in code).
 
 Code: `spikelm/nonce_lm.py`. Results: `nonce-n1.json`, `nonce-n4.json`.
+
+---
+
+## v26 — the 2x2 lands: learned content-derived association WORKS, and
+## the soft read beats the oracle read
+
+```
+  arm                          fact med  conv  collide  readacc  per-seed
+  local  (floor)                  1.2%   0/4      -        -
+  oo     (oracle/oracle)        100.0%   4/4    0.00     1.00
+  oc     (oracle W/learned R)    97.8%   4/4    0.00     1.00    reader solved
+  lo     (learned W/oracle R)    74.6%   4/4    0.20     1.00    writer mostly
+  ll     (learned/learned)       88.4%   4/4    0.14     0.62    .84 .89 .88 .90
+```
+
+All four pre-registrations pass. The floor holds (1.2%); the explicit KV
+pathway's ceiling is 100% where v25's positional-prefix oracle capped at
+27.8% (read-side association was unexpressed, not hard); the learned
+reader is near-perfect given clean writes (97.8, read-attention 1.00);
+load balancing cuts write collisions 0.91 -> 0.20.
+
+**The headline is the ll row beating its own composition bound.** If the
+two learned halves failed independently, ll ~ 0.978 x 0.746 = 73%. It
+scored 88.4% - ABOVE lo itself - with tighter collisions (0.14 < 0.20)
+and the tightest seed spread (.84-.90). Two mechanisms:
+
+1. Joint training improved allocation (collisions fell further).
+2. The SOFT learned read is more robust than the HARD oracle read under
+   imperfect writes: read-attention "accuracy" is only 0.62, yet recall
+   is 88% - the reader is not slot-faithful, it pools evidence across
+   keys, reading THROUGH collisions the one-hot oracle read cannot. The
+   oracle was the handicap in lo, not the standard. (Instrument note:
+   argmax-slot accuracy is the wrong lens for a soft memory - recorded
+   so the 0.62 is not misread as a failure.)
+
+This is the anti-SyncLM: composition helped instead of collapsing.
+Difference worth naming - here each half had its own shaping pressure
+(balance loss on the writer, InfoNCE on the keys) rather than one
+end-task gradient stretched over both.
+
+**The chain is complete:**
+  binding 99.8% -> pre-cue selection (84x visible admission) ->
+  finite-bit compression (no analog cheat, entropy-order budgets) ->
+  structured post-cue retrieval (46.7%) ->
+  LEARNED content-derived association (88.4%, no IDs anywhere,
+  2048-bit audited ledger, nonce names unmemorisable in weights).
+
+A transformer with a 128-char window, plus a 2048-bit learned associative
+memory, recalls facts planted 400+ chars back at 88% - where the same
+model without the memory scores 1.2%. That is the founding idea of this
+project ("bounded learned state substituting for KV growth") holding on
+language-shaped data at toy scale.
+
+Code: `spikelm/nonce_lm2.py`. Results: `spikelm/noncekv-n4.json`.
