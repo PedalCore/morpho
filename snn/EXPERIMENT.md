@@ -1335,3 +1335,51 @@ retrieval (structured) all hold. The nonce-LM is earned, with the
 allocation question now its sharpest sub-question.
 
 Code: `spikelm/slot_binding4.py`. Results: `spikelm/slot-postcue.json`.
+
+---
+
+## v25 — nonce-LM round one: content-derived addressing does NOT emerge
+## unaided; the keys collapse to one bucket
+
+Leak fixed and verified first: with gap 420 > the composed receptive
+field L*(W-1)=381, the no-memory control drops from its contaminated
+100% to 1.2% at both N - the floor is real this time.
+
+```
+N=1: local 1.2% · all slot arms 100.0% (4/4)   pipeline validated
+
+N=4:                 fact med  conv  collide  readT/readO   per-seed
+  local                 1.2%   0/4      -                   floor holds
+  uniform              16.2%   0/4    1.00                  averaged mush
+  gated (free-form)    17.7%   0/4    0.96                  = v2c failure
+  oracleid             27.8%   3/4    0.00                  .28 .28 .05 .29
+  keyaddr (HYPOTHESIS) 17.6%   0/4    0.91    0.95/0.95     = gated
+```
+
+1. **The hypothesis arm failed in the informative way.** keyaddr = gated
+   to within 0.1 points, with 91% write collisions and a read-key probe
+   that maps target AND non-target names to the same slot (0.95/0.95):
+   the learned keys collapsed to one bucket. Content-derived addressing
+   did not emerge from task pressure alone. Pre-registration 3's second
+   branch fires: the coordinate-structure question stays open.
+2. **The failure mode is the MoE router collapse, recognisably.** Softmax
+   routing with no diversity pressure degenerates to one expert/slot -
+   the exact pathology the mixture-of-experts literature solves with a
+   load-balancing auxiliary loss. v3.1 is therefore well-motivated and
+   cheap: add router-style load balancing to the key softmax and rerun.
+   If keys then separate, the capability was there and the OBJECTIVE was
+   missing - which would rhyme with this campaign's refrain (parity's
+   four losses; scarcity as regulariser): the mechanism is rarely the
+   problem; the training pressure is.
+3. **oracleid's 27.8% exposes a second, distinct bottleneck: read-side
+   association.** Perfect write addressing by appearance order still
+   only reaches 28%, because the reader must match the queried NAME to
+   slot contents - the name<->slot correspondence is per-sequence random
+   (unlike v2c, where cue IDs mapped statically to slots). Write
+   addressing and read association are separate problems; v2c only ever
+   tested the first.
+4. Guards all held: local at floor both N, collisions 0.00 by
+   construction in oracleid, and the composed-receptive-field lesson is
+   now permanent (gap > L*(W-1), asserted in code).
+
+Code: `spikelm/nonce_lm.py`. Results: `nonce-n1.json`, `nonce-n4.json`.

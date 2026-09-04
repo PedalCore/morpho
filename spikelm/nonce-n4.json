@@ -1,0 +1,122 @@
+{
+ "local": {
+  "acc": [
+   0.009765625,
+   0.013671875,
+   0.017578125,
+   0.009765625
+  ],
+  "median": 0.01171875,
+  "converged": 0,
+  "diags": [
+   {},
+   {},
+   {},
+   {}
+  ]
+ },
+ "uniform": {
+  "acc": [
+   0.173828125,
+   0.1484375,
+   0.15234375,
+   0.171875
+  ],
+  "median": 0.162109375,
+  "converged": 0,
+  "diags": [
+   {
+    "collision": 1.0
+   },
+   {
+    "collision": 1.0
+   },
+   {
+    "collision": 1.0
+   },
+   {
+    "collision": 1.0
+   }
+  ]
+ },
+ "gated": {
+  "acc": [
+   0.18359375,
+   0.17578125,
+   0.171875,
+   0.177734375
+  ],
+  "median": 0.1767578125,
+  "converged": 0,
+  "diags": [
+   {
+    "collision": 1.0
+   },
+   {
+    "collision": 0.8531901041666667
+   },
+   {
+    "collision": 1.0
+   },
+   {
+    "collision": 1.0
+   }
+  ]
+ },
+ "oracleid": {
+  "acc": [
+   0.27734375,
+   0.279296875,
+   0.052734375,
+   0.28515625
+  ],
+  "median": 0.2783203125,
+  "converged": 3,
+  "diags": [
+   {
+    "collision": 0.0
+   },
+   {
+    "collision": 0.0
+   },
+   {
+    "collision": 0.0
+   },
+   {
+    "collision": 0.0
+   }
+  ]
+ },
+ "keyaddr": {
+  "acc": [
+   0.171875,
+   0.177734375,
+   0.181640625,
+   0.173828125
+  ],
+  "median": 0.17578125,
+  "converged": 0,
+  "diags": [
+   {
+    "collision": 1.0,
+    "read_match_tgt": 1.0,
+    "read_match_other": 1.0
+   },
+   {
+    "collision": 0.646484375,
+    "read_match_tgt": 0.787109375,
+    "read_match_other": 0.7890625
+   },
+   {
+    "collision": 1.0,
+    "read_match_tgt": 1.0,
+    "read_match_other": 1.0
+   },
+   {
+    "collision": 1.0,
+    "read_match_tgt": 1.0,
+    "read_match_other": 1.0
+   }
+  ]
+ }
+}

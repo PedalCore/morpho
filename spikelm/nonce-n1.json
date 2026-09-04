@@ -1,0 +1,94 @@
+{
+ "local": {
+  "acc": [
+   0.009765625,
+   0.013671875,
+   0.013671875,
+   0.009765625
+  ],
+  "median": 0.01171875,
+  "converged": 0,
+  "diags": [
+   {},
+   {},
+   {},
+   {}
+  ]
+ },
+ "uniform": {
+  "acc": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "median": 1.0,
+  "converged": 4,
+  "diags": [
+   {},
+   {},
+   {},
+   {}
+  ]
+ },
+ "gated": {
+  "acc": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "median": 1.0,
+  "converged": 4,
+  "diags": [
+   {},
+   {},
+   {},
+   {}
+  ]
+ },
+ "oracleid": {
+  "acc": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "median": 1.0,
+  "converged": 4,
+  "diags": [
+   {},
+   {},
+   {},
+   {}
+  ]
+ },
+ "keyaddr": {
+  "acc": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "median": 1.0,
+  "converged": 4,
+  "diags": [
+   {
+    "read_match_tgt": 1.0,
+    "read_match_other": null
+   },
+   {
+    "read_match_tgt": 1.0,
+    "read_match_other": null
+   },
+   {
+    "read_match_tgt": 1.0,
+    "read_match_other": null
+   },
+   {
+    "read_match_tgt": 1.0,
+    "read_match_other": null
+   }
+  ]
+ }
+}
