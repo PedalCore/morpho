@@ -1404,8 +1404,10 @@ pathway's ceiling is 100% where v25's positional-prefix oracle capped at
 reader is near-perfect given clean writes (97.8, read-attention 1.00);
 load balancing cuts write collisions 0.91 -> 0.20.
 
-**The headline is the ll row beating its own composition bound.** If the
-two learned halves failed independently, ll ~ 0.978 x 0.746 = 73%. It
+**The headline is the ll row exceeding its independence-composition
+ESTIMATE** (not a bound - nothing was violated; the stages simply
+interact constructively). If the two learned halves failed
+independently, ll ~ 0.978 x 0.746 = 73%. It
 scored 88.4% - ABOVE lo itself - with tighter collisions (0.14 < 0.20)
 and the tightest seed spread (.84-.90). Two mechanisms:
 

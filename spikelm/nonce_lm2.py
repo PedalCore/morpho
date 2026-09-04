@@ -145,8 +145,15 @@ class KVNonceLM(nn.Module):
                 a = F.one_hot(used[torch.arange(B_), tgt], self.K).float()
             else:
                 q = self.query_key(x, q0)
-                a = torch.softmax(
-                    torch.einsum("be,bke->bk", q, keys) * self.scale, dim=-1)
+                z = torch.einsum("be,bke->bk", q, keys) * self.scale
+                # eval-time knobs (default-identical): read_tau rescales the
+                # softmax; read_hard collapses to one-hot argmax. Used by the
+                # hard-vs-soft ablation to test whether SOFT retrieval is
+                # what reads through collisions.
+                tau = getattr(self, "read_tau", 1.0)
+                a = torch.softmax(z / tau, dim=-1)
+                if getattr(self, "read_hard", False):
+                    a = F.one_hot(a.argmax(-1), self.K).float()
                 # key-match InfoNCE over this sequence's own entities:
                 # per-entity write keys from the writer's hidden states
                 ent_k = torch.zeros(B_, N_, q.shape[-1], device=x.device)
