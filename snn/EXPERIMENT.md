@@ -1477,3 +1477,48 @@ CARRY the fact, not does it match a hand-designated slot.
 Also recorded: the ablation harness trains at B=16 (memory headroom for
 long-N rows) vs v26's B=32; its ~70% median with one 0.28 straggler is
 NOT comparable to v26's 88.4% level, and the two tables stay separated.
+
+---
+
+## v27b — the wrong-coordinates hypothesis is refuted too; what remains
+## is that the learned key out-points every single-slot designation
+
+Four reads on identical trained memories (probe bit-identical to the
+model's forward, asserted):
+
+```
+  learned soft    78.5%      route_oracle   64.8%
+  learned HARD    79.7%      mass_oracle    67.3%
+  target-removed   1.5%      top-slot mass share 0.76
+```
+
+1. **Hypothesis two dies like hypothesis one.** Pointing one-hot at the
+   slot that received the most target VALUE mass (67.3%) is barely
+   better than the route-argmax oracle (64.8%) and ~12 points below the
+   learned read. The lo deficit was not softness (v27) and not the
+   oracle's coordinates (v27b) - it is that the learned q.k argmax
+   selects a DIFFERENT slot than any mass-based designation, and that
+   slot answers better.
+2. **Remaining candidate, stated as uninstrumented hypothesis:** under
+   soft writes with per-slot normalisation, mass is not recoverability.
+   A slot can hold most of the target's mass AND heavy interference from
+   other entities; a lighter-mass slot can be cleaner. The learned key
+   may be selecting for target signal-to-interference, not target mass.
+   Instrumenting that (per-slot target-SNR vs learned argmax) is v27c if
+   the question stays live.
+3. **The counterfactual - the metric that replaced read-accuracy -
+   passes cleanly:** zeroing the target's write contribution collapses
+   answers to 1.5% (floor). Whatever the reader does, the fact it
+   retrieves genuinely lives in the target's own writes.
+4. **Learned hard >= learned soft (79.7 vs 78.5)** re-confirms v27:
+   softness contributes nothing here.
+5. **A reproducibility observation with teeth:** seed 2 scored 0.28 in
+   the v27 ablation harness and 0.74 here, under identical seeding and
+   training code - GPU kernel nondeterminism flipping a marginal seed
+   between basins at B=16. Within-run comparisons are unaffected;
+   cross-run levels at this batch size carry basin noise beyond the
+   seed count, and medians should be read accordingly.
+
+Score so far in this mechanism hunt: two hypotheses proposed, two
+refuted by their own pre-registered instruments, capability result
+untouched throughout.
