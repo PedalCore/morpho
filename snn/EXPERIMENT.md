@@ -1439,3 +1439,41 @@ project ("bounded learned state substituting for KV growth") holding on
 language-shaped data at toy scale.
 
 Code: `spikelm/nonce_lm2.py`. Results: `spikelm/noncekv-n4.json`.
+
+---
+
+## v27 — mechanism correction: the soft read was NOT what rescued
+## collisions. v26's capability stands; its mechanism story is retired.
+
+The review-mandated ablation (same trained ll memories, read-temperature
+swept to hard argmax, within-model so fully valid):
+
+```
+  soft tau=1.0  70.2% · tau=0.5  71.3% · tau=0.25  70.4%
+  tau=0.1  69.3% · HARD argmax  68.2%
+```
+
+Hardening the read costs ~2 points, not the 14-point ll-vs-lo gap. The
+v26 interpretation - "the learned reader pools softly across slots and
+reads through collisions" - is RETIRED as the main mechanism. What
+survives is the capability: learned content-derived write + read works.
+
+New suspect, to be instrumented before it is narrated (v27b, launching):
+the lo arm's "oracle" read one-hots to the slot with the target's argmax
+ROUTE mass - but writes are soft, so content lands in gate-weighted
+proportions, and the route argmax can point away from where the target's
+VALUE mass actually went. If a write-mass oracle (argmax of value mass
+received) recovers the learned read's level while the route-argmax
+oracle stays low, the lo deficit was an instrumentation artifact: an
+oracle defined in the wrong coordinates for a soft-write system.
+
+Retired with it: the "read accuracy = agreement with oracle slot"
+metric (v26's 0.62 was agreement with a possibly-non-canonical
+reference, not a correctness number). Replacement: target-value-mass
+captured, and the counterfactual Delta-L (answer loss with the target's
+write contribution removed vs full memory) - does the retrieved content
+CARRY the fact, not does it match a hand-designated slot.
+
+Also recorded: the ablation harness trains at B=16 (memory headroom for
+long-N rows) vs v26's B=32; its ~70% median with one 0.28 straggler is
+NOT comparable to v26's 88.4% level, and the two tables stay separated.
