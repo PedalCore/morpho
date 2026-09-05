@@ -1522,3 +1522,59 @@ model's forward, asserted):
 Score so far in this mechanism hunt: two hypotheses proposed, two
 refuted by their own pre-registered instruments, capability result
 untouched throughout.
+
+---
+
+## v28 — the pressure sweep: a cliff, and it is a LEARNING cliff, not a
+## capacity cliff
+
+Fixed 2048-bit memory, demand swept (B=16 harness, 4 seeds, medians):
+
+```
+   N   bits/fact  recall   collide  slots used  read H   per-seed
+   1     2048     100.0%     0.00      1.0       0.11    1.00 x4
+   2     1024      96.8%     0.16      1.8       1.12    .97 .97 .97 .95
+   4      512      49.4%     0.14      3.2       0.63    .41 .58 .10 .83
+   8      256       1.4%     0.15      4.9       1.76    .01 x4
+  16      128       1.6%     0.16      6.5       1.41    .02 x4
+  32       64       2.3%     0.15      7.5       1.20    .00-.03
+  no-memory floor at N=32: 0.00/0.02
+```
+
+The pre-registered outcome tree asked whether failure would be graceful
+(bounded cache), sudden (brittle routing), or super-additive (sharing).
+The answer is **sudden - but the diagnostics exonerate the memory
+itself**:
+
+1. The collapse at N=8 is uniform across seeds (all 0.01), not basin
+   noise, and it happens while the WRITE side keeps organising: collision
+   rate stays flat (~0.15) from N=2 to N=32, and slots-used grows
+   sensibly toward the cap (4.9 -> 6.5 -> 7.5). The writer allocates;
+   the system stops learning to use it.
+2. Capacity does not bind at the cliff. At N=8 there are 8 slots for 8
+   entities and 256 bits/fact - v2b showed 128 bits carrying half a
+   96-bit chunk, and these facts are ~34 bits. Storage was sufficient;
+   recall still floored.
+3. The likelier culprit is TRAINING SIGNAL: only one fact per sequence
+   is ever queried, so the gradient pressure to store any given entity
+   falls as 1/N while the joint allocate-and-associate problem hardens.
+   Somewhere between N=4 (solvable, basin-noisily, at B=16) and N=8 the
+   optimisation gives up wholesale.
+
+**The honest verdict on the load-bearing question:** graceful
+fixed-capacity degradation was NOT demonstrated - but neither was a
+capacity limit. Learning breaks before memory binds, so the
+capacity-scaling behaviour of this architecture is UNMEASURED above
+N=4 at this harness. That is a different and more actionable conclusion
+than "brittle routing": the next lever is training signal density
+(query multiple entities per sequence; curriculum in N; B=32), not more
+slots or wider slots.
+
+Caveats: the N=4 row carries the documented B=16 basin lottery
+(.10-.83); all cross-N comparisons share the harness so the cliff's
+LOCATION may shift with batch size, though its existence at some N is
+expected on the signal-dilution argument. Part A of this file (read
+ablation) closed in v27; v27b closed the oracle question. v3.2 is
+complete.
+
+Code: `spikelm/nonce_pressure.py`. Results: `spikelm/nonce-pressure.json`.
