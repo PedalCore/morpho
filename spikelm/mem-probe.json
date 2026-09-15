@@ -1,0 +1,266 @@
+{
+ "orthogonal-a1.0-additive-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "orthogonal-a1.0-additive-N2": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-additive-N4": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-additive-N8": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-additive-N16": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-delta-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "orthogonal-a1.0-delta-N2": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-delta-N4": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-delta-N8": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a1.0-delta-N16": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-additive-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "orthogonal-a0.99-additive-N2": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-additive-N4": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-additive-N8": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-additive-N16": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989999999,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-delta-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "orthogonal-a0.99-delta-N2": {
+  "first": 0.9999999989898991,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989898992,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-delta-N4": {
+  "first": 0.9999999989693897,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999989693897,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-delta-N8": {
+  "first": 0.999999998927114,
+  "last": 0.9999999989999999,
+  "target_moves": 0.999999998927114,
+  "bystander": 0.9999999989999999
+ },
+ "orthogonal-a0.99-delta-N16": {
+  "first": 0.9999999988372881,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9999999988372881,
+  "bystander": 0.9999999989999999
+ },
+ "random-a1.0-additive-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "random-a1.0-additive-N2": {
+  "first": 0.9752632260816821,
+  "last": 0.9752632260806341,
+  "target_moves": 0.9757408886672644,
+  "bystander": 0.9757408886656209
+ },
+ "random-a1.0-additive-N4": {
+  "first": 0.9171476534165635,
+  "last": 0.9151967502842812,
+  "target_moves": 0.9204353408448352,
+  "bystander": 0.9141442048146843
+ },
+ "random-a1.0-additive-N8": {
+  "first": 0.7266973770705141,
+  "last": 0.7265175559256336,
+  "target_moves": 0.723950390825909,
+  "bystander": 0.7270415650653921
+ },
+ "random-a1.0-additive-N16": {
+  "first": 0.5097207193508444,
+  "last": 0.46630846481893246,
+  "target_moves": 0.5189612328873241,
+  "bystander": 0.4632379106253203
+ },
+ "random-a1.0-additive-N32": {
+  "first": 0.30331106302131783,
+  "last": 0.2941394610456274,
+  "target_moves": 0.28298912903212914,
+  "bystander": 0.2932803244887009
+ },
+ "random-a1.0-delta-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "random-a1.0-delta-N2": {
+  "first": 0.9667927239844094,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9683796489301547,
+  "bystander": 0.9999999989999999
+ },
+ "random-a1.0-delta-N4": {
+  "first": 0.8823612427219858,
+  "last": 0.9999999989999999,
+  "target_moves": 0.8860860366786102,
+  "bystander": 0.9999999989999999
+ },
+ "random-a1.0-delta-N8": {
+  "first": 0.714779069901152,
+  "last": 0.9999999989999999,
+  "target_moves": 0.710252324299299,
+  "bystander": 0.9999999989999999
+ },
+ "random-a1.0-delta-N16": {
+  "first": 0.41608745639881967,
+  "last": 0.9999999989999999,
+  "target_moves": 0.44542508796405417,
+  "bystander": 0.9999999989999999
+ },
+ "random-a1.0-delta-N32": {
+  "first": 0.16078913020764965,
+  "last": 0.9999999989999999,
+  "target_moves": 0.12871562443919513,
+  "bystander": 0.9999999989999999
+ },
+ "random-a0.99-additive-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "random-a0.99-additive-N2": {
+  "first": 0.9736400425229639,
+  "last": 0.9745922609560502,
+  "target_moves": 0.9739152935558668,
+  "bystander": 0.9748686517925853
+ },
+ "random-a0.99-additive-N4": {
+  "first": 0.9136859904273734,
+  "last": 0.9180212542062037,
+  "target_moves": 0.9139949614989052,
+  "bystander": 0.9172165851364907
+ },
+ "random-a0.99-additive-N8": {
+  "first": 0.7375509217663275,
+  "last": 0.7633663886526514,
+  "target_moves": 0.7336409108354727,
+  "bystander": 0.7560381359257636
+ },
+ "random-a0.99-additive-N16": {
+  "first": 0.43737382940816016,
+  "last": 0.5729247915378249,
+  "target_moves": 0.42868327150187224,
+  "bystander": 0.5714465468517198
+ },
+ "random-a0.99-additive-N32": {
+  "first": 0.20745876037281571,
+  "last": 0.4109935137829847,
+  "target_moves": 0.2280310678996223,
+  "bystander": 0.4109363809278524
+ },
+ "random-a0.99-delta-N1": {
+  "first": 0.9999999989999999,
+  "last": 0.9999999989999999,
+  "target_moves": null,
+  "bystander": null
+ },
+ "random-a0.99-delta-N2": {
+  "first": 0.9603225730175224,
+  "last": 0.9999999989999999,
+  "target_moves": 0.9570237121670846,
+  "bystander": 0.9999999989999999
+ },
+ "random-a0.99-delta-N4": {
+  "first": 0.8783373148798552,
+  "last": 0.9999999989999999,
+  "target_moves": 0.8822342772767591,
+  "bystander": 0.9999999989999999
+ },
+ "random-a0.99-delta-N8": {
+  "first": 0.6904260780743884,
+  "last": 0.9999999989999999,
+  "target_moves": 0.6927579090965356,
+  "bystander": 0.9999999989999999
+ },
+ "random-a0.99-delta-N16": {
+  "first": 0.3937712630296552,
+  "last": 0.9999999989999999,
+  "target_moves": 0.4369587901166576,
+  "bystander": 0.9999999989999999
+ },
+ "random-a0.99-delta-N32": {
+  "first": 0.1294072214604429,
+  "last": 0.9999999989999999,
+  "target_moves": 0.13034473734066093,
+  "bystander": 0.9999999989999999
+ }
+}

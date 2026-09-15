@@ -1578,3 +1578,63 @@ ablation) closed in v27; v27b closed the oracle question. v3.2 is
 complete.
 
 Code: `spikelm/nonce_pressure.py`. Results: `spikelm/nonce-pressure.json`.
+
+---
+
+## v29 — isolated memory probe: the store CAN hold 8 facts; the cliff is
+## ADDRESSING, not capacity, not (only) credit density
+
+Prompted by review: another 1.4% floor does NOT prove architecture is
+innocent, because (a) retention decays the WHOLE matrix every step, so
+earlier facts may fade through later ones (init survival ~1e-77), and (b)
+separate tanh(M)/tanh(z) breaks the linear-attention normaliser. So we
+pulled the memory OUT of the LM and measured it directly - N random
+(key,value) pairs written and read back, recall = cosine(read, true
+value), no learning/addressing confound. (Local CPU, 200 trials.)
+
+```
+                              recall[first]  recall[last]   (d_k=d_v=16)
+  ORTHOGONAL keys, a=1.0
+    additive/delta, N=8            1.00          1.00      perfect
+    additive/delta, N=16           1.00          1.00      perfect
+  RANDOM (overlapping) keys, a=1.0
+    additive  N=8                  0.73          0.73
+    additive  N=16                 0.51          0.47
+    delta     N=8                  0.71          1.00      last error-corrected
+    delta     N=16                 0.42          1.00
+  RANDOM keys, a=0.99 (decay bug visible)
+    additive  N=16                 0.44          0.57      first << last
+    additive  N=32                 0.21          0.41
+```
+
+Four findings, and they redirect the whole line:
+
+1. **The store CAN hold 8 (and 16) associations.** With orthogonal keys,
+   both write rules recall perfectly at N=8. So the LM floor is NOT a
+   fundamental capacity limit and NOT "only the last fact survives" - my
+   worry, and the review's finding (a), resolved: given distinct keys,
+   all facts survive.
+2. **The bottleneck is ADDRESSING.** With overlapping (random) keys,
+   recall degrades with N regardless of write rule (N=8 -> ~0.73). Key
+   OVERLAP, not storage, is what erodes recall. This connects straight
+   to v25's 91% router collisions and v2c's result that STRUCTURED
+   addressing beat learned free allocation: address quality is the
+   scarce resource, the campaign's through-line.
+3. **Delta-rule is not a rescue under overlap.** It error-corrects the
+   LAST write (last=1.00 always) but earlier facts suffer the SAME
+   overlap crosstalk as additive (delta first ~ additive first). Its
+   advantage is real only for orthogonal keys - exactly as the review
+   predicted.
+4. **The retention<1 decay bug is real and positional** (a=0.99: first <
+   last), confirming review finding (a). At a=1 it is symmetric.
+
+RETRACTION: "another floor => credit density stands / architecture
+innocent" (my v27b/reply reading) is withdrawn. The floor is consistent
+with an ADDRESSING-learning failure - the learned name->key encoder
+producing overlapping keys - which may BE how sparse credit manifests,
+or may be a separate learnability limit. The disentangling experiment is
+the review's step A: an ORACLE orthogonal-key arm vs the learned-key arm
+at N=8. The store works (shown here); the open question is whether the
+model can LEARN keys distinct enough to use it.
+
+Code: `spikelm/mem_probe.py`. Results: `spikelm/mem-probe.json`.
