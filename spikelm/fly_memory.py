@@ -90,46 +90,59 @@ class FlyNonceLM(nn.Module):
         nn.init.zeros_(self.r_up.weight)           # exact no-op at step 0
         self.scale = dk ** -0.5
 
-    def build_memory(self, x, cpre):
-        """Fast-weight write over the pre-cue region. Returns M, z."""
+    def build_memory(self, x, write_end):
+        """Fast-weight write, ENDING AT THE LAST FACT (review finding 2).
+
+        write_end is the end of the last fact span, not the query start:
+        writing through the 420-token gap decayed the store to ~1e-126 and
+        overwrote it with carrier junk. The store is now frozen across the
+        gap, matching the slot writer which also stops at the facts.
+
+        Keys/queries use a NONNEGATIVE feature map phi = elu+1 (review
+        finding 3): signed tanh keys let the read denominator z.q hit zero
+        or go negative, producing nonfinite reads. phi >= 0 makes
+        z.phi(q) >= 0, so the denominator is safe. This is the standard
+        linear-attention normaliser.
+        """
         B = x.shape[0]
-        e = self.emb(x[:, :cpre]) + self.pos[:cpre]
+        e = self.emb(x[:, :write_end]) + self.pos[:write_end]
         h, _ = self.writer(e)
         g = torch.sigmoid(self.w_gate(h)).squeeze(-1)          # (B,T) dopamine
-        k = torch.tanh(self.w_key(h))                          # (B,T,dk)
-        v = torch.tanh(self.w_val(h))                          # (B,T,dv)
+        k = F.elu(self.w_key(h)) + 1.0                         # (B,T,dk) phi>=0
+        v = torch.tanh(self.w_val(h))                          # (B,T,dv) content
         if self.mem == "fw2":
             a = torch.sigmoid(self.w_ret(h)).squeeze(-1)       # (B,T) octopamine
         else:
             a = torch.ones_like(g)                             # fw1: no decay
         M = x.new_zeros(B, self.dv, self.dk)
         z = x.new_zeros(B, self.dk)
-        for t in range(cpre):                                  # sequential store
+        for t in range(write_end):                             # store, facts only
             at = a[:, t].view(B, 1, 1)
             gt = g[:, t].view(B, 1)
             M = at * M + gt.view(B, 1, 1) * torch.einsum(
                 "bv,bk->bvk", v[:, t], k[:, t])
             z = a[:, t].view(B, 1) * z + gt * k[:, t]
-        # quantise the persistent store to the same budget the slots used
+        # quantise BOTH persistent tensors (review finding 4): z is an
+        # input-dependent channel and must be inside the budget too.
         M = quantise_fixed(torch.tanh(M), self.qbits)
+        z = quantise_fixed(torch.tanh(z), self.qbits)
         return M, z
 
-    def read(self, x, cpre, M, z):
-        q0 = cpre                                              # query starts here
+    def read(self, x, q0, M, z):
         qe = self.emb(x[:, q0:q0 + QUERY_L]) + self.pos[:QUERY_L]
         hq, _ = self.q_gru(qe)
-        q = torch.tanh(self.q_key(hq[:, 1 + NAME_L]))          # (B,dk)
-        num = torch.einsum("bvk,bk->bv", M, q)                 # M q
-        den = (z * q).sum(-1, keepdim=True) + 1e-3
+        q = F.elu(self.q_key(hq[:, 1 + NAME_L])) + 1.0         # (B,dk) phi>=0
+        num = torch.einsum("bvk,bk->bv", M, q)                 # M phi(q)
+        den = (z * q).sum(-1, keepdim=True).clamp_min(1e-3)    # z.phi(q) >= 0
         return num / den                                       # (B,dv)
 
-    def forward(self, x, cpre):
+    def forward(self, x, write_end, q0):
         B, Nx = x.shape
-        M, z = self.build_memory(x, cpre)
-        r = self.read(x, cpre, M, z)
+        M, z = self.build_memory(x, write_end)
+        r = self.read(x, q0, M, z)
         h = self.emb(x) + self.pos[:Nx]
         h = h.clone()
-        h[:, cpre:] = h[:, cpre:] + self.r_up(r).unsqueeze(1)
+        h[:, q0:] = h[:, q0:] + self.r_up(r).unsqueeze(1)
         mask = torch.ones(Nx, Nx, dtype=torch.bool, device=x.device)
         for i in range(Nx):
             lo = max(0, i - self.window + 1)
@@ -139,31 +152,34 @@ class FlyNonceLM(nn.Module):
         return self.head(self.ln_out(h))
 
 
-def run(mem, N, carrier, steps, seed, device, B=16, lr=1e-3):
+def run(mem, N, carrier, steps, seed, device, B=16, lr=1e-3, tag=""):
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
     m = FlyNonceLM(mem, N).to(device)
     opt = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=0.01)
     sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, steps)
-    for _ in range(steps):
+    for step in range(steps):
         x, y, spans, tgt, SEQ = make_batch(B, N, carrier, rng, device)
-        cpre = int(spans[:, -1, 1].max())          # write region ends at last fact
-        # align cpre to the actual query start used by make_batch:
-        cpre = x.shape[1] - (QUERY_L + ANS_L - 1)
-        logits = m(x, cpre)
+        write_end = int(spans[:, :, 1].max())      # store ends at last fact
+        q0 = x.shape[1] - (QUERY_L + ANS_L - 1)    # query start (after the gap)
+        logits = m(x, write_end, q0)
         loss = F.cross_entropy(logits.reshape(-1, V), y.reshape(-1),
                                ignore_index=-100)
         opt.zero_grad(); loss.backward()
         nn.utils.clip_grad_norm_(m.parameters(), 1.0)
         opt.step(); sch.step()
+        if (step + 1) % 1500 == 0:
+            print(f"    .. {tag} step {step+1}/{steps} loss {float(loss.detach()):.3f}",
+                  flush=True)
     ev = np.random.default_rng(99)
     ok = n = 0
     m.eval()
     with torch.no_grad():
         for _ in range(8):
             x, y, spans, tgt, _ = make_batch(64, N, carrier, ev, device)
-            cpre = x.shape[1] - (QUERY_L + ANS_L - 1)
-            pred = m(x, cpre).argmax(-1)
+            write_end = int(spans[:, :, 1].max())
+            q0 = x.shape[1] - (QUERY_L + ANS_L - 1)
+            pred = m(x, write_end, q0).argmax(-1)
             sel = y != -100
             ok += int((((pred == y) | ~sel).all(dim=1)).sum()); n += y.shape[0]
     return ok / n
@@ -171,7 +187,7 @@ def run(mem, N, carrier, steps, seed, device, B=16, lr=1e-3):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--entities", type=int, nargs="+", default=[2, 4, 8, 16])
+    ap.add_argument("--entities", type=int, nargs="+", default=[8, 16, 4, 2])
     ap.add_argument("--steps", type=int, default=6000)
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--arms", nargs="+", default=["fw1", "fw2"])
@@ -186,10 +202,14 @@ def main():
     print(f"  {'arm':<6}{'N':>4}{'recall med':>12}{'conv':>6}   per-seed")
     print("  " + "-" * 48)
     res = {}
-    for mem in a.arms:
-        for N in a.entities:
-            accs = [run(mem, N, carrier, a.steps, s, dev)
-                    for s in range(a.seeds)]
+    for N in a.entities:                 # N outer: crux (N=8) resolves first
+        for mem in a.arms:
+            accs = []
+            for s in range(a.seeds):
+                acc = run(mem, N, carrier, a.steps, s, dev,
+                          tag=f"{mem} N={N} seed{s}")
+                accs.append(acc)
+                print(f"  seed {mem:<4}{N:>3}  s{s}  {acc:>6.1%}", flush=True)
             med = float(np.median(accs))
             conv = sum(v >= 0.20 for v in accs)
             print(f"  {mem:<6}{N:>4}{med:>11.1%}{conv:>4}/{a.seeds}   "
