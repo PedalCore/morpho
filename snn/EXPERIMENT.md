@@ -1638,3 +1638,61 @@ at N=8. The store works (shown here); the open question is whether the
 model can LEARN keys distinct enough to use it.
 
 Code: `spikelm/mem_probe.py`. Results: `spikelm/mem-probe.json`.
+
+---
+
+## v30 — the N=8 cliff, localised: address MIXING, not storage/decoder/
+## credit. Learned addressing partially works; the earlier floors were bugs.
+
+Controlled comparison (one write/fact, a=1, full precision, fixed
+normalisation; identical init + batches verified; only the key source
+differs). 2 seeds, converged (final loss flat ~0.27).
+
+```
+                    recall   held-out loss   (no-info baseline 0.416)
+  oracle keys       100.0%       -           2/2, even across positions
+  learned keys       28.5%      0.263        s0 26% s1 31%, even by position
+  learned, mem OFF    1.4%      0.498        memory-dependent (worse than
+                                             baseline without the read)
+  learned, CLEAN
+    VALUE INJECTED   ~90%     0.026/0.056    s0 96.3% s1 85.2%
+```
+
+Three arms localise every component:
+1. **Store works**: oracle one-hot keys -> 100%, even across all 8 write
+   positions. Encode/store/retrieve/decode all function given ideal
+   addresses.
+2. **Decoder + value encoding work**: injecting the target's OWN value
+   (perfect unmixed read) into the SAME trained decoder recovers ~90%.
+   The decoder is not the bottleneck.
+3. **Learned addressing PARTIALLY works, and the residual is MIXING**:
+   from init to trained, write-key overlap 0.999->0.288, query match
+   0.96/0.96 -> 0.91/0.23, target rank 3.76->0.78, read mass on target
+   0.13->0.45. Real selectivity develops (training escapes the near-1
+   init - the elu+1 "floor" worry was wrong). But distractors keep 55%
+   of the read weight collectively, and that contamination caps recall:
+   clean value ~90% vs mixed read ~30%, so MIXING costs ~60 points.
+
+Corrections folded in (review): distractor mass reported COLLECTIVELY
+(0.55), not the misleadingly-small per-distractor 0.08; self-sensitivity
+equals target read-mass BY CONSTRUCTION (linear read) - a diagnostic
+validation, not independent evidence; the raw +1.6 margin is
+scale-dependent, not comparable to oracle's +1.0.
+
+RETRACTION completed: the earlier "three substrates floor at N=8 ->
+credit density" arc (v25-v28) rested on accumulated bugs - per-token
+whole-matrix decay, 420-token gap erasure (~1e-126), broken
+tanh(M)/tanh(z) normalisation, quantisation. In the clean controlled
+setup the store holds 8 facts, learned addressing reaches 30% and is
+memory-dependent, and the bottleneck is address MIXING. Credit density is
+NOT established; it remains only a possible reason learned keys don't
+fully separate.
+
+Caveats: 2 seeds; oracle and clean-value arms use documented assistance
+(one-hot keys / the target's own value); clean-value ~90% leaves ~10%
+the injection does not fix. The whole diagnostic line was driven by
+sustained external review - it moved us from a wrong credit-density
+conclusion to a correct, component-localised one.
+
+Code: `oracle_addr.py`, `addr_diag.py`, `addr_report.py`, `memdep.py`,
+`mem_probe.py`. Checkpoints + configs on the VM.

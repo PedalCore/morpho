@@ -124,16 +124,29 @@ class OracleAddrLM(nn.Module):
         hq, _ = self.q_gru(qe)
         return self.phi(self.q_key(hq[:, 1 + NAME_L]))
 
-    def forward(self, x, spans, tgt, val_over=None):
+    def target_value(self, x, spans, tgt):
+        """The target entity's own value vector (a perfect, unmixed read) -
+        for the clean-value-injection diagnostic."""
+        end = int(spans[:, :, 1].max())
+        h, _ = self.writer(self.emb(x[:, :end]) + self.pos[:end])
+        out = h.new_zeros(x.shape[0], self.w_val.out_features)
+        for b in range(x.shape[0]):
+            lo, hi = int(spans[b, tgt[b], 0]), int(spans[b, tgt[b], 1])
+            out[b] = torch.tanh(self.w_val(h[b, lo:hi].mean(0)))
+        return out
+
+    def forward(self, x, spans, tgt, val_over=None, mem_off=False, read_r=None):
         B, Nx = x.shape
         M, z = self.build_memory(x, spans, val_over)
         q0 = Nx - (QUERY_L + ANS_L - 1)
         q = self.query_key(x, q0, tgt)
         num = torch.einsum("bvk,bk->bv", M, q)
         den = (z * q).sum(-1, keepdim=True).clamp_min(1e-6)
-        r = num / den
+        r = num / den if read_r is None else read_r    # inject clean value
         h = self.emb(x) + self.pos[:Nx]
-        h = h.clone(); h[:, q0:] = h[:, q0:] + self.r_up(r).unsqueeze(1)
+        h = h.clone()
+        if not mem_off:                                 # ablation: zero the read
+            h[:, q0:] = h[:, q0:] + self.r_up(r).unsqueeze(1)
         mask = torch.ones(Nx, Nx, dtype=torch.bool, device=x.device)
         for i in range(Nx):
             mask[i, max(0, i - self.window + 1):i + 1] = False
