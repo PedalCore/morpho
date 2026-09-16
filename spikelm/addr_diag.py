@@ -41,46 +41,48 @@ def cos(a, b):
 @torch.no_grad()
 def diagnose(m, N, carrier, device, batches=8):
     ev = np.random.default_rng(99)
-    overlap, qt, qd, wt, wd = [], [], [], [], []
+    overlap, qt, qd, wt, wd, rank, margin, sens_self, sens_cross = (
+        [], [], [], [], [], [], [], [], [])
     ok = 0; n = 0
     pos_ok = np.zeros(N); pos_n = np.zeros(N)
-    tmove, bstable = [], []
     m.eval()
     for _ in range(batches):
         x, y, spans, tgt, _ = make_batch(64, N, carrier, ev, device)
         B, Nx = x.shape
         end = int(spans[:, :, 1].max())
         h, _ = m.writer(m.emb(x[:, :end]) + m.pos[:end])
-        # per-fact write keys and values
+        # per-fact write keys/values THROUGH THE MODEL'S OWN keyfeat, so an
+        # oracle checkpoint reads as a positive control for the diagnostic
         Kf = h.new_zeros(B, N, m.dk); Vf = h.new_zeros(B, N, m.w_val.out_features)
         for ci in range(N):
             for b in range(B):
                 lo, hi = int(spans[b, ci, 0]), int(spans[b, ci, 1])
                 p = h[b, lo:hi].mean(0)
-                Kf[b, ci] = m.phi(m.w_key(p)); Vf[b, ci] = torch.tanh(m.w_val(p))
+                Kf[b, ci] = m.keyfeat(ci, p); Vf[b, ci] = torch.tanh(m.w_val(p))
         q0 = Nx - (QUERY_L + ANS_L - 1)
-        qe = m.emb(x[:, q0:q0 + QUERY_L]) + m.pos[:QUERY_L]
-        hq, _ = m.q_gru(qe)
-        q = m.phi(m.q_key(hq[:, 1 + NAME_L]))                    # (B,dk)
+        q = m.query_key(x, q0, tgt)                             # model's own query
         ar = torch.arange(B, device=device)
-        # 1. write-key overlap (mean off-diagonal cosine)
-        G = torch.einsum("bik,bjk->bij", Kf, Kf)
-        Kn = Kf.norm(dim=-1, keepdim=True)
-        Gc = G / (Kn * Kn.transpose(1, 2) + 1e-9)
-        off = (Gc.sum((1, 2)) - N) / (N * (N - 1))
-        overlap += off.tolist()
-        # 2. query vs target/distractor write key
-        kt = Kf[ar, tgt]
-        qt += cos(q, kt).tolist()
         dmask = torch.ones(B, N, device=device); dmask[ar, tgt] = 0
+        # 1. write-key overlap (mean off-diagonal cosine)
+        Kn = Kf.norm(dim=-1, keepdim=True)
+        Gc = torch.einsum("bik,bjk->bij", Kf, Kf) / (Kn * Kn.transpose(1, 2) + 1e-9)
+        overlap += ((Gc.sum((1, 2)) - N) / (N * (N - 1))).tolist()
+        # 2. query vs target/distractor write key (cosine)
+        qt += cos(q, Kf[ar, tgt]).tolist()
         qd += ((cos(q.unsqueeze(1).expand(-1, N, -1), Kf) * dmask).sum(1)
                / (N - 1)).tolist()
-        # 3. normalised retrieval weights (contamination)
+        # raw dot products (WITH magnitude): rank + margin catch the single
+        # distractor that wins, which averaged cosines hide
         raw = torch.einsum("bnk,bk->bn", Kf, q)                 # k_i . q
+        rt = raw[ar, tgt]
+        rank += (raw > rt.unsqueeze(1)).sum(1).tolist()         # 0 = target wins
+        top_d = (raw + (1 - dmask) * -1e9).max(1).values        # best distractor
+        margin += (rt - top_d).tolist()
+        # 3. normalised retrieval weights (contamination)
         w = raw / raw.sum(-1, keepdim=True).clamp_min(1e-6)
         wt += w[ar, tgt].tolist()
         wd += ((w * dmask).sum(1) / (N - 1)).tolist()
-        # recall + per position + counterfactual
+        # recall + per position
         pred = m(x, spans, tgt).argmax(-1); sel = y != -100
         hit = ((pred == y) | ~sel).all(dim=1)
         ok += int(hit.sum()); n += B
@@ -88,22 +90,30 @@ def diagnose(m, N, carrier, device, batches=8):
             order = np.argsort(spans[b, :, 0].cpu().numpy())
             pp = int(np.where(order == int(tgt[b]))[0][0])
             pos_ok[pp] += int(hit[b]); pos_n[pp] += 1
-        # counterfactual: overwrite target value, read must move; bystander not
+        # counterfactual (same target query, magnitude-normalised ||dr||):
+        #  self  - swap the TARGET's value: target read SHOULD move (~w_tgt)
+        #  cross - swap a DISTRACTOR's value: target read should NOT move
+        #          (~w_distractor); nonzero = read interference
         r0 = torch.einsum("bnv,bn->bv", Vf, w)
-        v2 = torch.tanh(torch.randn_like(Vf[ar, tgt]))
-        Vf2 = Vf.clone(); Vf2[ar, tgt] = v2
-        r1 = torch.einsum("bnv,bn->bv", Vf2, w)
-        tmove += (1 - cos(r0, r1)).tolist()                     # target read changed?
-        byst = (ar, (tgt + 1) % N)
-        r0b = torch.einsum("bnv,bn->bv", Vf, w)                 # same read; bystander value untouched
-        bstable += cos(r0b, r0b).tolist()                       # trivially 1 (kept for shape)
+        dv = torch.tanh(torch.randn_like(Vf[ar, tgt]))
+        pert = (dv - Vf[ar, tgt]).norm(dim=-1).clamp_min(1e-6)
+        Vs = Vf.clone(); Vs[ar, tgt] = dv
+        sens_self += ((torch.einsum("bnv,bn->bv", Vs, w) - r0).norm(dim=-1)
+                      / pert).tolist()
+        dj = (tgt + 1) % N
+        Vc = Vf.clone(); Vc[ar, dj] = torch.tanh(torch.randn_like(Vf[ar, dj]))
+        pert_c = (Vc[ar, dj] - Vf[ar, dj]).norm(dim=-1).clamp_min(1e-6)
+        sens_cross += ((torch.einsum("bnv,bn->bv", Vc, w) - r0).norm(dim=-1)
+                       / pert_c).tolist()
     return dict(
         recall=ok / n,
         write_overlap=float(np.mean(overlap)),
         query_target=float(np.mean(qt)), query_distractor=float(np.mean(qd)),
+        target_rank=float(np.mean(rank)), target_margin=float(np.mean(margin)),
         read_mass_target=float(np.mean(wt)),
         read_mass_distractor=float(np.mean(wd)),
-        target_read_moves=float(np.mean(tmove)),
+        sens_self=float(np.mean(sens_self)),
+        sens_cross=float(np.mean(sens_cross)),
         pos_recall=(pos_ok / np.maximum(pos_n, 1)).tolist(),
         pos_counts=pos_n.astype(int).tolist())
 
@@ -122,17 +132,18 @@ def main():
     d = diagnose(m, N, carrier, dev)
 
     print(f"{a.ckpt} · addr={ck['addr']} N={N} · recall {d['recall']:.1%}\n")
-    print("  where learned addressing stands (review's 3 causes):")
+    print("  symptoms of learned addressing (related, not independent causes):")
     print(f"    1. write-key overlap (off-diag cos):  {d['write_overlap']:+.3f}"
           f"   (high -> entities collide)")
     print(f"    2. query match  target {d['query_target']:+.3f}"
-          f"  vs distractor {d['query_distractor']:+.3f}"
-          f"   (target<=distractor -> mismatch)")
+          f"  vs distractor {d['query_distractor']:+.3f}   ·  "
+          f"target rank {d['target_rank']:.2f}/{N-1}  margin {d['target_margin']:+.3f}")
     print(f"    3. read mass    target {d['read_mass_target']:.3f}"
           f"  vs distractor {d['read_mass_distractor']:.3f}"
           f"   (target~{1/N:.2f} -> uniform contamination)")
-    print(f"\n  target-read-moves under value swap: {d['target_read_moves']:.3f}"
-          f"  (0 = read ignores target)")
+    print(f"\n  counterfactual (||dr||/||dv||): self {d['sens_self']:.3f}"
+          f"  cross {d['sens_cross']:.3f}"
+          f"   (clean = self high, cross ~0)")
     print("  per-position recall (count):")
     print("    " + "  ".join(f"p{i}:{r:.2f}({c})"
                              for i, (r, c) in enumerate(
