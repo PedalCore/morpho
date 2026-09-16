@@ -156,6 +156,29 @@ class OracleAddrLM(nn.Module):
         Kn = K / K.norm(dim=-1, keepdim=True).clamp_min(1e-6)
         return beta * torch.einsum("bnk,bk->bn", Kn, qn)        # (B,N) cos*beta
 
+    def select_loss(self, x, spans, tgt):
+        """-log(w_target), the ACTUAL positive linear read weight
+        w_i = s_i / sum_j s_j, s_i = k_i . q (phi features, so s_i >= 0).
+        Unlike cosine CE or softmax(s), this directly rewards putting read
+        mass on the correct fact - it supervises the read the model uses,
+        not a differently-normalised proxy."""
+        B, N = spans.shape[0], spans.shape[1]
+        end = int(spans[:, :, 1].max())
+        h, _ = self.writer(self.emb(x[:, :end]) + self.pos[:end])
+        K = h.new_zeros(B, N, self.dk)
+        for ci in range(N):
+            for b in range(B):
+                lo, hi = int(spans[b, ci, 0]), int(spans[b, ci, 1])
+                K[b, ci] = self.keyfeat(ci, h[b, lo:hi].mean(0))
+        q0 = x.shape[1] - (QUERY_L + ANS_L - 1)
+        qe = self.emb(x[:, q0:q0 + QUERY_L]) + self.pos[:QUERY_L]
+        hq, _ = self.q_gru(qe)
+        q = self.query_key(x, q0, tgt) if self.addr == "oracle" \
+            else self.phi(self.q_key(hq[:, 1 + NAME_L]))
+        s = torch.einsum("bnk,bk->bn", K, q).clamp_min(0)       # s_i >= 0
+        w_t = s[torch.arange(B), tgt] / s.sum(-1).clamp_min(1e-6)
+        return -(w_t.clamp_min(1e-6)).log().mean()
+
     def forward(self, x, spans, tgt, val_over=None, mem_off=False, read_r=None):
         B, Nx = x.shape
         M, z = self.build_memory(x, spans, val_over)

@@ -19,7 +19,7 @@ from nonce_lm import make_batch, load_carrier, V
 from oracle_addr import OracleAddrLM
 from addr_diag import diagnose
 
-def train(disc, N, carrier, steps, seed, dev, lam=0.5, B=16, lr=1e-3):
+def train(aux, N, carrier, steps, seed, dev, lam=0.5, B=16, lr=1e-3):
     torch.manual_seed(seed); rng=np.random.default_rng(seed)
     m=OracleAddrLM('learned',N).to(dev)
     opt=torch.optim.AdamW(m.parameters(),lr=lr,weight_decay=0.01)
@@ -27,11 +27,13 @@ def train(disc, N, carrier, steps, seed, dev, lam=0.5, B=16, lr=1e-3):
     for step in range(steps):
         x,y,spans,tgt,_=make_batch(B,N,carrier,rng,dev)
         loss=F.cross_entropy(m(x,spans,tgt).reshape(-1,V),y.reshape(-1),ignore_index=-100)
-        if disc:
+        if aux=="cosine":
             loss=loss+lam*F.cross_entropy(m.match_logits(x,spans),tgt)
+        elif aux=="select":
+            loss=loss+lam*m.select_loss(x,spans,tgt)
         opt.zero_grad(); loss.backward()
         nn.utils.clip_grad_norm_(m.parameters(),1.0); opt.step(); sch.step()
-        if (step+1)%2000==0: print(f"    .. {'disc' if disc else 'base'} s{seed} step {step+1} loss {float(loss.detach()):.3f}",flush=True)
+        if (step+1)%2000==0: print(f'    .. {aux} s{seed} step {step+1} loss {float(loss.detach()):.3f}',flush=True)
     return m
 
 @torch.no_grad()
@@ -46,13 +48,15 @@ def evalm(m,N,carrier,dev,mode):
 
 ap=argparse.ArgumentParser(); ap.add_argument("--steps",type=int,default=6000)
 ap.add_argument("--seeds",type=int,default=2); ap.add_argument("--lam",type=float,default=0.5)
+ap.add_argument("--arms",nargs="+",default=["base","cosine","select"])
 ap.add_argument("--out",default="disc-train.json"); a=ap.parse_args()
+ARMS=a.arms
 dev="cuda" if torch.cuda.is_available() else "cpu"; carrier=load_carrier()
 print(f"discrimination-training lever · N=8 Q=1 · lambda={a.lam} · {a.steps} steps · {a.seeds} seeds · {dev}\n")
 res={}
-for arm,disc in (("base",False),("disc",True)):
+for arm in ARMS:
     for s in range(a.seeds):
-        m=train(disc,8,carrier,a.steps,s,dev,lam=a.lam)
+        m=train(arm,8,carrier,a.steps,s,dev,lam=a.lam)
         d=diagnose(m,8,carrier,dev)
         on=evalm(m,8,carrier,dev,'on'); off=evalm(m,8,carrier,dev,'off'); inj=evalm(m,8,carrier,dev,'inject')
         torch.save({"model":m.state_dict(),"addr":"learned","N":8,"seed":s,"arm":arm},f"disc-{arm}-s{s}.pt")
