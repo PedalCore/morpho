@@ -1641,8 +1641,28 @@ Code: `spikelm/mem_probe.py`. Results: `spikelm/mem-probe.json`.
 
 ---
 
-## v30 — the N=8 cliff, localised: address MIXING, not storage/decoder/
-## credit. Learned addressing partially works; the earlier floors were bugs.
+## v30 — N=8: learned recall ~30%; an unmixed target value rescues +60pp.
+## Store & decoder cleared; credit density remains unproven.
+
+HEADLINE (review-approved wording): learned fast-weight recall reaches
+roughly 30% at N=8; supplying an unmixed target value rescues another ~60
+percentage points. Credit density remains unproven.
+
+Per-seed rescue (eval: rng=99, 8x64 = 512 samples/seed):
+```
+  seed   normal read   clean target value   gain
+   0        28.5%           96.3%          +67.8
+   1        32.2%           85.2%          +53.0
+  avg       30.4%           90.8%          +60.4
+```
+The clean-value arm replaces the learned read with an ORACLE-SELECTED
+value; it combines correcting wrong selection AND removing mixing and
+does NOT separate them, so "the entire bottleneck is address mixing" is
+too strong. The residual 3.7-14.8% error is what clean-value does not
+fix. (Reconciliation note: the training-run summary printed per-seed
+0.26/0.31; the standalone eval here gives 0.285/0.322 - same rng but
+re-loaded checkpoints; the small gap is unresolved rounding/eval-path
+difference, flagged not hidden.)
 
 Controlled comparison (one write/fact, a=1, full precision, fixed
 normalisation; identical init + batches verified; only the key source
@@ -1658,20 +1678,22 @@ differs). 2 seeds, converged (final loss flat ~0.27).
     VALUE INJECTED   ~90%     0.026/0.056    s0 96.3% s1 85.2%
 ```
 
-Three arms localise every component:
+What the three arms establish:
 1. **Store works**: oracle one-hot keys -> 100%, even across all 8 write
    positions. Encode/store/retrieve/decode all function given ideal
    addresses.
-2. **Decoder + value encoding work**: injecting the target's OWN value
-   (perfect unmixed read) into the SAME trained decoder recovers ~90%.
-   The decoder is not the bottleneck.
-3. **Learned addressing PARTIALLY works, and the residual is MIXING**:
-   from init to trained, write-key overlap 0.999->0.288, query match
-   0.96/0.96 -> 0.91/0.23, target rank 3.76->0.78, read mass on target
-   0.13->0.45. Real selectivity develops (training escapes the near-1
-   init - the elu+1 "floor" worry was wrong). But distractors keep 55%
-   of the read weight collectively, and that contamination caps recall:
-   clean value ~90% vs mixed read ~30%, so MIXING costs ~60 points.
+2. **A major addressing bottleneck** (not a fully-cleared decoder):
+   replacing the learned read with the target's OWN value recovers ~90%
+   (+60pp). This corrects wrong selection AND removes mixing together -
+   it does not separate them - and still leaves 3.7-14.8% error, so the
+   decoder / value encoder are NOT completely cleared, only shown not to
+   be the dominant limit.
+3. **Learned addressing PARTIALLY works**: from init to trained,
+   write-key overlap 0.999->0.288, query match 0.96/0.96 -> 0.91/0.23,
+   target rank 3.76->0.78, read mass on target 0.13->0.45. Real
+   selectivity develops (training escapes the near-1 init - the elu+1
+   "floor" worry was wrong). Distractors keep ~55% of the read weight
+   collectively; that mixing is a measurable part of the residual error.
 
 Corrections folded in (review): distractor mass reported COLLECTIVELY
 (0.55), not the misleadingly-small per-distractor 0.08; self-sensitivity
@@ -1679,20 +1701,25 @@ equals target read-mass BY CONSTRUCTION (linear read) - a diagnostic
 validation, not independent evidence; the raw +1.6 margin is
 scale-dependent, not comparable to oracle's +1.0.
 
-RETRACTION completed: the earlier "three substrates floor at N=8 ->
-credit density" arc (v25-v28) rested on accumulated bugs - per-token
-whole-matrix decay, 420-token gap erasure (~1e-126), broken
-tanh(M)/tanh(z) normalisation, quantisation. In the clean controlled
-setup the store holds 8 facts, learned addressing reaches 30% and is
-memory-dependent, and the bottleneck is address MIXING. Credit density is
-NOT established; it remains only a possible reason learned keys don't
-fully separate.
+RETRACTION, scoped precisely: what is withdrawn is the CREDIT-DENSITY
+INFERENCE (v27b/v28 reply reading that "the cliff is credit density").
+The v25-v28 MEASUREMENTS stand - the slot-bank results are not
+invalidated. And distinguish DEFECTS from CHOICES: the fly-specific
+defects were the 420-token gap erasure (~1e-126), per-token
+whole-matrix decay in the fw store, and the broken tanh(M)/tanh(z)
+normalisation. Quantisation and learned decay are experimental CHOICES,
+not inherently bugs - they were removed here to isolate addressing, not
+because they are wrong. In the clean setup the store holds 8 facts,
+learned addressing reaches 30% and is memory-dependent, and a major
+part of the residual is address mixing. Credit density is NOT
+established; it remains only a possible reason learned keys don't fully
+separate.
 
 Caveats: 2 seeds; oracle and clean-value arms use documented assistance
-(one-hot keys / the target's own value); clean-value ~90% leaves ~10%
-the injection does not fix. The whole diagnostic line was driven by
-sustained external review - it moved us from a wrong credit-density
-conclusion to a correct, component-localised one.
+(one-hot keys / the target's own value); clean-value ~90% leaves
+3.7-14.8% the injection does not fix. The whole diagnostic line was
+driven by sustained external review - it moved us from a wrong
+credit-density conclusion to a correct, component-localised one.
 
 Code: `oracle_addr.py`, `addr_diag.py`, `addr_report.py`, `memdep.py`,
 `mem_probe.py`. Checkpoints + configs on the VM.

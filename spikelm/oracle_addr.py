@@ -135,6 +135,27 @@ class OracleAddrLM(nn.Module):
             out[b] = torch.tanh(self.w_val(h[b, lo:hi].mean(0)))
         return out
 
+    def match_logits(self, x, spans, beta=10.0):
+        """beta * cos(query, k_ci) for every entity ci - the training-only
+        discrimination classifier. Teaches the query to pick its entity's
+        write key over distractors, through the SAME q_key/w_key encoders;
+        the compressed M/z memory and the linear read are unchanged."""
+        B, N = spans.shape[0], spans.shape[1]
+        end = int(spans[:, :, 1].max())
+        h, _ = self.writer(self.emb(x[:, :end]) + self.pos[:end])
+        K = h.new_zeros(B, N, self.dk)
+        for ci in range(N):
+            for b in range(B):
+                lo, hi = int(spans[b, ci, 0]), int(spans[b, ci, 1])
+                K[b, ci] = self.keyfeat(ci, h[b, lo:hi].mean(0))
+        q0 = x.shape[1] - (QUERY_L + ANS_L - 1)
+        qe = self.emb(x[:, q0:q0 + QUERY_L]) + self.pos[:QUERY_L]
+        hq, _ = self.q_gru(qe)
+        q = self.phi(self.q_key(hq[:, 1 + NAME_L]))             # (B,dk)
+        qn = q / q.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        Kn = K / K.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        return beta * torch.einsum("bnk,bk->bn", Kn, qn)        # (B,N) cos*beta
+
     def forward(self, x, spans, tgt, val_over=None, mem_off=False, read_r=None):
         B, Nx = x.shape
         M, z = self.build_memory(x, spans, val_over)
